@@ -13,20 +13,15 @@ const BottomTabBar = ({
 
   const getIcon = (routeName: string, isFocused: boolean) => {
     const color = isFocused ? "#ffff" : "#797496";
-    let size = isFocused ? 40 : 25;
-    if (isFocused) {
-      size = 32;
-    }
+    let size = 25;
 
     switch (routeName) {
       case "home":
         return <House color={color} size={size} />;
-      case "index":
-        return <ScanQrCode color={color} size={size} />;
       case "explore":
         return <BookText color={color} size={size} />;
       default:
-        return null;
+        return <ScanQrCode color="#ffff" size={40} />;
     }
   };
 
@@ -42,7 +37,6 @@ const BottomTabBar = ({
       <View
         style={{
           flexDirection: "row",
-          width: "50%",
           justifyContent: "center",
           backgroundColor: "#26213B",
           borderRadius: 24,
@@ -51,6 +45,17 @@ const BottomTabBar = ({
           paddingHorizontal: 12,
         }}
       >
+        <View
+          style={{
+            position: "absolute",
+            top: -7,
+            left: 67,
+            width: 70,
+            height: 70,
+            borderRadius: 35,
+            backgroundColor: "#0891B2",
+          }}
+        />
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
           const labelOption =
@@ -86,13 +91,9 @@ const BottomTabBar = ({
               children: route.name,
             });
           } else {
-            let displayLabel = labelOption;
-            if (route.name === "index") {
-              displayLabel = "Scan";
-            } else {
-              displayLabel =
-                labelOption.charAt(0).toUpperCase() + labelOption.slice(1);
-            }
+            let displayLabel =
+              labelOption.charAt(0).toUpperCase() + labelOption.slice(1);
+
             label = (
               <Text
                 style={{
@@ -106,18 +107,10 @@ const BottomTabBar = ({
             );
           }
 
-          const isProtrudingTab = isFocused;
-          let tabWidth = 60;
-          let tabHeight: number | undefined = undefined;
-          let tabBorderRadius = 0;
-          let tabPaddingVertical = 8;
-
-          if (isProtrudingTab) {
-            tabWidth = 70;
-            tabHeight = 70;
-            tabBorderRadius = 35;
-            tabPaddingVertical = 4;
-          }
+          const tabWidth = 60;
+          const tabHeight: number | undefined = undefined;
+          const tabBorderRadius = 0;
+          const tabPaddingVertical = 8;
 
           return (
             <TouchableOpacity
@@ -133,7 +126,7 @@ const BottomTabBar = ({
                 justifyContent: "center",
                 alignItems: "center",
                 paddingVertical: tabPaddingVertical,
-                backgroundColor: isFocused ? "#0891B2" : "transparent",
+                backgroundColor: "transparent",
                 borderRadius: tabBorderRadius,
               }}
             >
@@ -145,7 +138,7 @@ const BottomTabBar = ({
                 }}
               >
                 {getIcon(route.name, isFocused)}
-                {label}
+                {route.name !== "index" && label}
               </View>
             </TouchableOpacity>
           );
