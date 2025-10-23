@@ -1,7 +1,6 @@
 import { useRouter } from "expo-router"; // 👈 for navigation
 import { useState } from "react";
 import {
-  Dimensions,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -13,8 +12,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const { height } = Dimensions.get("window");
 
 export default function SignUp() {
   const router = useRouter();
@@ -99,7 +96,7 @@ export default function SignUp() {
 
               <TouchableOpacity
                 style={styles.signInButton}
-                onPress={() => router.push("/otp/otp")}
+                onPress={() => router.push("/otp")}
               >
                 <Text style={styles.signInText}>Sign Up</Text>
               </TouchableOpacity>

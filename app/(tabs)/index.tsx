@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/session";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -13,7 +13,7 @@ const Index = () => {
     const checkSession = async () => {
       const admin = await getSession("admin");
       if (!admin) {
-        router.replace("/(auth)/signIn/sign-in");
+        router.replace("/(auth)/sign-in");
       } else {
         setLoading(false);
       }
