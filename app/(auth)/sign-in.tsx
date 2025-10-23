@@ -2,10 +2,12 @@ import { saveSession } from "@/lib/session";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  Dimensions,
   Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -18,6 +20,7 @@ const signInSchema = z.object({
   email: z.string().refine((val) => val === "admin"),
   password: z.string().refine((val) => val === "admin"),
 });
+const { height } = Dimensions.get("window");
 
 export default function SignIn() {
   const router = useRouter();
@@ -32,94 +35,80 @@ export default function SignIn() {
       await saveSession("admin", "true");
       router.replace("/");
     } catch (err: any) {
-      if (err.errors) setError(err.errors[0].message);
-      else setError("An unexpected error occurred");
+      if (err.errors) {
+        setError(err.errors[0].message);
+      } else {
+        setError("An unexpected error occurred");
+      }
     }
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black will-change-variable">
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
-        className="flex-1 will-change-variable"
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
-          className="flex-1 will-change-variable"
+          style={{ flex: 1 }}
           contentContainerStyle={{ flexGrow: 1 }}
           bounces={false}
         >
-          {/* Logo */}
-          <View className="flex-[0.7] justify-center items-center bg-black mb-[-10] will-change-variable">
+          <View style={styles.topContainer}>
             <Image
               source={require("@/assets/png/mega-fitness-logo.png")}
-              className="w-40 h-40 will-change-variable"
+              style={styles.logo}
               resizeMode="contain"
             />
           </View>
 
-          {/* Form section */}
-          <View className="flex-[0.3] bg-[#180921] rounded-t-[50px] justify-center will-change-variable">
-            <View className="px-6 pb-16 items-center justify-end will-change-variable">
-              <Text className="text-white text-2xl font-bold will-change-variable">
-                Sign In
-              </Text>
-              <Text className="text-gray-400 mt-2 mb-6 text-base will-change-variable">
-                Sign in to your Account
-              </Text>
+          <View style={styles.formWrapper}>
+            <View style={styles.formContainer}>
+              <Text style={styles.title}>Sign In</Text>
+              <Text style={styles.subtitle}>Sign in to your Account</Text>
 
-              {/* Email input */}
-              <View className="relative w-full mb-4 will-change-variable">
+              <View style={styles.inputGroup}>
                 <TextInput
                   placeholder="Email Address"
                   placeholderTextColor="#8e8e8e"
-                  className="bg-[#2A2134] text-white rounded-xl py-3.5 px-4 text-base will-change-variable"
+                  style={styles.input}
                   value={email}
                   onChangeText={setEmail}
                 />
               </View>
 
-              {/* Password input */}
-              <View className="relative w-full mb-4 will-change-variable">
+              <View style={styles.inputGroup}>
                 <TextInput
                   placeholder="Password"
                   placeholderTextColor="#8e8e8e"
                   secureTextEntry={!showPassword}
-                  className="bg-[#2A2134] text-white rounded-xl py-3.5 px-4 text-base will-change-variable"
+                  style={styles.input}
                   value={password}
                   onChangeText={setPassword}
                 />
                 <TouchableOpacity
-                  className="absolute right-4 top-3.5 will-change-variable"
+                  style={styles.showButton}
                   onPress={() => setShowPassword(!showPassword)}
                 >
-                  <Text className="text-gray-400 underline text-lg will-change-variable">
+                  <Text style={styles.showText}>
                     {showPassword ? "hide" : "show"}
                   </Text>
                 </TouchableOpacity>
               </View>
 
-              {/* Error */}
-              {error && (
-                <Text className="text-[#ff6b6b] mb-2 text-center will-change-variable">
-                  {error}
-                </Text>
-              )}
+              {error && <Text style={styles.errorText}>{error}</Text>}
 
-              {/* Sign in button */}
               <TouchableOpacity
-                className="bg-[#2AA8A8] w-full py-3.5 rounded-xl items-center mt-2 will-change-variable"
+                style={styles.signInButton}
                 onPress={handleLogin}
               >
-                <Text className="text-white text-lg font-semibold will-change-variable">
-                  Sign In
-                </Text>
+                <Text style={styles.signInText}>Sign In</Text>
               </TouchableOpacity>
 
-              {/* Footer */}
-              <Text className="text-gray-300 mt-6 text-sm will-change-variable">
+              <Text style={styles.footerText}>
                 Haven’t got an account yet?{" "}
                 <Text
-                  className="text-white font-semibold underline will-change-variable"
+                  style={styles.registerText}
                   onPress={() => router.push("/sign-up")}
                 >
                   Register
@@ -132,3 +121,98 @@ export default function SignIn() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#000",
+  },
+  topContainer: {
+    flex: 0.7,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#000",
+    marginBottom: -10,
+  },
+  logo: {
+    width: 160,
+    height: 160,
+  },
+  formWrapper: {
+    flex: 0.3,
+    backgroundColor: "#180921",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    overflow: "hidden",
+    justifyContent: "center",
+  },
+  formContainer: {
+    paddingHorizontal: 25,
+    paddingBottom: 60,
+    alignItems: "center",
+    justifyContent: "flex-end",
+  },
+  title: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "bold",
+  },
+  subtitle: {
+    color: "#aaa",
+    marginTop: 8,
+    marginBottom: 25,
+    fontSize: 15,
+  },
+  inputGroup: {
+    position: "relative",
+    width: "100%",
+    marginBottom: 18,
+  },
+  input: {
+    backgroundColor: "#2A2134",
+    color: "#fff",
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    fontSize: 16,
+  },
+  showButton: {
+    position: "absolute",
+    right: 15,
+    top: 14,
+  },
+  showText: {
+    fontSize: 18,
+    alignItems: "center",
+    textDecorationLine: "underline",
+    color: "#aaa",
+  },
+  signInButton: {
+    backgroundColor: "#2AA8A8",
+    width: "100%",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  signInText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  errorText: {
+    color: "#ff6b6b",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  footerText: {
+    color: "#ccc",
+    marginTop: 25,
+    fontSize: 14,
+  },
+  registerText: {
+    color: "#fff",
+    fontWeight: "600",
+    textDecorationLine: "underline",
+  },
+});
