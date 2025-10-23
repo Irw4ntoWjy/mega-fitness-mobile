@@ -28,10 +28,15 @@ const BottomTabBar = ({
   return (
     <View
       style={{
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
         flexDirection: "row",
         paddingVertical: 4,
         paddingBottom: insets.bottom,
         justifyContent: "center",
+        backgroundColor: "transparent",
       }}
     >
       <View
