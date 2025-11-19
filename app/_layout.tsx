@@ -27,6 +27,10 @@ export default function RootLayout() {
           name="profile/settings-list"
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="profile/edit-profile"
+          options={{ headerShown: false }}
+        />
       </Stack>
     </SafeAreaProvider>
   );

@@ -1,3 +1,4 @@
+import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
 import {
@@ -13,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 const user = {
   name: "Kilto Aznah",
   username: "user1234",
-  memberType: "Member",
+  accountType: "Personal Trainer",
   initials: "KA",
   completedPercent: 10,
   activePackages: 2,
@@ -32,6 +33,36 @@ const user = {
   })),
 };
 
+const activePackagesData = {
+  activePackagesSummary: {
+    totalActive: 10,
+    progressPercent: 10,
+    completedSessions: 20,
+    totalSessions: 200,
+  },
+  packages: [
+    {
+      id: "membership-pass",
+      label: "Membership Pass",
+      currentSessions: 0,
+      totalSessions: 0,
+    },
+    {
+      id: "class-pass",
+      label: "Class Pass",
+      currentSessions: 0,
+      totalSessions: 0,
+    },
+    {
+      id: "private-training",
+      label: "Private Training",
+      currentSessions: 0,
+      totalSessions: 0,
+    },
+  ],
+};
+
+const isTrainer = user.accountType === "Personal Trainer";
 const HERO_H = 100;
 
 export default function Profile() {
@@ -98,65 +129,45 @@ export default function Profile() {
 
         <View className="-mx-4 px-4 pt-16 pb-6 bg-[#F8F8F8]">
           <View className="absolute right-4 top-4 z-40">
-            <View className="px-5 py-2 rounded-xl bg-[#FFF7E6] border border-[#D48B28] shadow-sm">
-              <Text className="text-[#B45C17] text-sm font-semibold">
-                Member
+            <View
+              className={`px-5 py-2 rounded-xl border shadow-sm${
+                isTrainer
+                  ? "bg-[#F8E6FF] border-[#B44DFF]"
+                  : "bg-[#FFF7E6] border-[#D48B28]"
+              }
+            `}
+            >
+              <Text
+                className={` text-sm font-semibold
+                   ${isTrainer ? "text-[#7A20C9]" : "text-[#B45C17]"}
+                `}
+              >
+                {user.accountType}
               </Text>
             </View>
           </View>
 
-          <View className="w-full mb-5 mt-5">
-            <View className="h-45 flex-row items-start">
-              <View className="h-full flex-1 mr-4 bg-white rounded-3xl border border-[#F1E6F4] p-4 overflow-hidden shadow-sm">
-                <Text className="text-gray-800 text-base text-center font-medium">
-                  Active Packages
-                </Text>
-                <View className="items-center">
-                  <View className="mt-6 items-center justify-center">
-                    <View className="w-18 h-18 rounded-full bg-[#0EA5A4] items-center justify-center shadow">
-                      <Text className="text-white text-3xl font-bold">10</Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
+          {isTrainer ? (
+            <>
+              <SectionTitle title="Time Availability" />
 
-              <View className="h-full flex-[1.6] bg-white rounded-3xl border border-[#F1E6F4] p-4 overflow-hidden shadow-sm">
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-sm font-bold text-gray-800">10%</Text>
-                  <Text className="text-sm text-gray-500">
-                    20/200 Active Sessions Done
-                  </Text>
-                </View>
-
-                <View className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                  <View className="h-full w-[10%] bg-[#0EA5A4]" />
-                </View>
-
-                <View className="mt-4">
-                  {["Membership Pass", "Class Pass", "Private Training"].map(
-                    (label, i) => (
-                      <View key={i} className="flex-row items-center mb-2">
-                        <View className="rounded-full bg-[#E6F7F7] border border-[#0EA5A4] px-2 py-0.5 mr-2">
-                          <Text className="text-[#0EA5A4] text-[10px] font-semibold">
-                            0/0
-                          </Text>
-                        </View>
-
-                        <Text className="text-gray-700 text-[13px]">
-                          {label}
-                        </Text>
-                      </View>
-                    )
-                  )}
-                </View>
-                <Pressable className="mt-1 ml-auto rounded-full px-3 py-1.5 bg-[#E1B07C] shadow-sm">
-                  <Text className="text-white text-[11px] font-semibold">
-                    My Packages
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-          </View>
+              {/* <TimeAvailabilitySection
+                weekDays={["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]}
+                selectedDay="Sun"
+                slots={[
+                  "12.00 PM - 04.00 PM",
+                  "12.00 PM - 04.00 PM",
+                  "12.00 PM - 04.00 PM",
+                  "12.00 PM - 04.00 PM",
+                ]}
+              /> */}
+            </>
+          ) : (
+            <ActivePackagesSessionsCard
+              summary={activePackagesData.activePackagesSummary}
+              packages={activePackagesData.packages}
+            />
+          )}
 
           <SectionTitle title="History" className="mt-3" />
           <View className="mt-3 -mx-2 flex-row flex-wrap">
