@@ -3,17 +3,10 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@/*": ["./*"]
-    },
-    "target": "esnext",
-    "module": "esnext",
-    "jsx": "react-jsx",
-    "moduleResolution": "bundler",
-    "allowJs": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true
+      "@/*": ["./*"],
+      "@components/*": ["./components/*"],
+      "@assets/*": ["./assets/*"]
+    }
   },
   "include": [
     "**/*.ts",
