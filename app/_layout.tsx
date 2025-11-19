@@ -7,8 +7,6 @@ import "../global.css";
 
 SplashScreen.preventAutoHideAsync();
 
-import "../global.css";
-
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     "Afacad-Bold": require("../assets/fonts/Afacad/Afacad-Bold.ttf"),
@@ -25,6 +23,10 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="profile/profile" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="profile/settings-list"
+          options={{ headerShown: false }}
+        />
       </Stack>
     </SafeAreaProvider>
   );

@@ -1,3 +1,4 @@
+import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
 import {
   Bell,
@@ -6,16 +7,8 @@ import {
   Settings,
 } from "lucide-react-native";
 import React from "react";
-import {
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 
 const user = {
   name: "Kilto Aznah",
@@ -41,33 +34,19 @@ const user = {
 
 const HERO_H = 100;
 
-function BackgroundGlow() {
-  return (
-    <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <Defs>
-        <RadialGradient id="pinkGlow" cx="85%" cy="40%" r="55%">
-          <Stop offset="0%" stopColor="#FF30D9" stopOpacity="0.35" />
-          <Stop offset="100%" stopColor="#FF30D9" stopOpacity="0" />
-        </RadialGradient>
-      </Defs>
-      <Rect width="100%" height="100%" fill="url(#pinkGlow)" />
-    </Svg>
-  );
-}
-
 export default function Profile() {
   const insets = useSafeAreaInsets();
 
   return (
-    <View className="flex-1 bg-[#180921]">
+    <View className="flex-1">
       <BackgroundGlow />
-
       <View
         style={{
           flexDirection: "row",
           width: "100%",
           paddingTop: insets.top + 8,
-          paddingBottom: 8,
+          paddingRight: insets.right + 8,
+          paddingLeft: insets.left + 8,
         }}
         className="px-4"
       >
@@ -75,7 +54,7 @@ export default function Profile() {
           onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center"
         >
-          <ChevronLeft size={22} color="#fff" />
+          <ChevronLeft size={22} color="#000" />
         </Pressable>
 
         <View className="flex-row items-center ml-auto">
@@ -88,139 +67,149 @@ export default function Profile() {
             </HeaderIcon>
           </View>
           <View className="ml-3 mr-1">
-            <HeaderIcon>
+            <HeaderIcon onPress={() => router.push("/profile/settings-list")}>
               <Settings size={18} color="black" />
             </HeaderIcon>
           </View>
         </View>
       </View>
-
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
-        className="px-4"
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView className="px-4" showsVerticalScrollIndicator={false}>
         <View className="relative">
           <View style={{ height: HERO_H }} />
 
           <View className="absolute right-0 bottom-4 items-end">
             <Text
               numberOfLines={1}
-              className="text-white text-2xl font-extrabold text-right"
+              className="text-black text-2xl font-extrabold text-right"
             >
               {user.name}
             </Text>
-            <Text className="text-white/60 text-right">@{user.username}</Text>
+            <Text className="text-black/60 text-right">@{user.username}</Text>
           </View>
 
           <View className="absolute -bottom-15 z-50">
-            <View className="w-30 h-30 rounded-full bg-cyan-900 border-2 border-cyan-400 items-center justify-center">
-              <Text className="text-cyan-200 text-3xl font-semibold">
+            <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
+              <Text className="text-[#0F6B7E] text-3xl font-semibold">
                 {user.initials}
               </Text>
             </View>
           </View>
         </View>
 
-        <View className="-mx-4 bg-[#180921] px-4 pt-16 pb-6">
+        <View className="-mx-4 px-4 pt-16 pb-6 bg-[#F8F8F8]">
           <View className="absolute right-4 top-4 z-40">
-            <View className="px-5 py-2 rounded-full border border-cyan-400/60 bg-[#26213B]">
-              <Text className="text-cyan-200 text-sm font-semibold">
+            <View className="px-5 py-2 rounded-xl bg-[#FFF7E6] border border-[#D48B28] shadow-sm">
+              <Text className="text-[#B45C17] text-sm font-semibold">
                 Member
               </Text>
             </View>
           </View>
+
           <View className="w-full mb-5 mt-5">
             <View className="h-45 flex-row items-start">
-              <View className="h-full flex-1 mr-4 bg-[#312439] rounded-xl border border-[rgba(255,255,255,0.18)] p-4 overflow-hidden">
-                <Text className="text-white text-base text-center font-medium">
-                  Your Active Packages
+              <View className="h-full flex-1 mr-4 bg-white rounded-3xl border border-[#F1E6F4] p-4 overflow-hidden shadow-sm">
+                <Text className="text-gray-800 text-base text-center font-medium">
+                  Active Packages
                 </Text>
-                <View className="mt-4 items-center">
-                  <View className="w-16 h-16 relative items-center justify-center">
-                    <Image
-                      className="w-full h-full absolute"
-                      resizeMode="contain"
-                    />
-                    <Text className="text-white text-2xl font-semibold">2</Text>
+                <View className="items-center">
+                  <View className="mt-6 items-center justify-center">
+                    <View className="w-18 h-18 rounded-full bg-[#0EA5A4] items-center justify-center shadow">
+                      <Text className="text-white text-3xl font-bold">10</Text>
+                    </View>
                   </View>
                 </View>
               </View>
 
-              <View className="h-full flex-[1.6] bg-[#312439] rounded-xl border border-[rgba(255,255,255,0.18)] p-4 overflow-hidden">
-                <View className="flex-row items-center min-w-0">
-                  <Text
-                    numberOfLines={1}
-                    className="flex-1 pr-2 text-[0.75rem] text-white font-semibold"
-                  >
-                    30%{" "}
-                    <Text className="text-white/70 font-normal">
-                      You’ve Completed 20/200 Active Sessions
-                    </Text>
+              <View className="h-full flex-[1.6] bg-white rounded-3xl border border-[#F1E6F4] p-4 overflow-hidden shadow-sm">
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-sm font-bold text-gray-800">10%</Text>
+                  <Text className="text-sm text-gray-500">
+                    20/200 Active Sessions Done
                   </Text>
-                  <Pressable className="shrink-0 ml-3 rounded-full border border-cyan-400/60 px-[1rem] py-[0.5rem]">
-                    <Text className="text-cyan-200 text-[0.75rem] font-semibold">
-                      My Packages
-                    </Text>
-                  </Pressable>
                 </View>
 
-                <View className="mt-3 w-full h-[0.5rem] bg-white/10 rounded-full overflow-hidden">
-                  <View className="h-full w-[30%] bg-cyan-600" />
+                <View className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                  <View className="h-full w-[10%] bg-[#0EA5A4]" />
                 </View>
 
-                <View className="mt-3">
+                <View className="mt-4">
                   {["Membership Pass", "Class Pass", "Private Training"].map(
                     (label, i) => (
                       <View key={i} className="flex-row items-center mb-2">
-                        <View className="rounded-full bg-cyan-600 px-[0.5rem] py-[0.15rem] mr-2">
-                          <Text className="text-white text-[0.65rem]">0/0</Text>
+                        <View className="rounded-full bg-[#E6F7F7] border border-[#0EA5A4] px-2 py-0.5 mr-2">
+                          <Text className="text-[#0EA5A4] text-[10px] font-semibold">
+                            0/0
+                          </Text>
                         </View>
-                        <Text className="text-white text-[0.8rem]">
+
+                        <Text className="text-gray-700 text-[13px]">
                           {label}
                         </Text>
                       </View>
                     )
                   )}
                 </View>
+                <Pressable className="mt-1 ml-auto rounded-full px-3 py-1.5 bg-[#E1B07C] shadow-sm">
+                  <Text className="text-white text-[11px] font-semibold">
+                    My Packages
+                  </Text>
+                </Pressable>
               </View>
             </View>
           </View>
 
           <SectionTitle title="History" className="mt-3" />
-          <View className="mt-3 flex-row flex-wrap -mx-2">
+          <View className="mt-3 -mx-2 flex-row flex-wrap">
             {user.history.map((h) => (
               <View key={h.id} className="w-1/2 px-2 mb-4">
-                <Card className="p-0 overflow-hidden">
+                <View className="bg-white rounded-3xl border border-[#F1E6F4] shadow-sm overflow-hidden">
                   <Image
                     source={{ uri: h.image }}
                     className="w-full h-28"
                     resizeMode="cover"
                   />
                   <View className="p-3">
-                    <Text className="text-white font-semibold">{h.title}</Text>
-                    <Text className="text-white/60 text-xs mt-1">{h.time}</Text>
-                    <View className="mt-2">
+                    <Text className="text-gray-900 font-semibold">
+                      {h.title}
+                    </Text>
+                    <Text className="text-gray-500 text-xs mt-1">{h.time}</Text>
+                    <View className="ml-auto">
                       <StatusBadge text={h.status} />
                     </View>
                   </View>
-                </Card>
+                </View>
               </View>
             ))}
           </View>
 
-          <Pressable className="self-end px-4 py-2 rounded-lg bg-cyan-500 mt-1">
-            <Text className="text-white font-medium">See All</Text>
+          <Pressable className="self-end px-5 py-2.5 rounded-xl bg-[#E1B07C] mt-1 shadow-sm">
+            <Text className="text-white font-semibold">See All</Text>
           </Pressable>
         </View>
+        <View
+          style={{
+            width: "120%",
+            height: insets.bottom,
+            backgroundColor: "#F8F8F8",
+          }}
+        />
       </ScrollView>
     </View>
   );
 }
 
-function HeaderIcon({ children }: { children: React.ReactNode }) {
+function HeaderIcon({
+  children,
+  onPress,
+}: {
+  children: React.ReactNode;
+  onPress?: () => void;
+}) {
   return (
-    <Pressable className="w-10 h-10 rounded-xl items-center justify-center bg-white">
+    <Pressable
+      onPress={onPress}
+      className="w-10 h-10 rounded-xl items-center justify-center bg-white shadow-sm"
+    >
       {children}
     </Pressable>
   );
@@ -234,35 +223,26 @@ function SectionTitle({
   className?: string;
 }) {
   return (
-    <Text className={`text-white text-xl font-semibold ${className}`}>
+    <Text className={`text-gray-800 text-xl font-semibold ${className}`}>
       {title}
     </Text>
   );
 }
 
-function Card({
-  children,
-  className = "",
-}: React.PropsWithChildren<{ className?: string }>) {
-  return (
-    <View
-      className={`bg-white/5 border border-white/10 rounded-2xl p-4 ${className}`}
-      style={{
-        shadowColor: "#000",
-        shadowOpacity: 0.2,
-        shadowRadius: 12,
-        elevation: 3,
-      }}
-    >
-      {children}
-    </View>
-  );
-}
-
 function StatusBadge({ text }: { text: string }) {
+  const lower = text.toLowerCase();
+
+  if (lower === "completed") {
+    return (
+      <View className="px-5 py-2 rounded-full bg-[#F2FFF7] border border-[#00A651] shadow-sm">
+        <Text className="text-[#008542] text-sm font-semibold">{text}</Text>
+      </View>
+    );
+  }
+
   return (
-    <View className="self-start px-2.5 py-1 rounded-md bg-emerald-500/20 border border-emerald-400/30">
-      <Text className="text-emerald-300 text-xs font-semibold">{text}</Text>
+    <View className="px-5 py-2 rounded-full bg-white border border-gray-300 shadow-sm">
+      <Text className="text-gray-700 text-sm font-semibold">{text}</Text>
     </View>
   );
 }
