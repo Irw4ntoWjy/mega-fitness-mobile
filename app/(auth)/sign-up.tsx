@@ -1,11 +1,10 @@
-import { useRouter } from "expo-router"; // 👈 for navigation
+import { BackgroundGlow } from "@/components/Theme/background";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -22,183 +21,95 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Image
-          source={require("@/assets/icons/chevron-left.png")}
-          style={styles.backIcon}
-          resizeMode="contain"
-        />
-      </TouchableOpacity>
+    <KeyboardAvoidingView
+      className="flex-1"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <SafeAreaView style={{ flex: 1 }}>
+        {/* Background glow same as login */}
+        <BackgroundGlow showText={true} />
+        <TouchableOpacity className="mx-4" onPress={() => router.back()}>
+          <Image
+            source={require("@/assets/icons/chevron-left.png")}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ flexGrow: 1 }}
-          bounces={false}
-        >
-          <View style={styles.topContainer}>
-            <Image
-              source={require("@/assets/png/mega-fitness-logo.png")}
-              style={styles.logo}
-              resizeMode="contain"
+        <View className="flex-1 justify-center items-center">
+          <Image
+            source={require("@/assets/png/mega-fitness-logo.png")}
+            className="w-40 h-40"
+            resizeMode="contain"
+          />
+        </View>
+        <View className="bg-[#FFF] rounded-[30px] p-6 m-4">
+          <Text className="text-black text-2xl font-bold mb-4">
+            Create an Account
+          </Text>
+
+          {/* Username */}
+          <View className="mb-3 gap-2">
+            <Text className="text-black text-lg font-medium">Username</Text>
+            <TextInput
+              placeholder="Enter Username"
+              placeholderTextColor="#000000"
+              className="bg-[#EFEEEF] text-black rounded-xl py-3.5 px-4 text-base"
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
             />
           </View>
 
-          <View style={styles.formWrapper}>
-            <View style={styles.formContainer}>
-              <Text style={styles.title}>Sign Up</Text>
-              <Text style={styles.subtitle}>Sign up to your Account</Text>
-
-              <View style={styles.inputGroup}>
-                <TextInput
-                  placeholder="Username"
-                  placeholderTextColor="#8e8e8e"
-                  style={styles.input}
-                  value={username}
-                  onChangeText={setUsername}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <TextInput
-                  placeholder="Email Address"
-                  placeholderTextColor="#8e8e8e"
-                  style={styles.input}
-                  value={email}
-                  onChangeText={setEmail}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <TextInput
-                  placeholder="Password"
-                  placeholderTextColor="#8e8e8e"
-                  secureTextEntry={!showPassword}
-                  style={styles.input}
-                  value={password}
-                  onChangeText={setPassword}
-                />
-                <TouchableOpacity
-                  style={styles.showButton}
-                  onPress={() => setShowPassword(!showPassword)}
-                >
-                  <Text style={styles.showText}>
-                    {showPassword ? "hide" : "show"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              {error && <Text style={styles.errorText}>{error}</Text>}
-
-              <TouchableOpacity
-                style={styles.signInButton}
-                onPress={() => router.push("/otp")}
-              >
-                <Text style={styles.signInText}>Sign Up</Text>
-              </TouchableOpacity>
-            </View>
+          {/* Email */}
+          <View className="mb-3 gap-2">
+            <Text className="text-black text-lg font-medium">
+              Email or Phone Number
+            </Text>
+            <TextInput
+              placeholder="Enter Email or Phone Number"
+              placeholderTextColor="#000000"
+              className="bg-[#EFEEEF] text-black rounded-xl py-3.5 px-4 text-base"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+            />
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+          {/* Password */}
+          <View className="mb-3 gap-2">
+            <Text className="text-black text-lg font-medium">Password</Text>
+            <TextInput
+              placeholder="Enter Password"
+              placeholderTextColor="#000000"
+              secureTextEntry={!showPassword}
+              className="bg-[#EFEEEF] text-black rounded-xl py-3.5 px-4 text-base"
+              value={password}
+              onChangeText={setPassword}
+            />
+          </View>
+
+          {error && (
+            <Text className="text-[#ff6b6b] mb-2 text-center">{error}</Text>
+          )}
+
+          <TouchableOpacity
+            className="bg-[#DAA770] w-full py-3.5 rounded-xl items-center mt-1"
+            onPress={() => router.push("/otp")}
+          >
+            <Text className="text-white text-base font-medium">Sign Up</Text>
+          </TouchableOpacity>
+
+          <Text className="text-black mt-3 text-md text-center">
+            Already have an account?{" "}
+            <Text
+              className="font-semibold underline"
+              onPress={() => router.push("/sign-in")}
+            >
+              Sign In
+            </Text>
+          </Text>
+        </View>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  backButton: {
-    position: "absolute",
-    top: 60,
-    left: 20,
-    zIndex: 10,
-  },
-  backIcon: {
-    width: 30,
-    height: 30,
-    tintColor: "#fff",
-  },
-  topContainer: {
-    flex: 0.7,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#000",
-    marginBottom: -10,
-  },
-  logo: {
-    width: 160,
-    height: 160,
-  },
-  formWrapper: {
-    flex: 0.3,
-    backgroundColor: "#180921",
-    borderTopLeftRadius: 50,
-    borderTopRightRadius: 50,
-    overflow: "hidden",
-    justifyContent: "center",
-  },
-  formContainer: {
-    paddingHorizontal: 25,
-    paddingBottom: 60,
-    alignItems: "center",
-    justifyContent: "flex-end",
-  },
-  title: {
-    color: "#fff",
-    fontSize: 28,
-    fontWeight: "bold",
-  },
-  subtitle: {
-    color: "#aaa",
-    marginTop: 8,
-    marginBottom: 25,
-    fontSize: 15,
-  },
-  inputGroup: {
-    position: "relative",
-    width: "100%",
-    marginBottom: 18,
-  },
-  input: {
-    backgroundColor: "#2A2134",
-    color: "#fff",
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    fontSize: 16,
-  },
-  showButton: {
-    position: "absolute",
-    right: 15,
-    top: 14,
-  },
-  showText: {
-    fontSize: 18,
-    textDecorationLine: "underline",
-    color: "#aaa",
-  },
-  signInButton: {
-    backgroundColor: "#2AA8A8",
-    width: "100%",
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  signInText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  errorText: {
-    color: "#ff6b6b",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-});
