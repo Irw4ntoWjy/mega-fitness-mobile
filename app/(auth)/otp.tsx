@@ -83,16 +83,19 @@ export default function OtpVerification() {
               <TextInput
                 key={index}
                 ref={inputRefs[index]}
-                className="bg-[#EFEEEF] text-black rounded-xl py-3.5 px-4 w-14 text-2xl flex"
+                className="bg-[#EFEEEF] text-black rounded-xl size-14 text-[22px] flex"
                 style={{
                   textAlign: "center",
+                  textAlignVertical: "center",
                   alignItems: "center",
                   alignContent: "center",
+                  lineHeight: undefined,
                 }}
                 value={digit}
                 keyboardType="numeric"
                 maxLength={1}
                 onChangeText={(text) => handleChange(text, index)}
+                textContentType="oneTimeCode"
               />
             ))}
           </View>
