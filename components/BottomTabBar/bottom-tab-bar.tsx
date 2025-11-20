@@ -12,7 +12,7 @@ const BottomTabBar = ({
   const insets = useSafeAreaInsets();
 
   const getIcon = (routeName: string, isFocused: boolean) => {
-    const color = isFocused ? "#ffff" : "#797496";
+    const color = isFocused ? "black" : "#999999";
     let size = 25;
 
     switch (routeName) {
@@ -43,7 +43,7 @@ const BottomTabBar = ({
         style={{
           flexDirection: "row",
           justifyContent: "center",
-          backgroundColor: "#26213B",
+          backgroundColor: "white",
           borderRadius: 24,
           alignItems: "center",
           height: 56,
@@ -91,7 +91,7 @@ const BottomTabBar = ({
           if (typeof labelOption === "function") {
             label = labelOption({
               focused: isFocused,
-              color: isFocused ? "#ffff" : "#a0aec0",
+              color: isFocused ? "black" : "#a0aec0",
               position: "below-icon",
               children: route.name,
             });
@@ -102,7 +102,7 @@ const BottomTabBar = ({
             label = (
               <Text
                 style={{
-                  color: isFocused ? "#ffff" : "#a0aec0",
+                  color: isFocused ? "black" : "#a0aec0",
                   textAlign: "center",
                   fontSize: 10,
                 }}
