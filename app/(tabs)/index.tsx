@@ -7,7 +7,7 @@ const Index = () => {
 
   return (
     <View style={{ paddingTop: insets.top }}>
-      <Text>Scan</Text>
+      <Text>Home</Text>
     </View>
   );
 };

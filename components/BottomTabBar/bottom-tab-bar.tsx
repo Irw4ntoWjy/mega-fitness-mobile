@@ -16,12 +16,12 @@ const BottomTabBar = ({
     let size = 25;
 
     switch (routeName) {
-      case "home":
-        return <House color={color} size={size} />;
+      case "classes":
+        return <ScanQrCode color="#ffff" size={40} />;
       case "explore":
         return <BookText color={color} size={size} />;
       default:
-        return <ScanQrCode color="#ffff" size={40} />;
+        return <House color={color} size={size} />;
     }
   };
 
@@ -138,7 +138,7 @@ const BottomTabBar = ({
                 }}
               >
                 {getIcon(route.name, isFocused)}
-                {route.name !== "index" && label}
+                {route.name !== "classes" && label}
               </View>
             </TouchableOpacity>
           );

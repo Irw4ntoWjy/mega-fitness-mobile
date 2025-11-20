@@ -10,8 +10,8 @@ export default function Layout() {
         headerShown: false,
       }}
     >
-      <Tabs.Screen name="home" />
       <Tabs.Screen name="index" />
+      <Tabs.Screen name="classes" />
       <Tabs.Screen name="explore" />
     </Tabs>
   );
