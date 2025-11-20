@@ -1,4 +1,8 @@
 import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
+import {
+  TimeAvailabilityData,
+  TimeAvailabilitySection,
+} from "@/components/Profile/time-availability";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
 import {
@@ -12,9 +16,10 @@ import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const user = {
-  name: "Kilto Aznah",
-  username: "user1234",
-  accountType: "Personal Trainer",
+  account_id: "9ffd1d6f-e85c-433b-9d68-ddfc09d7a4af",
+  account_code: "MFC-191125-PT-25004",
+  account_role: "Member",
+  profile_name: "Jovan Torio",
   initials: "KA",
   completedPercent: 10,
   activePackages: 2,
@@ -35,34 +40,59 @@ const user = {
 
 const activePackagesData = {
   activePackagesSummary: {
-    totalActive: 10,
-    progressPercent: 10,
-    completedSessions: 20,
+    totalActive: 5,
+    completedSessions: 60,
     totalSessions: 200,
   },
   packages: [
     {
       id: "membership-pass",
       label: "Membership Pass",
-      currentSessions: 0,
-      totalSessions: 0,
+      currentSessions: 5,
+      totalSessions: 100,
     },
     {
       id: "class-pass",
       label: "Class Pass",
-      currentSessions: 0,
-      totalSessions: 0,
+      currentSessions: 50,
+      totalSessions: 50,
     },
     {
       id: "private-training",
       label: "Private Training",
-      currentSessions: 0,
-      totalSessions: 0,
+      currentSessions: 5,
+      totalSessions: 50,
     },
   ],
 };
 
-const isTrainer = user.accountType === "Personal Trainer";
+const timeAvailabilityData: TimeAvailabilityData = {
+  days: [
+    { key: "Sun", label: "Sun" },
+    { key: "Mon", label: "Mon" },
+    { key: "Tue", label: "Tue" },
+    { key: "Wed", label: "Wed" },
+    { key: "Thu", label: "Thu" },
+    { key: "Fri", label: "Fri" },
+    { key: "Sat", label: "Sat" },
+  ],
+  slotsByDay: {
+    Sun: [
+      { id: "sun-1", label: "12.00 PM - 04.00 PM" },
+      { id: "sun-2", label: "12.00 PM - 04.00 PM" },
+      { id: "sun-3", label: "12.00 PM - 04.00 PM" },
+      { id: "sun-4", label: "12.00 PM - 04.00 PM" },
+    ],
+    Mon: [],
+    Tue: [],
+    Wed: [],
+    Thu: [],
+    Fri: [],
+    Sat: [],
+  },
+};
+
+const isTrainer = user.account_role === "Trainer";
 const HERO_H = 100;
 
 export default function Profile() {
@@ -113,9 +143,11 @@ export default function Profile() {
               numberOfLines={1}
               className="text-black text-2xl font-extrabold text-right"
             >
-              {user.name}
+              {user.profile_name}
             </Text>
-            <Text className="text-black/60 text-right">@{user.username}</Text>
+            <Text className="text-black/60 text-right">
+              @{user.account_code}
+            </Text>
           </View>
 
           <View className="absolute -bottom-15 z-50">
@@ -142,25 +174,21 @@ export default function Profile() {
                    ${isTrainer ? "text-[#7A20C9]" : "text-[#B45C17]"}
                 `}
               >
-                {user.accountType}
+                {user.account_role}
               </Text>
             </View>
           </View>
 
           {isTrainer ? (
             <>
-              <SectionTitle title="Time Availability" />
+              <SectionTitle title="Time Availability" className="mt-3" />
 
-              {/* <TimeAvailabilitySection
-                weekDays={["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]}
-                selectedDay="Sun"
-                slots={[
-                  "12.00 PM - 04.00 PM",
-                  "12.00 PM - 04.00 PM",
-                  "12.00 PM - 04.00 PM",
-                  "12.00 PM - 04.00 PM",
-                ]}
-              /> */}
+              {
+                <TimeAvailabilitySection
+                  data={timeAvailabilityData}
+                  defaultDayKey="Sun"
+                />
+              }
             </>
           ) : (
             <ActivePackagesSessionsCard
