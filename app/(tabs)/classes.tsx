@@ -1,22 +1,184 @@
 import { BackgroundGlow } from "@/components/Theme/background";
-import { User } from "lucide-react-native";
+import { LogOut, User } from "lucide-react-native";
 import React from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
+// 🧠 Dummy data (you can replace later with API)
+const ongoingActivities = [
+  {
+    id: 1,
+    title: "CAMPFIRE",
+    time: "12:00 - 13:00",
+    status: "Ongoing!",
+    tagColor: "#06B6D4",
+    image:
+      "https://images.unsplash.com/photo-1554284126-aa88f22d8b74?auto=format&fit=crop&w=800&q=80",
+  },
+];
+
+type OngoingActivity = (typeof ongoingActivities)[number];
+
+function OngoingCard({
+  item,
+  onPress,
+}: {
+  item: OngoingActivity;
+  onPress?: () => void;
+}) {
+  return (
+    <View className="w-[48%] bg-white rounded-2xl shadow-md overflow-hidden">
+      {/* <View
+        className="absolute -top-4 -left-4 z-30 rounded-full px-4 py-2 shadow-2xl"
+        style={{
+          backgroundColor: item.tagColor,
+          elevation: 10, // Android
+        }}
+      >
+        <Text className="text-white font-bold text-xs uppercase tracking-wider">
+          {item.status}
+        </Text>
+      </View> */}
+
+      <View className="rounded-2xl overflow-hidden">
+        <View className="w-full h-44 relative">
+          <Image
+            source={{ uri: item.image }}
+            className="w-full h-full"
+            resizeMode="cover"
+          />
+        </View>
+
+        <View className="flex-row items-center justify-between px-4 py-4">
+          <View>
+            <Text className="text-black font-bold text-lg tracking-tight">
+              {item.title}
+            </Text>
+            <Text className="text-black text-xs mt-1">{item.time}</Text>
+          </View>
+
+          <Pressable
+            onPress={onPress}
+            className="rounded-lg bg-[#EF4565] p-2 items-center justify-center"
+          >
+            <LogOut size={16} color="white" />
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const todaysActivities = [
+  {
+    id: 2,
+    title: "CAMPFIRE",
+    time: "12:00 - 13:00",
+    status: "Now!",
+    tagColor: "#D946EF",
+    image:
+      "https://images.unsplash.com/photo-1554284126-aa88f22d8b74?auto=format&fit=crop&w=800&q=80",
+    buttonText: "Sign In",
+  },
+  {
+    id: 3,
+    title: "CAMPFIRE",
+    time: "15:00 - 16:00",
+    status: "Today",
+    tagColor: "#0891B2",
+    image:
+      "https://images.unsplash.com/photo-1598970434795-0c54fe7c0644?auto=format&fit=crop&w=800&q=80",
+    buttonText: "Sign In",
+  },
+  {
+    id: 4,
+    title: "CAMPFIRE",
+    time: "17:00 - 18:00",
+    status: "Today",
+    tagColor: "#0891B2",
+    image:
+      "https://images.unsplash.com/photo-1571019613914-85f342c0f7f7?auto=format&fit=crop&w=800&q=80",
+    buttonText: "Sign In",
+  },
+  {
+    id: 5,
+    title: "CAMPFIRE",
+    time: "19:00 - 20:00",
+    status: "Today",
+    tagColor: "#0891B2",
+    image:
+      "https://images.unsplash.com/photo-1550345332-09e3ac987658?auto=format&fit=crop&w=800&q=80",
+    buttonText: "Sign In",
+  },
+];
+
+type TodaysActivities = (typeof todaysActivities)[number];
+
+function TodaysCard({
+  item,
+  onPress,
+}: {
+  item: TodaysActivities;
+  onPress?: () => void;
+}) {
+  return (
+    <View className="w-[48%] bg-white rounded-2xl shadow-md overflow-hidden">
+      {/* <View
+        className="absolute -top-4 -left-4 z-30 rounded-full px-4 py-2 shadow-2xl"
+        style={{
+          backgroundColor: item.tagColor,
+          elevation: 10, // Android
+        }}
+      >
+        <Text className="text-white font-bold text-xs uppercase tracking-wider">
+          {item.status}
+        </Text>
+      </View> */}
+
+      <View className="rounded-2xl overflow-hidden">
+        <View className="w-full h-44 relative">
+          <Image
+            source={{ uri: item.image }}
+            className="w-full h-full"
+            resizeMode="cover"
+          />
+        </View>
+
+        <View className="flex-row items-center justify-between px-4 py-4">
+          <View>
+            <Text className="text-black font-bold text-lg tracking-tight">
+              {item.title}
+            </Text>
+            <Text className="text-black text-xs mt-1">{item.time}</Text>
+          </View>
+
+          <Pressable
+            onPress={onPress}
+            className="rounded-lg bg-[#DAA770] p-2 items-center justify-center"
+          >
+            <Text className="text-white text-sm tracking-tight">Sign In</Text>
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 const Home = () => {
   const insets = useSafeAreaInsets();
-  return (
-    <View className="bg-[#D0D0D0] w-full h-full overflow-hidden">
-      <SafeAreaView style={{ flex: 1 }}>
-        <View className="w-full h-[21vh] shadow-[0_0_10px_rgba(0,0,0,0.3)] bg-[#EFEFEF] overflow-hidden relative rounded-b-xl">
-          <View className="will-change-variable bg-[#FF30D9] blur-[70px] w-[50vh] h-[50vh] opacity-[25%] rounded-full absolute z-0 left-[-70vw] top-[-160%]"></View>
-          <View className="will-change-variable bg-[#FF30D9] blur-[70px] w-[50vh] h-[50vh] opacity-[25%] rounded-full absolute z-0 right-[-60vw] bottom-[-150%]"></View>
 
-          <View className="w-full h-full overflow-hidden absolute z-1 flex flex-col justify-between items-center py-[2vh]">
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <View className="bg-[#D0D0D0] w-full h-full overflow-hidden">
+        <View className="w-full h-[21vh] shadow-[0_0_10px_rgba(0,0,0,0.3)] bg-[#EFEFEF] overflow-hidden relative rounded-b-xl">
+          <View className="absolute w-[70vh] h-[70vh] bg-[#FF30D9] opacity-25 rounded-full left-[-60vw] top-[-120%]" />
+          <View className="absolute w-[70vh] h-[70vh] bg-[#FF30D9] opacity-25 rounded-full right-[-50vw] bottom-[-130%]" />
+          <View className="absolute inset-0 bg-white/30" />
+
+          <View className="w-full h-full absolute z-10 flex flex-col justify-between items-center py-[2vh]">
             <View className="w-[95%] flex flex-row justify-between items-center">
               <View>
                 <Text className="text-3xl font-semibold text-slate-900">
@@ -43,13 +205,32 @@ const Home = () => {
             </View>
           </View>
         </View>
-      </SafeAreaView>
-      <ScrollView style={{ flex: 1 }}>
-        <View>
+
+        <ScrollView className="rounded-t-xl">
           <BackgroundGlow />
-        </View>
-      </ScrollView>
-    </View>
+
+          <View>
+            <Text className="text-2xl font-bold text-slate-800 mb-4">
+              Ongoing Activity
+            </Text>
+            <View className="flex flex-row flex-wrap justify-between gap-3 mb-4">
+              {ongoingActivities.map((item) => (
+                <OngoingCard key={item.id} item={item} onPress={() => {}} />
+              ))}
+            </View>
+
+            <Text className="text-2xl font-bold text-slate-800 mb-4">
+              Today’s Activity
+            </Text>
+            <View className="flex flex-row flex-wrap justify-between gap-3">
+              {todaysActivities.map((item) => (
+                <TodaysCard key={item.id} item={item} onPress={() => {}} />
+              ))}
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 };
 
