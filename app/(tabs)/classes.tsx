@@ -30,21 +30,9 @@ function OngoingCard({
   onPress?: () => void;
 }) {
   return (
-    <View className="w-[48%] bg-white rounded-2xl shadow-md overflow-hidden">
-      {/* <View
-        className="absolute -top-4 -left-4 z-30 rounded-full px-4 py-2 shadow-2xl"
-        style={{
-          backgroundColor: item.tagColor,
-          elevation: 10, // Android
-        }}
-      >
-        <Text className="text-white font-bold text-xs uppercase tracking-wider">
-          {item.status}
-        </Text>
-      </View> */}
-
-      <View className="rounded-2xl overflow-hidden">
-        <View className="w-full h-44 relative">
+    <View className="w-[48%] mb-4">
+      <View className="bg-white rounded-2xl shadow-md relative">
+        <View className="w-full h-44 rounded-t-2xl overflow-hidden">
           <Image
             source={{ uri: item.image }}
             className="w-full h-full"
@@ -52,18 +40,39 @@ function OngoingCard({
           />
         </View>
 
+        <View
+          style={{
+            position: "absolute",
+            top: -10,
+            left: -5,
+            backgroundColor: item.tagColor,
+            paddingHorizontal: 12,
+            paddingVertical: 4,
+            borderRadius: 8,
+            zIndex: 1000,
+            elevation: 30,
+          }}
+        >
+          <Text
+            style={{
+              color: "white",
+              fontSize: 10,
+              fontWeight: "700",
+              textTransform: "uppercase",
+              letterSpacing: 0.8,
+            }}
+          >
+            {item.status}
+          </Text>
+        </View>
+
         <View className="flex-row items-center justify-between px-4 py-4">
           <View>
-            <Text className="text-black font-bold text-lg tracking-tight">
-              {item.title}
-            </Text>
+            <Text className="text-black font-bold text-lg">{item.title}</Text>
             <Text className="text-black text-xs mt-1">{item.time}</Text>
           </View>
 
-          <Pressable
-            onPress={onPress}
-            className="rounded-lg bg-[#EF4565] p-2 items-center justify-center"
-          >
+          <Pressable className="rounded-lg bg-[#EF4565] p-2">
             <LogOut size={16} color="white" />
           </Pressable>
         </View>
@@ -125,21 +134,9 @@ function TodaysCard({
   onPress?: () => void;
 }) {
   return (
-    <View className="w-[48%] bg-white rounded-2xl shadow-md overflow-hidden">
-      {/* <View
-        className="absolute -top-4 -left-4 z-30 rounded-full px-4 py-2 shadow-2xl"
-        style={{
-          backgroundColor: item.tagColor,
-          elevation: 10, // Android
-        }}
-      >
-        <Text className="text-white font-bold text-xs uppercase tracking-wider">
-          {item.status}
-        </Text>
-      </View> */}
-
-      <View className="rounded-2xl overflow-hidden">
-        <View className="w-full h-44 relative">
+    <View className="w-[48%] mb-4">
+      <View className="bg-white rounded-2xl shadow-md relative">
+        <View className="w-full h-44 rounded-t-2xl overflow-hidden">
           <Image
             source={{ uri: item.image }}
             className="w-full h-full"
@@ -147,11 +144,35 @@ function TodaysCard({
           />
         </View>
 
+        <View
+          style={{
+            position: "absolute",
+            top: -10,
+            left: -5,
+            backgroundColor: item.tagColor,
+            paddingHorizontal: 12,
+            paddingVertical: 4,
+            borderRadius: 8,
+            zIndex: 1000,
+            elevation: 30,
+          }}
+        >
+          <Text
+            style={{
+              color: "white",
+              fontSize: 10,
+              fontWeight: "700",
+              textTransform: "uppercase",
+              letterSpacing: 0.8,
+            }}
+          >
+            {item.status}
+          </Text>
+        </View>
+
         <View className="flex-row items-center justify-between px-4 py-4">
           <View>
-            <Text className="text-black font-bold text-lg tracking-tight">
-              {item.title}
-            </Text>
+            <Text className="text-black font-bold text-lg">{item.title}</Text>
             <Text className="text-black text-xs mt-1">{item.time}</Text>
           </View>
 
@@ -172,10 +193,10 @@ const Home = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View className="bg-[#D0D0D0] w-full h-full overflow-hidden">
+      <View className="bg-[#DBDBDB] w-full h-full overflow-hidden">
         <View className="w-full h-[21vh] shadow-[0_0_10px_rgba(0,0,0,0.3)] bg-[#EFEFEF] overflow-hidden relative rounded-b-xl">
-          <View className="absolute w-[70vh] h-[70vh] bg-[#FF30D9] opacity-25 rounded-full left-[-60vw] top-[-120%]" />
-          <View className="absolute w-[70vh] h-[70vh] bg-[#FF30D9] opacity-25 rounded-full right-[-50vw] bottom-[-130%]" />
+          {/* <View className="absolute w-[70vh] h-[70vh] bg-[#FF30D9] opacity-25 rounded-full left-[-60vw] top-[-120%]" />
+          <View className="absolute w-[70vh] h-[70vh] bg-[#FF30D9] opacity-25 rounded-full right-[-50vw] bottom-[-130%]" /> */}
           <View className="absolute inset-0 bg-white/30" />
 
           <View className="w-full h-full absolute z-10 flex flex-col justify-between items-center py-[2vh]">
@@ -206,14 +227,16 @@ const Home = () => {
           </View>
         </View>
 
-        <ScrollView className="rounded-t-xl">
-          <BackgroundGlow />
+        {/* Content */}
+        <ScrollView className="rounded-t-xl mt-10">
+          <BackgroundGlow showText={true} />
 
-          <View>
+          <View className="px-4 pt-4">
             <Text className="text-2xl font-bold text-slate-800 mb-4">
               Ongoing Activity
             </Text>
-            <View className="flex flex-row flex-wrap justify-between gap-3 mb-4">
+
+            <View className="flex flex-row flex-wrap justify-between">
               {ongoingActivities.map((item) => (
                 <OngoingCard key={item.id} item={item} onPress={() => {}} />
               ))}
@@ -222,7 +245,8 @@ const Home = () => {
             <Text className="text-2xl font-bold text-slate-800 mb-4">
               Today’s Activity
             </Text>
-            <View className="flex flex-row flex-wrap justify-between gap-3">
+
+            <View className="flex flex-row flex-wrap justify-between">
               {todaysActivities.map((item) => (
                 <TodaysCard key={item.id} item={item} onPress={() => {}} />
               ))}
