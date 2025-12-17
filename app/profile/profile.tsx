@@ -3,16 +3,18 @@ import {
   TimeAvailabilityData,
   TimeAvailabilitySection,
 } from "@/components/Profile/time-availability";
+import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
 import {
   Bell,
   ChevronLeft,
   FileQuestionMark,
+  Pencil,
   Settings,
 } from "lucide-react-native";
 import React from "react";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const user = {
@@ -22,20 +24,6 @@ const user = {
   profile_name: "Jovan Torio",
   initials: "KA",
   completedPercent: 10,
-  activePackages: 2,
-  packages: [
-    { label: "Membership Pass" },
-    { label: "Class Pass" },
-    { label: "Private Training" },
-  ],
-  history: new Array(4).fill(0).map((_, i) => ({
-    id: String(i),
-    title: "CAMPFIRE",
-    time: "15:00 - 16:00",
-    status: "Completed",
-    image:
-      "https://static.dezeen.com/uploads/2025/05/sq-google-g-logo-update_dezeen_2364_col_0.jpg",
-  })),
 };
 
 const activePackagesData = {
@@ -95,6 +83,41 @@ const timeAvailabilityData: TimeAvailabilityData = {
 const isTrainer = user.account_role === "Trainer";
 const HERO_H = 100;
 
+type ProfileFieldConfig = {
+  key: string;
+  label: string;
+};
+
+const BASE_PROFILE_FIELDS: ProfileFieldConfig[] = [
+  { key: "name", label: "Full Name" },
+  { key: "phone", label: "Contact Number" },
+  { key: "address", label: "Address" },
+  { key: "birth", label: "Birth Date" },
+  { key: "gender", label: "Gender" },
+];
+
+const TRAINER_EXTRA_FIELDS: ProfileFieldConfig[] = [
+  { key: "certification", label: "Certification" },
+  { key: "experience", label: "Experience" },
+  { key: "availability", label: "Availability" },
+];
+
+const profileFields = isTrainer
+  ? [...BASE_PROFILE_FIELDS, ...TRAINER_EXTRA_FIELDS]
+  : BASE_PROFILE_FIELDS;
+
+const profileValues: Record<string, string> = {
+  name: user.profile_name,
+  phone: "(+62) 812-xxxx-xxxx",
+  address: "Jl. Cemara Asri",
+  birth: "11 / 11 / 2000",
+  gender: "Male",
+
+  certification: "NASM CPT",
+  experience: "5 Years",
+  availability: "Mon – Fri",
+};
+
 export default function Profile() {
   const insets = useSafeAreaInsets();
 
@@ -134,20 +157,16 @@ export default function Profile() {
           </View>
         </View>
       </View>
+
       <ScrollView className="px-4" showsVerticalScrollIndicator={false}>
         <View className="relative">
           <View style={{ height: HERO_H }} />
 
           <View className="absolute right-0 bottom-4 items-end">
-            <Text
-              numberOfLines={1}
-              className="text-black text-2xl font-extrabold text-right"
-            >
+            <Text className="text-black text-2xl font-extrabold">
               {user.profile_name}
             </Text>
-            <Text className="text-black/60 text-right">
-              @{user.account_code}
-            </Text>
+            <Text className="text-black/60">@{user.account_code}</Text>
           </View>
 
           <View className="absolute -bottom-15 z-50">
@@ -159,20 +178,20 @@ export default function Profile() {
           </View>
         </View>
 
-        <View className="-mx-4 px-4 pt-16 pb-6 bg-[#F8F8F8]">
+        <View className="-mx-4 px-4 pt-16 pb-6 bg-[#EEEEEE]">
+          <InnerShadowOverlay height={25} />
           <View className="absolute right-4 top-4 z-40">
             <View
-              className={`px-5 py-2 rounded-xl border shadow-sm${
+              className={`px-5 py-2 rounded-xl border shadow-sm ${
                 isTrainer
                   ? "bg-[#F8E6FF] border-[#B44DFF]"
                   : "bg-[#FFF7E6] border-[#D48B28]"
-              }
-            `}
+              }`}
             >
               <Text
-                className={` text-sm font-semibold
-                   ${isTrainer ? "text-[#7A20C9]" : "text-[#B45C17]"}
-                `}
+                className={`text-sm font-semibold ${
+                  isTrainer ? "text-[#7A20C9]" : "text-[#B45C17]"
+                }`}
               >
                 {user.account_role}
               </Text>
@@ -181,14 +200,11 @@ export default function Profile() {
 
           {isTrainer ? (
             <>
-              <SectionTitle title="Time Availability" className="mt-3" />
-
-              {
-                <TimeAvailabilitySection
-                  data={timeAvailabilityData}
-                  defaultDayKey="Sun"
-                />
-              }
+              <SectionTitle title="Time Availability" className="mt-6" />
+              <TimeAvailabilitySection
+                data={timeAvailabilityData}
+                defaultDayKey="Sun"
+              />
             </>
           ) : (
             <ActivePackagesSessionsCard
@@ -196,43 +212,55 @@ export default function Profile() {
               packages={activePackagesData.packages}
             />
           )}
-
-          <SectionTitle title="History" className="mt-3" />
-          <View className="mt-3 -mx-2 flex-row flex-wrap">
-            {user.history.map((h) => (
-              <View key={h.id} className="w-1/2 px-2 mb-4">
-                <View className="bg-white rounded-3xl border border-[#F1E6F4] shadow-sm overflow-hidden">
-                  <Image
-                    source={{ uri: h.image }}
-                    className="w-full h-28"
-                    resizeMode="cover"
-                  />
-                  <View className="p-3">
-                    <Text className="text-gray-900 font-semibold">
-                      {h.title}
-                    </Text>
-                    <Text className="text-gray-500 text-xs mt-1">{h.time}</Text>
-                    <View className="ml-auto">
-                      <StatusBadge text={h.status} />
-                    </View>
-                  </View>
-                </View>
-              </View>
-            ))}
-          </View>
-
-          <Pressable className="self-end px-5 py-2.5 rounded-xl bg-[#E1B07C] mt-1 shadow-sm">
-            <Text className="text-white font-semibold">See All</Text>
-          </Pressable>
         </View>
-        <View
-          style={{
-            width: "120%",
-            height: insets.bottom,
-            backgroundColor: "#F8F8F8",
-          }}
-        />
+        <ProfileInfoSection fields={profileFields} values={profileValues} />
       </ScrollView>
+      <Pressable
+        onPress={() => router.push("/profile/edit-profile")}
+        style={{
+          position: "absolute",
+          right: 20,
+          bottom: insets.bottom + 20,
+        }}
+      >
+        <View
+          className={`
+        w-16 h-16 rounded-full
+        items-center justify-center
+        shadow-lg bg-[#0891B2]
+      `}
+        >
+          <Pencil size={24} color="#FFFFFF" />
+        </View>
+      </Pressable>
+    </View>
+  );
+}
+
+function ProfileInfoSection({
+  fields,
+  values,
+}: {
+  fields: ProfileFieldConfig[];
+  values: Record<string, string>;
+}) {
+  return (
+    <View className="p-4 mt-2">
+      <SectionTitle title="Your Info" />
+
+      <View className="mt-4">
+        {fields.map((f) => (
+          <View key={f.key} className="mb-4 last:mb-0">
+            <Text className="text-xs text-gray-500 mb-1">{f.label}</Text>
+
+            <View className="bg-white rounded-xl px-3 py-3 border-2 border-gray-200">
+              <Text className="text-sm text-gray-900">
+                {values[f.key] || "-"}
+              </Text>
+            </View>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -262,26 +290,8 @@ function SectionTitle({
   className?: string;
 }) {
   return (
-    <Text className={`text-gray-800 text-xl font-semibold ${className}`}>
+    <Text className={`text-gray-800 text-2xl font-extrabold ${className}`}>
       {title}
     </Text>
-  );
-}
-
-function StatusBadge({ text }: { text: string }) {
-  const lower = text.toLowerCase();
-
-  if (lower === "completed") {
-    return (
-      <View className="px-5 py-2 rounded-full bg-[#F2FFF7] border border-[#00A651] shadow-sm">
-        <Text className="text-[#008542] text-sm font-semibold">{text}</Text>
-      </View>
-    );
-  }
-
-  return (
-    <View className="px-5 py-2 rounded-full bg-white border border-gray-300 shadow-sm">
-      <Text className="text-gray-700 text-sm font-semibold">{text}</Text>
-    </View>
   );
 }

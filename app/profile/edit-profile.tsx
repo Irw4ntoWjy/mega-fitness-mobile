@@ -1,320 +1,227 @@
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
-import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import { ChevronDown, ChevronLeft } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type AccountProfile = {
-  account_id: string;
-  account_code: string;
-  account_email: string;
-  account_status_id: string;
-  account_status_name: string;
-  account_role: string;
-  profile_name: string;
-  birth_date: string | null;
-  gender: string | null;
-  identity_no: string | null;
-  picture_url: string | null;
-  contact_number: string | null;
-};
-
-// TODO: ganti dengan data dari API
-const mockAccount: AccountProfile = {
-  account_id: "81a297ef-1bd3-4df7-8d2b-8b762e786d32",
-  account_code: "MFC-080925-EM-25002",
-  account_email: "member@gmail.com",
-  account_status_id: "1",
-  account_status_name: "Aktif",
-  account_role: "Member",
+const mockAccount = {
   profile_name: "Member",
-  birth_date: "2004-12-06T00:00:00Z",
-  gender: "Perempuan",
-  identity_no: "1234123412341234",
-  picture_url: null,
-  contact_number: null,
+  contact_number: "",
+  address: "Jl. Lychee, Cemara Asri",
+  birth_date: "2000-11-11T00:00:00Z",
+  gender: "Male",
 };
 
-type EditableFieldKey =
-  | "fullName"
-  | "email"
-  | "contactNumber"
-  | "identityNumber"
-  | "birthDate"
-  | "gender";
+function formatDate(date: Date) {
+  return date.toLocaleDateString("en-GB");
+}
 
-const fieldConfig: Record<
-  EditableFieldKey,
-  { label: string; helper?: string; maxLength?: number }
-> = {
-  fullName: {
-    label: "Full Name",
-    helper: "",
-    maxLength: 60,
-  },
-  email: {
-    label: "Email",
-    helper: "",
-    maxLength: 80,
-  },
-  contactNumber: {
-    label: "Contact Number",
-    helper: "Include country code if needed.",
-    maxLength: 20,
-  },
-  identityNumber: {
-    label: "Identity Number",
-    helper: "",
-    maxLength: 32,
-  },
-  birthDate: {
-    label: "Birth Date",
-    helper: "Format: dd/MM/yyyy",
-    maxLength: 10,
-  },
-  gender: {
-    label: "Gender",
-    helper: "",
-    maxLength: 20,
-  },
-};
+function Label({ children }: { children: React.ReactNode }) {
+  return <Text className="text-xs text-gray-500 mb-1">{children}</Text>;
+}
 
-function formatBirthDate(input: string | null) {
-  if (!input) return "";
-  const d = new Date(input);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("en-GB"); // dd/MM/yyyy
+function InputBox({ children }: { children: React.ReactNode }) {
+  return (
+    <View className="bg-white border border-gray-300 rounded-lg px-3 py-3">
+      {children}
+    </View>
+  );
 }
 
 export default function EditProfile() {
   const insets = useSafeAreaInsets();
-  const account = mockAccount;
 
-  const initialBirth = useMemo(
-    () => formatBirthDate(account.birth_date),
-    [account.birth_date]
-  );
+  const initialBirthDate = useMemo(() => new Date(mockAccount.birth_date), []);
+  const [openGender, setOpenGender] = useState(false);
+
+  const [openDate, setOpenDate] = useState(false);
+  const years = Array.from({ length: 80 }, (_, i) => 2025 - i);
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
 
   const [form, setForm] = useState({
-    fullName: account.profile_name ?? "",
-    memberId: account.account_code ?? "",
-    email: account.account_email ?? "",
-    contactNumber: account.contact_number ?? "",
-    identityNumber: account.identity_no ?? "",
-    birthDate: initialBirth,
-    gender: account.gender ?? "",
+    fullName: mockAccount.profile_name,
+    contactNumber: mockAccount.contact_number,
+    address: mockAccount.address,
+    birthDate: initialBirthDate,
+    gender: mockAccount.gender,
   });
 
-  const [activeField, setActiveField] = useState<EditableFieldKey | null>(null);
-  const [tempValue, setTempValue] = useState("");
-
-  const openEditor = (key: EditableFieldKey) => {
-    setActiveField(key);
-    setTempValue(form[key]);
+  const handleSave = () => {
+    console.log("SAVE:", form);
+    router.back();
   };
-
-  const closeEditor = () => {
-    setActiveField(null);
-    setTempValue("");
-  };
-
-  const handleSaveField = () => {
-    if (!activeField) return;
-    setForm((prev) => ({
-      ...prev,
-      [activeField]: tempValue,
-    }));
-    closeEditor();
-  };
-
-  const currentConfig = activeField ? fieldConfig[activeField] : null;
-  const maxLen = currentConfig?.maxLength;
 
   return (
-    <View className="flex-1">
+    <View className="flex-1 bg-[#F3F3F3]">
       <BackgroundGlow />
 
       <View
         style={{
-          flexDirection: "row",
-          width: "100%",
           paddingTop: insets.top + 8,
-          paddingRight: insets.right + 8,
-          paddingLeft: insets.left + 8,
+          paddingRight: insets.right + 16,
+          paddingLeft: insets.left + 16,
         }}
-        className="px-4"
       >
         <Pressable
           onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center"
+          className="w-12 h-12 m-4 rounded-lg bg-gray-200 items-center justify-center"
         >
-          <ChevronLeft size={22} color="#000" />
+          <ChevronLeft size={24} color="#000" />
         </Pressable>
 
-        <View className="flex-row items-center">
-          <Text className="text-gray-900 text-lg font-semibold ml-2">
-            Profile
-          </Text>
-        </View>
+        <Text className="m-4 text-2xl font-bold text-gray-900">Edit Info</Text>
       </View>
 
       <ScrollView
-        className="px-4"
-        contentContainerStyle={{ paddingBottom: 24 }}
+        className="px-8 mt-6"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 140 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="-mx-4 px-4 pt-2 pb-6">
-          <View className="bg-white rounded-3xl border border-[#F1E6F4] px-4 py-2 shadow-sm">
-            <ProfileRow
-              label="Full Name"
-              value={form.fullName || "-"}
-              onPress={() => openEditor("fullName")}
+        <View className="mb-4">
+          <Label>Full Name</Label>
+          <InputBox>
+            <TextInput
+              value={form.fullName}
+              onChangeText={(v) => setForm({ ...form, fullName: v })}
+              className="text-sm text-gray-900 p-0"
             />
-            <ProfileRow label="Member ID" value={form.memberId} disabled />
-            <ProfileRow
-              label="Email"
-              value={form.email || "-"}
-              onPress={() => openEditor("email")}
+          </InputBox>
+        </View>
+
+        <View className="mb-4">
+          <Label>Contact Number</Label>
+          <InputBox>
+            <TextInput
+              value={form.contactNumber}
+              placeholder="(+62) xxxxxxxxx"
+              onChangeText={(v) => setForm({ ...form, contactNumber: v })}
+              className="text-sm text-gray-900 p-0"
             />
-            <ProfileRow
-              label="Contact Number"
-              value={form.contactNumber || "-"}
-              onPress={() => openEditor("contactNumber")}
+          </InputBox>
+        </View>
+
+        <View className="mb-4">
+          <Label>Address</Label>
+          <InputBox>
+            <TextInput
+              value={form.address}
+              onChangeText={(v) => setForm({ ...form, address: v })}
+              className="text-sm text-gray-900 p-0"
             />
-            <ProfileRow
-              label="Identity Number"
-              value={form.identityNumber || "-"}
-              onPress={() => openEditor("identityNumber")}
-            />
-            <ProfileRow
-              label="Birth Date"
-              value={form.birthDate || "-"}
-              onPress={() => openEditor("birthDate")}
-            />
-            <ProfileRow
-              label="Gender"
-              value={form.gender || "-"}
-              onPress={() => openEditor("gender")}
-            />
-          </View>
+          </InputBox>
+        </View>
+
+        <View className="mb-4">
+          <Label>Birth Date</Label>
+
+          <Pressable onPress={() => setOpenDate(!openDate)}>
+            <InputBox>
+              <View className="flex-row justify-between items-center">
+                <Text className="text-sm text-gray-900">
+                  {formatDate(form.birthDate)}
+                </Text>
+                <ChevronDown size={16} color="#9CA3AF" />
+              </View>
+            </InputBox>
+          </Pressable>
+
+          {openDate && (
+            <View className="mt-2 bg-white border border-gray-200 rounded-lg p-3 gap-3">
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {years.map((y) => (
+                  <Pressable
+                    key={y}
+                    onPress={() => {
+                      const d = new Date(form.birthDate);
+                      d.setFullYear(y);
+                      setForm({ ...form, birthDate: d });
+                    }}
+                    className="px-3 py-2 mr-2 rounded-lg bg-gray-100"
+                  >
+                    <Text className="text-sm">{y}</Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {months.map((m, i) => (
+                  <Pressable
+                    key={m}
+                    onPress={() => {
+                      const d = new Date(form.birthDate);
+                      d.setMonth(i);
+                      setForm({ ...form, birthDate: d });
+                    }}
+                    className="px-3 py-2 mr-2 rounded-lg bg-gray-100"
+                  >
+                    <Text className="text-sm">{m}</Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+        </View>
+
+        <View className="mb-4">
+          <Label>Gender</Label>
+
+          <Pressable onPress={() => setOpenGender(!openGender)}>
+            <InputBox>
+              <View className="flex-row items-center justify-between">
+                <Text className="text-sm text-gray-900">
+                  {form.gender || "Select gender"}
+                </Text>
+                <ChevronDown size={16} color="#9CA3AF" />
+              </View>
+            </InputBox>
+          </Pressable>
+
+          {openGender && (
+            <View className="mt-2 bg-white border border-gray-200 rounded-lg overflow-hidden">
+              {["Male", "Female"].map((g) => (
+                <Pressable
+                  key={g}
+                  onPress={() => {
+                    setForm({ ...form, gender: g });
+                    setOpenGender(false);
+                  }}
+                  className="px-4 py-3 border-b last:border-b-0 border-gray-200"
+                >
+                  <Text className="text-sm text-gray-900">{g}</Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
 
-      <Modal
-        visible={!!activeField}
-        transparent
-        animationType="fade"
-        onRequestClose={closeEditor}
+      <View
+        style={{
+          paddingBottom: insets.bottom + 30,
+          paddingRight: insets.right + 16,
+          paddingLeft: insets.left + 16,
+        }}
       >
-        <KeyboardAvoidingView
-          className="flex-1 justify-end"
-          style={{ backgroundColor: "rgba(0,0,0,0.1)" }}
+        <Pressable
+          onPress={handleSave}
+          className="w-full h-12 rounded-lg bg-[#0E8BAA] items-center justify-center"
         >
-          <Pressable className="flex-1" onPress={closeEditor} />
-
-          <View
-            style={{
-              paddingBottom: insets.bottom,
-              paddingTop: insets.top,
-              paddingHorizontal: 20,
-              backgroundColor: "#FFFFFF",
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-            }}
-            className="bg-[#FFFFFF] rounded-t-3xl px-5 pt-4 pb-6 shadow-xl"
-          >
-            <View className="items-center mb-3">
-              <View className="w-10 h-1.5 rounded-full bg-gray-300" />
-            </View>
-
-            <View className="flex-row items-center mb-4">
-              <Text className="text-base font-semibold text-gray-900">
-                {currentConfig?.label}
-              </Text>
-
-              <Pressable onPress={handleSaveField} className="ml-auto">
-                <Text className="text-sm font-semibold text-[#00A0D2]">
-                  Save
-                </Text>
-              </Pressable>
-            </View>
-
-            <View className="rounded-2xl bg-[#F3F5F9] px-4 py-3 mb-2 border border-[#E5E7EB]">
-              <TextInput
-                value={tempValue}
-                onChangeText={(t) =>
-                  maxLen ? setTempValue(t.slice(0, maxLen)) : setTempValue(t)
-                }
-                placeholder={currentConfig?.helper}
-                placeholderTextColor="#9CA3AF"
-                className="text-sm text-gray-900 h-fit p-0"
-                autoFocus
-              />
-            </View>
-
-            <View className="flex-row items-center justify-between">
-              <Text className="text-sm text-gray-400">
-                {currentConfig?.helper}
-              </Text>
-
-              {maxLen && (
-                <Text className="text-sm text-gray-400">
-                  {tempValue.length}/{maxLen}
-                </Text>
-              )}
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
-    </View>
-  );
-}
-
-function ProfileRow({
-  label,
-  value,
-  disabled,
-  onPress,
-}: {
-  label: string;
-  value: string;
-  disabled?: boolean;
-  onPress?: () => void;
-}) {
-  const content = (
-    <View className="flex-row items-center py-3 border-b border-[#F3F4F6] last:border-b-0">
-      <View className="flex-1">
-        <Text className="text-sm text-gray-400">{label}</Text>
-      </View>
-      <View className="flex-row items-center max-w-[70%]">
-        <Text
-          className="text-sm text-gray-900 mr-2"
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {value}
-        </Text>
-        {!disabled && <ChevronRight size={16} color="#9CA3AF" />}
+          <Text className="text-white font-semibold text-base">Save</Text>
+        </Pressable>
       </View>
     </View>
-  );
-
-  if (disabled) {
-    return <View>{content}</View>;
-  }
-
-  return (
-    <Pressable onPress={onPress} android_ripple={{ color: "#E5E7EB" }}>
-      {content}
-    </Pressable>
   );
 }

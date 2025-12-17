@@ -31,17 +31,15 @@ export function ActivePackagesSessionsCard({
 
   return (
     <View className="w-full mb-5 mt-5">
-      <View className="h-45 flex-row items-start">
-        <View className="h-full flex-1 mr-4 bg-white rounded-3xl border border-[#F1E6F4] p-4 overflow-hidden shadow-sm">
-          <Text className="text-gray-800 text-base text-center font-medium">
-            Active Packages
-          </Text>
-          <View className="items-center">
+      <View className="h-fit flex-row">
+        <View className="flex-1 bg-white rounded-3xl border border-[#F1E6F4] mr-4 shadow-sm justify-between">
+          <View className="flex-[0.95] flex-col items-center justify-center">
+            <Text className="text-gray-800 text-base text-center font-medium">
+              Active Packages
+            </Text>
             <View className="mt-6 items-center justify-center">
               <View className="w-18 h-18 rounded-full bg-[#0891B2] items-center justify-center shadow">
-                <Text className="text-white text-3xl font-bold">
-                  {totalActive}
-                </Text>
+                <Text className="text-white text-4xl">{totalActive}</Text>
               </View>
             </View>
           </View>
