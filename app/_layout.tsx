@@ -22,6 +22,14 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="classes/detail/[id]"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="classes/detail/barcode"
+          options={{ headerShown: false }}
+        />
       </Stack>
     </SafeAreaProvider>
   );

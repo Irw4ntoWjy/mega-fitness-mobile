@@ -1,4 +1,5 @@
 import { BackgroundGlow } from "@/components/Theme/background";
+import { router } from "expo-router";
 import { LogOut, User } from "lucide-react-native";
 import React from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
@@ -7,7 +8,7 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-// 🧠 Dummy data (you can replace later with API)
+// Dummy data
 const ongoingActivities = [
   {
     id: 1,
@@ -72,7 +73,15 @@ function OngoingCard({
             <Text className="text-black text-xs mt-1">{item.time}</Text>
           </View>
 
-          <Pressable className="rounded-lg bg-[#EF4565] p-2">
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/classes/detail/[id]",
+                params: { id: item.id },
+              })
+            }
+            className="rounded-lg bg-[#EF4565] p-2"
+          >
             <LogOut size={16} color="white" />
           </Pressable>
         </View>
@@ -91,6 +100,7 @@ const todaysActivities = [
     image:
       "https://images.unsplash.com/photo-1554284126-aa88f22d8b74?auto=format&fit=crop&w=800&q=80",
     buttonText: "Sign In",
+    owned: false,
   },
   {
     id: 3,
@@ -101,6 +111,7 @@ const todaysActivities = [
     image:
       "https://images.unsplash.com/photo-1598970434795-0c54fe7c0644?auto=format&fit=crop&w=800&q=80",
     buttonText: "Sign In",
+    owned: true,
   },
   {
     id: 4,
@@ -111,6 +122,7 @@ const todaysActivities = [
     image:
       "https://images.unsplash.com/photo-1571019613914-85f342c0f7f7?auto=format&fit=crop&w=800&q=80",
     buttonText: "Sign In",
+    owned: false,
   },
   {
     id: 5,
@@ -121,6 +133,7 @@ const todaysActivities = [
     image:
       "https://images.unsplash.com/photo-1550345332-09e3ac987658?auto=format&fit=crop&w=800&q=80",
     buttonText: "Sign In",
+    owned: false,
   },
 ];
 
@@ -177,8 +190,13 @@ function TodaysCard({
           </View>
 
           <Pressable
-            onPress={onPress}
             className="rounded-lg bg-[#DAA770] p-2 items-center justify-center"
+            onPress={() =>
+              router.push({
+                pathname: "/classes/detail/[id]",
+                params: { id: item.id },
+              })
+            }
           >
             <Text className="text-white text-sm tracking-tight">Sign In</Text>
           </Pressable>
