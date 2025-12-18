@@ -1,3 +1,4 @@
+import { BackgroundGlow } from "@/components/Theme/background";
 import { ArrowRight, Bell, Clock, ShoppingCart, User } from "lucide-react-native";
 import { Dimensions, Image, Pressable, ScrollView, Text, View } from "react-native";
 
@@ -12,7 +13,7 @@ export default function Home() {
       items.push(
         <Pressable
           key={i}
-          className="mr-1 w-65 h-65 overflow-hidden relative flex flex-col justify-center items-center"
+          className="mr-1 w-60 h-65 overflow-hidden relative flex flex-col justify-center items-center"
         >
           <View className="bg-white shadow-[0_0_50px_rgba(0,0,0,0.2)] absolute flex flex-col justify-center items-center w-[92%] h-[92%] rounded-[10px] overflow-hidden">
             
@@ -32,7 +33,7 @@ export default function Home() {
 
               <View className="mt-[1vh] flex flex-row justify-center items-center bg-[rgba(0,0,0,0.1)] border-[1px] border-[rgba(0,0,0,0.3)] rounded-full overflow-hidden px-[1.5vw] py-[.3vh] gap-[5px]">
                 <Clock size={10} color="black" className="w-[50%] h-[50%]" />
-                <Text className="text-left text-black text-[10px] text-nowrap font-medium">60 min</Text>
+                <Text className="text-left text-black text-[9px] text-nowrap font-medium">60 min</Text>
               </View>
             </View>
           </View>
@@ -53,7 +54,7 @@ export default function Home() {
   for (let i = 0; i < 4; i++) {
       items.push(
         <Pressable key={i} 
-        className="relative w-50 h-60 flex flex-col justify-center items-center">
+        className="relative w-50 h-50 flex flex-col justify-center items-center">
           <View className="bg-white shadow-[0_0_10px_rgba(0,0,0,0.3)] rounded-lg border-none overflow-hidden flex flex-col justify-center items-center w-[92%] h-[92%] absolute">
             <View className="w-full h-[60%] bg-yellow-700 overflow-hidden">
               <Image
@@ -92,7 +93,7 @@ export default function Home() {
   for (let i = 0; i < 4; i++) {
       items.push(
         <Pressable key={i} 
-        className="bg-white shadow-[0_0_10px_rgba(0,0,0,0.3)] rounded-lg border-none overflow-hidden w-47 h-58 flex flex-col justify-center items-center">
+        className="bg-white shadow-[0_0_10px_rgba(0,0,0,0.3)] rounded-lg border-none overflow-hidden w-47 h-50 flex flex-col justify-center items-center">
           
             <View className="w-full h-[60%] bg-yellow-700 overflow-hidden">
               <Image
@@ -237,8 +238,8 @@ export default function Home() {
             </View>
 
             <View className="bg-[#EFEFEF] shadow-[0_0_10px_rgba(0,0,0,0.3)] pt-5 rounded-t-xl pb-30 overflow-hidden">
-
-              <View className="bg-[#FF30D9] blur-[70px] w-[50vh] h-[50vh] opacity-[15%] rounded-full absolute z-0 right-[-60vw] top-[-20vh]"></View>
+             <BackgroundGlow></BackgroundGlow>
+              {/* <View className="bg-[#FF30D9] blur-[70px] w-[50vh] h-[50vh] opacity-[15%] rounded-full absolute z-0 right-[-60vw] top-[-20vh]"></View> */}
                <Image
                     source={require("../../assets/png/MegaText.png")}
                     className="h-[60vh] absolute z-0 right-[-0vw] top-[60vh]"
