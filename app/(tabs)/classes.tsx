@@ -7,29 +7,15 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { activities, profile } from "../classes/dummy_data";
 
-// Dummy data
-const ongoingActivities = [
-  {
-    id: 1,
-    title: "CAMPFIRE",
-    time: "12:00 - 13:00",
-    status: "Ongoing!",
-    tagColor: "#06B6D4",
-    image:
-      "https://images.unsplash.com/photo-1554284126-aa88f22d8b74?auto=format&fit=crop&w=800&q=80",
-  },
-];
+const ongoingActivities = activities.filter(
+  (activity) => activity.status === "Ongoing"
+);
 
 type OngoingActivity = (typeof ongoingActivities)[number];
 
-function OngoingCard({
-  item,
-  onPress,
-}: {
-  item: OngoingActivity;
-  onPress?: () => void;
-}) {
+function OngoingCard({ item }: { item: OngoingActivity }) {
   return (
     <View className="w-[48%] mb-4">
       <View className="bg-white rounded-2xl shadow-md relative">
@@ -76,7 +62,7 @@ function OngoingCard({
           <Pressable
             onPress={() =>
               router.push({
-                pathname: "/classes/detail/[id]",
+                pathname: "/classes/[id]/detail",
                 params: { id: item.id },
               })
             }
@@ -90,62 +76,13 @@ function OngoingCard({
   );
 }
 
-const todaysActivities = [
-  {
-    id: 2,
-    title: "CAMPFIRE",
-    time: "12:00 - 13:00",
-    status: "Now!",
-    tagColor: "#D946EF",
-    image:
-      "https://images.unsplash.com/photo-1554284126-aa88f22d8b74?auto=format&fit=crop&w=800&q=80",
-    buttonText: "Sign In",
-    owned: false,
-  },
-  {
-    id: 3,
-    title: "CAMPFIRE",
-    time: "15:00 - 16:00",
-    status: "Today",
-    tagColor: "#0891B2",
-    image:
-      "https://images.unsplash.com/photo-1598970434795-0c54fe7c0644?auto=format&fit=crop&w=800&q=80",
-    buttonText: "Sign In",
-    owned: true,
-  },
-  {
-    id: 4,
-    title: "CAMPFIRE",
-    time: "17:00 - 18:00",
-    status: "Today",
-    tagColor: "#0891B2",
-    image:
-      "https://images.unsplash.com/photo-1571019613914-85f342c0f7f7?auto=format&fit=crop&w=800&q=80",
-    buttonText: "Sign In",
-    owned: false,
-  },
-  {
-    id: 5,
-    title: "CAMPFIRE",
-    time: "19:00 - 20:00",
-    status: "Today",
-    tagColor: "#0891B2",
-    image:
-      "https://images.unsplash.com/photo-1550345332-09e3ac987658?auto=format&fit=crop&w=800&q=80",
-    buttonText: "Sign In",
-    owned: false,
-  },
-];
+const todaysActivities = activities.filter(
+  (activity) => activity.status !== "Ongoing"
+);
 
 type TodaysActivities = (typeof todaysActivities)[number];
 
-function TodaysCard({
-  item,
-  onPress,
-}: {
-  item: TodaysActivities;
-  onPress?: () => void;
-}) {
+function TodaysCard({ item }: { item: TodaysActivities }) {
   return (
     <View className="w-[48%] mb-4">
       <View className="bg-white rounded-2xl shadow-md relative">
@@ -193,7 +130,7 @@ function TodaysCard({
             className="rounded-lg bg-[#DAA770] p-2 items-center justify-center"
             onPress={() =>
               router.push({
-                pathname: "/classes/detail/[id]",
+                pathname: "/classes/[id]/detail",
                 params: { id: item.id },
               })
             }
@@ -209,6 +146,8 @@ function TodaysCard({
 const Home = () => {
   const insets = useSafeAreaInsets();
 
+  const userProfile = profile;
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View className="bg-[#DBDBDB] w-full h-full overflow-hidden">
@@ -221,14 +160,31 @@ const Home = () => {
             <View className="w-[95%] flex flex-row justify-between items-center">
               <View>
                 <Text className="text-3xl font-semibold text-slate-900">
-                  Kilto Aznah
+                  {profile.username}
                 </Text>
-                <Text className="text-base text-slate-500">User1234</Text>
+                <Text className="text-base text-slate-500">
+                  {profile.userId}
+                </Text>
 
-                <View className="flex flex-row mt-3 self-start rounded-full items-center text-center border gap-2 border-cyan-400 bg-cyan-50 px-4 py-1">
-                  <User color="#0891B2" size={14} />
-                  <Text className="text-xs font-semibold text-cyan-600">
-                    Member
+                <View
+                  className={`flex flex-row mt-3 self-start rounded-full items-center text-center border gap-2 px-4 py-1 ${
+                    profile.role === "Trainer"
+                      ? "border-purple-400 bg-purple-50"
+                      : "border-amber-400 bg-amber-50"
+                  }`}
+                >
+                  <User
+                    size={14}
+                    color={profile.role === "Trainer" ? "#7C3AED" : "#B45309"}
+                  />
+                  <Text
+                    className={`text-xs font-semibold ${
+                      profile.role === "Trainer"
+                        ? "text-purple-700"
+                        : "text-amber-700"
+                    }`}
+                  >
+                    {profile.role}
                   </Text>
                 </View>
               </View>
@@ -238,7 +194,9 @@ const Home = () => {
                   Active Packages
                 </Text>
                 <View className="w-20 h-20 rounded-full bg-cyan-600 items-center justify-center">
-                  <Text className="text-3xl font-semibold text-white">10</Text>
+                  <Text className="text-3xl font-semibold text-white">
+                    {profile.total_activity}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -256,7 +214,7 @@ const Home = () => {
 
             <View className="flex flex-row flex-wrap justify-between">
               {ongoingActivities.map((item) => (
-                <OngoingCard key={item.id} item={item} onPress={() => {}} />
+                <OngoingCard key={item.id} item={item} />
               ))}
             </View>
 
@@ -266,7 +224,7 @@ const Home = () => {
 
             <View className="flex flex-row flex-wrap justify-between">
               {todaysActivities.map((item) => (
-                <TodaysCard key={item.id} item={item} onPress={() => {}} />
+                <TodaysCard key={item.id} item={item} />
               ))}
             </View>
           </View>

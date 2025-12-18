@@ -1,5 +1,5 @@
 import { BackgroundGlow } from "@/components/Theme/background";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import {
   ArrowLeft,
   CheckCheck,
@@ -9,26 +9,22 @@ import {
 import React, { useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const barcodeDetail = {
-  id: 1,
-  title: "CAMPFIRE",
-  time: "12:00 - 13:00",
-  duration: "60 min",
-  date: "Wednesday, 8 October 2025",
-  instructor: "Michael Sugeh",
-  status: "today",
-  tagColor: "#06B6D4",
-  image:
-    "https://images.unsplash.com/photo-1554284126-aa88f22d8b74?auto=format&fit=crop&w=800&q=80",
-  description:
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam interdum sapien in maximus posuere. Duis a vulputate eros. Aenean consequat, orci ut condimentum mollis, lacus nunc dictum turpis, nec malesuada neque neque et sapien. Curabitur ultricies sed felis id pretium. Vestibulum eu metus id sem lobortis tincidunt. Mauris non placerat lectus, ac pellentesque est.",
-  owned: true,
-};
+import { activities } from "../dummy_data";
 
 export default function barcodePages() {
-  const item = barcodeDetail;
-  const [isRefreshed, setIsRefreshed] = useState(false);
+  const { id, trainer } = useLocalSearchParams<{
+    id?: string;
+    trainer?: string;
+  }>();
+
+  const isTrainer = trainer === "true";
+  console.log(id);
+  const item = activities.find((item) => item.id === Number(id));
+  if (!item) {
+    return <div>Activity not found</div>;
+  }
+
+  const [isRefreshed, setIsRefreshed] = useState(isTrainer ?? false);
 
   return (
     <View className="flex-1 bg-slate-50">

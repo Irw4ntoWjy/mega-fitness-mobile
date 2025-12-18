@@ -1,6 +1,6 @@
 import { BackgroundGlow } from "@/components/Theme/background";
-import { router } from "expo-router";
-import { ArrowLeft, Clock, Contact, X } from "lucide-react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { ArrowLeft, Check, Clock, Contact, X } from "lucide-react-native";
 import React, { useState } from "react";
 import {
   Image,
@@ -12,22 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-export const activity = {
-  id: 1,
-  title: "CAMPFIRE",
-  time: "12:00 - 13:00",
-  duration: "60 min",
-  date: "Wednesday, 8 October 2025",
-  instructor: "Michael Sugeh",
-  status: "today",
-  tagColor: "#06B6D4",
-  image:
-    "https://images.unsplash.com/photo-1554284126-aa88f22d8b74?auto=format&fit=crop&w=800&q=80",
-  description:
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam interdum sapien in maximus posuere. Duis a vulputate eros. Aenean consequat, orci ut condimentum mollis, lacus nunc dictum turpis, nec malesuada neque neque et sapien. Curabitur ultricies sed felis id pretium. Vestibulum eu metus id sem lobortis tincidunt. Mauris non placerat lectus, ac pellentesque est.",
-  owned: true,
-};
+import { activities, member, profile } from "../dummy_data";
 
 type Activity = {
   title: string;
@@ -36,11 +21,38 @@ type Activity = {
   instructor: string;
 };
 
+type Member = {
+  id: string;
+  name: string;
+};
+
+function Checkbox({
+  checked,
+  onPress,
+}: {
+  checked: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className={`h-6 w-6 rounded-md items-center justify-center border-2 ${
+        checked ? "bg-black border-black" : "bg-white border-black"
+      }`}
+      hitSlop={10}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked }}
+    >
+      {checked ? <Check size={16} color="#fff" /> : null}
+    </Pressable>
+  );
+}
+
 function SignOutModal({
   visible,
-  activity,
   onClose,
   onConfirm,
+  activity,
 }: {
   visible: boolean;
   activity: Activity;
@@ -127,10 +139,30 @@ function SignOutModal({
 }
 
 export default function ClassesDetailScreen() {
+  const { id } = useLocalSearchParams<{ id?: string }>();
+
+  const activity = activities.find((item) => item.id === Number(id));
+  const userProfile = profile;
+  const isTrainer = userProfile.role === "Trainer";
+  const members: Member[] = member;
+
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+
+  const toggleMember = (memberId: string) => {
+    setSelectedMemberIds((prev) =>
+      prev.includes(memberId)
+        ? prev.filter((id) => id !== memberId)
+        : [...prev, memberId]
+    );
+  };
+
+  if (!activity) {
+    return <div>Activity not found</div>;
+  }
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState(activity.status);
 
-  const isOngoing = status === "Ongoing!";
+  const isOngoing = status === "Ongoing";
 
   const handleSignOut = () => {
     setStatus("Signed Out");
@@ -164,7 +196,6 @@ export default function ClassesDetailScreen() {
             {activity.title}
           </Text>
 
-          {/* black 40% + border white + text white */}
           <View className="flex-row items-center gap-2 bg-zinc-300/80 border border-white px-4 py-2 rounded-full">
             <Clock size={16} color="#fff" />
             <Text className="text-base font-semibold text-white">
@@ -187,9 +218,49 @@ export default function ClassesDetailScreen() {
           <Text className="text-lg text-zinc-900">{activity.instructor}</Text>
         </View>
 
-        <Text className="mt-7 text-[17px] leading-7 text-zinc-900/90">
-          {activity.description}
-        </Text>
+        {userProfile.role === "Member" ? (
+          <Text className="mt-7 text-[17px] leading-7 text-zinc-900/90">
+            {activity.description}
+          </Text>
+        ) : userProfile.role === "Trainer" ? (
+          <View className="mt-7">
+            <Text className="text-[17px] leading-7 text-zinc-900/90 font-extrabold">
+              Member:
+            </Text>
+            <View className="mt-3 bg-white rounded-2xl border border-zinc-200 overflow-hidden">
+              {members.map((m, idx) => {
+                const checked = selectedMemberIds.includes(m.id);
+                return (
+                  <View key={m.id}>
+                    <View className="flex-row items-center px-5 py-5">
+                      <Checkbox
+                        checked={checked}
+                        onPress={() => toggleMember(m.id)}
+                      />
+
+                      <Text className="ml-4 flex-1 text-[14px] text-black">
+                        {m.name}
+                      </Text>
+
+                      <Pressable
+                        onPress={() => console.log("Open journal for", m.id)}
+                        hitSlop={10}
+                      >
+                        <Text className="text-[18px] text-zinc-500 underline">
+                          Journal
+                        </Text>
+                      </Pressable>
+                    </View>
+
+                    {idx !== members.length - 1 ? (
+                      <View className="h-[1px] bg-zinc-200 mx-5" />
+                    ) : null}
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        ) : null}
 
         <View className="h-32" />
       </ScrollView>
@@ -200,7 +271,11 @@ export default function ClassesDetailScreen() {
             isOngoing
               ? setOpen(true)
               : router.push({
-                  pathname: "/classes/detail/barcode",
+                  pathname: "/classes/[id]/barcode",
+                  params: {
+                    id: String(activity.id),
+                    trainer: String(userProfile.role === "Trainer"),
+                  },
                 })
           }
           className={`h-16 rounded-[14px] items-center justify-center ${
@@ -220,12 +295,7 @@ export default function ClassesDetailScreen() {
 
       <SignOutModal
         visible={open}
-        activity={{
-          title: activity.title,
-          date: activity.date,
-          time: activity.time,
-          instructor: activity.instructor,
-        }}
+        activity={activity}
         onClose={() => setOpen(false)}
         onConfirm={handleSignOut}
       />

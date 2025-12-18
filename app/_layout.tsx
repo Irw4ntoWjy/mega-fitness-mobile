@@ -23,11 +23,11 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
-          name="classes/detail/[id]"
+          name="classes/[id]/detail"
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="classes/detail/barcode"
+          name="classes/[id]/barcode"
           options={{ headerShown: false }}
         />
       </Stack>
