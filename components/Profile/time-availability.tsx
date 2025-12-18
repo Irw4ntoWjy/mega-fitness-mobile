@@ -31,7 +31,7 @@ export function TimeAvailabilitySection({
     data.days.find((d) => d.key === selectedDay)?.label ?? selectedDay;
 
   return (
-    <View className="mt-4">
+    <View className="my-5">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

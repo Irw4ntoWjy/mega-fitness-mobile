@@ -31,6 +31,10 @@ export default function RootLayout() {
           name="profile/edit-profile"
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="profile/edit-account"
+          options={{ headerShown: false }}
+        />
       </Stack>
     </SafeAreaProvider>
   );

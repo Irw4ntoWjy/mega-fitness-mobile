@@ -30,7 +30,7 @@ export function ActivePackagesSessionsCard({
   const clampedPercent = Math.min(Math.max(progressPercent, 0), 100);
 
   return (
-    <View className="w-full mb-5 mt-5">
+    <View className="w-full my-5">
       <View className="h-fit flex-row">
         <View className="flex-1 bg-white rounded-3xl border border-[#F1E6F4] mr-4 shadow-sm justify-between">
           <View className="flex-[0.95] flex-col items-center justify-center">

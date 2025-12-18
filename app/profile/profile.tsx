@@ -96,6 +96,16 @@ const BASE_PROFILE_FIELDS: ProfileFieldConfig[] = [
   { key: "gender", label: "Gender" },
 ];
 
+const BODY_INFO_FIELDS: ProfileFieldConfig[] = [
+  { key: "weight", label: "Weight" },
+  { key: "height", label: "Height" },
+];
+
+const ACCOUNT_INFO_FIELDS: ProfileFieldConfig[] = [
+  { key: "email", label: "Email" },
+  { key: "password", label: "Password" },
+];
+
 const TRAINER_EXTRA_FIELDS: ProfileFieldConfig[] = [
   { key: "certification", label: "Certification" },
   { key: "experience", label: "Experience" },
@@ -112,10 +122,14 @@ const profileValues: Record<string, string> = {
   address: "Jl. Cemara Asri",
   birth: "11 / 11 / 2000",
   gender: "Male",
+  weight: "72",
+  height: "175",
+  email: "jovan.torio@email.com",
+  password: "********",
 
   certification: "NASM CPT",
   experience: "5 Years",
-  availability: "Mon – Fri",
+  availability: "Mon - Fri",
 };
 
 export default function Profile() {
@@ -158,12 +172,12 @@ export default function Profile() {
         </View>
       </View>
 
-      <ScrollView className="px-4" showsVerticalScrollIndicator={false}>
+      <ScrollView className="px-4 mb-10" showsVerticalScrollIndicator={false}>
         <View className="relative">
           <View style={{ height: HERO_H }} />
 
           <View className="absolute right-0 bottom-4 items-end">
-            <Text className="text-black text-2xl font-extrabold">
+            <Text className="text-black text-xl font-extrabold">
               {user.profile_name}
             </Text>
             <Text className="text-black/60">@{user.account_code}</Text>
@@ -171,7 +185,7 @@ export default function Profile() {
 
           <View className="absolute -bottom-15 z-50">
             <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
-              <Text className="text-[#0F6B7E] text-3xl font-semibold">
+              <Text className="text-[#0F6B7E] text-2xl font-semibold">
                 {user.initials}
               </Text>
             </View>
@@ -213,10 +227,35 @@ export default function Profile() {
             />
           )}
         </View>
-        <ProfileInfoSection fields={profileFields} values={profileValues} />
+
+        <View className="pt-8">
+          <ProfileInfoSection
+            title="Your Info"
+            fields={profileFields}
+            values={profileValues}
+          />
+          <ProfileInfoSection
+            title="Body Info"
+            fields={BODY_INFO_FIELDS}
+            values={profileValues}
+          />
+          <ProfileInfoSection
+            title="Account Info"
+            fields={ACCOUNT_INFO_FIELDS}
+            values={profileValues}
+          />
+        </View>
       </ScrollView>
       <Pressable
-        onPress={() => router.push("/profile/edit-profile")}
+        onPress={() =>
+          router.push({
+            pathname: "/profile/edit-profile",
+            params: {
+              role: user.account_role,
+              accountId: user.account_id,
+            },
+          })
+        }
         style={{
           position: "absolute",
           right: 20,
@@ -238,25 +277,38 @@ export default function Profile() {
 }
 
 function ProfileInfoSection({
+  title,
   fields,
   values,
 }: {
+  title: string;
   fields: ProfileFieldConfig[];
   values: Record<string, string>;
 }) {
   return (
-    <View className="p-4 mt-2">
-      <SectionTitle title="Your Info" />
+    <View className="pb-4 px-2">
+      <SectionTitle title={title} />
 
       <View className="mt-4">
         {fields.map((f) => (
-          <View key={f.key} className="mb-4 last:mb-0">
-            <Text className="text-xs text-gray-500 mb-1">{f.label}</Text>
+          <View key={f.key} className="mb-4">
+            <Text className="text-md text-gray-500 mb-2">{f.label}</Text>
 
-            <View className="bg-white rounded-xl px-3 py-3 border-2 border-gray-200">
-              <Text className="text-sm text-gray-900">
-                {values[f.key] || "-"}
-              </Text>
+            <View className="bg-[#FFFFFF] rounded-xl px-3 py-3 border-2 border-gray-200">
+              {f.key === "weight" || f.key === "height" ? (
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-lg text-gray-900">
+                    {values[f.key] || "-"}
+                  </Text>
+                  <Text className="text-lg text-gray-400">
+                    {f.key === "weight" ? "kg" : "cm"}
+                  </Text>
+                </View>
+              ) : (
+                <Text className="text-lg text-gray-900">
+                  {values[f.key] || "-"}
+                </Text>
+              )}
             </View>
           </View>
         ))}
@@ -290,7 +342,7 @@ function SectionTitle({
   className?: string;
 }) {
   return (
-    <Text className={`text-gray-800 text-2xl font-extrabold ${className}`}>
+    <Text className={`text-gray-800 text-2xl font-bold ${className}`}>
       {title}
     </Text>
   );
