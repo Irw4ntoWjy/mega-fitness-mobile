@@ -11,8 +11,10 @@ export default function Layout() {
       }}
     >
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="classes" />
       <Tabs.Screen name="explore" />
+      <Tabs.Screen name="classes" />
+      <Tabs.Screen name="transaction" />
+      <Tabs.Screen name="bookings" />
     </Tabs>
   );
 }
