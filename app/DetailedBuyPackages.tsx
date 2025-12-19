@@ -87,8 +87,13 @@ export default function DetailedBuyPackages() {
               Campfire
             </Text>
 
-            <Pressable className="bg-[#DAA770] p-2 rounded-sm">
-              <ShoppingCart size={15} color="white" />
+            <Pressable onPress={() =>
+                            router.push({
+                              pathname: "/ProductDetails",
+                              params: { name: "Campfire" },
+                            })
+                          } className="overflow-hidden bg-[#DAA770] p-2 rounded-sm flex justify-center items-center">
+                  <ShoppingCart size={15} color="white" className="w-[50%] h-[50%] text-black"/>
             </Pressable>
           </View>
         </View>
