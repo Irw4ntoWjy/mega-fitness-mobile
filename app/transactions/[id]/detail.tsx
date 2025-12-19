@@ -107,7 +107,7 @@ export default function Transaction({ navigation, route }: Props) {
                     <ArrowLeft size={22} color="#fff" />
                 </Pressable>
             </View>
-            <View className="px-5 pt-3 pb-2 flex-row items-center gap-3">
+            <View className="px-4 pt-3 pb-2 flex-row items-center gap-3">
 
 
                 <View className="flex-1">
@@ -119,7 +119,7 @@ export default function Transaction({ navigation, route }: Props) {
             </View>
 
             <ScrollView className="flex-1">
-                <View className="px-5 mt-2">
+                <View className="px-4 mt-2">
                     <View className="rounded-2xl overflow-hidden bg-zinc-100">
                         <Image
                             source={{ uri: tx.image }}
