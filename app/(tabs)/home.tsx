@@ -1,4 +1,5 @@
 import { BackgroundGlow } from "@/components/Theme/background";
+import { router } from "expo-router";
 import { ArrowRight, Bell, Clock, ShoppingCart, User } from "lucide-react-native";
 import { Dimensions, Image, Pressable, ScrollView, Text, View } from "react-native";
 
@@ -282,7 +283,7 @@ export default function Home() {
                     <View className="w-full px-[5%] flex flex-col justify-center items-center gap-[2vh] mb-[40px]">
                       <View className="flex justify-between flex-row items-center w-full">
                         <Text className="text-left text-black font-semibold text-[20px] text-nowrap">Buy Packages</Text>
-                        <Pressable className="bg-cyan-600 p-1 flex justify-center items-center rounded-full">
+                        <Pressable onPress={() => router.push("../BuyPackages")} className="bg-cyan-600 p-1 flex justify-center items-center rounded-full">
                           <ArrowRight size={15} color="white" className="w-[50%] h-[50%] text-black"/>
                         </Pressable>
                       </View>
