@@ -166,7 +166,7 @@ export default function Transactions() {
             <View className="mx-3">
 
                 <Text className="mt-4 text-3xl font-extrabold tracking-wide text-slate-900">
-                    Transactions
+                    TRANSACTIONS
                 </Text>
 
                 <View className="mt-4 flex-row rounded-2xl bg-white px-1 py-1">
