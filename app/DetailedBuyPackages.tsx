@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { ArrowLeft, ShoppingCart } from "lucide-react-native";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 
-export default function PackageCategory() {
+export default function DetailedBuyPackages() {
   const { category } = useLocalSearchParams<{ category: string }>();
   const decodedCategory = decodeURIComponent(category ?? "");
 

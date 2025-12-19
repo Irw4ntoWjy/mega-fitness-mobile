@@ -30,7 +30,12 @@ export default function BuyPackages() {
                   <Text className="text-left text-black font-semibold text-[18px] text-nowrap">Campfire</Text>
                 </View>
 
-                <Pressable className="overflow-hidden bg-[#DAA770] p-2 rounded-sm flex justify-center items-center">
+                <Pressable onPress={() =>
+                            router.push({
+                              pathname: "/ProductDetails",
+                              params: { name: "Campfire" },
+                            })
+                          } className="overflow-hidden bg-[#DAA770] p-2 rounded-sm flex justify-center items-center">
                   <ShoppingCart size={15} color="white" className="w-[50%] h-[50%] text-black"/>
                 </Pressable>
               </View>
