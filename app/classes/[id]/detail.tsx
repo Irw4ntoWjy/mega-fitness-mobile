@@ -1,6 +1,13 @@
 import { BackgroundGlow } from "@/components/Theme/background";
 import { router, useLocalSearchParams } from "expo-router";
-import { ArrowLeft, Check, Clock, Contact, X } from "lucide-react-native";
+import {
+  ArrowLeft,
+  Check,
+  Clock,
+  Contact,
+  UserIcon,
+  X,
+} from "lucide-react-native";
 import React, { useState } from "react";
 import {
   Image,
@@ -67,21 +74,23 @@ function SignOutModal({
       onRequestClose={onClose}
     >
       <TouchableWithoutFeedback onPress={onClose}>
-        <View className="flex-1 items-center justify-center px-4">
+        <View className="flex-1 items-center justify-center px-6">
           <View className="absolute inset-0 bg-zinc-900/40" />
           <TouchableWithoutFeedback onPress={() => {}}>
-            <View className="w-full max-w-[420px] bg-white rounded-[26px] px-6 pt-6 pb-5">
-              <Pressable
-                onPress={onClose}
-                className="absolute right-4 top-4 h-11 w-11 rounded-xl bg-zinc-300 items-center justify-center"
-              >
-                <X size={22} color="#fff" />
-              </Pressable>
+            <View className="w-full max-w-[420px] bg-white rounded-[26px] px-6 pt-2 pb-5">
+              <View className="flex justify-between">
+                <Pressable
+                  onPress={onClose}
+                  className="absolute right-1 top-4 h-11 w-11 rounded-xl bg-zinc-300 items-center justify-center"
+                >
+                  <X size={22} color="#fff" />
+                </Pressable>
 
-              <Text className="text-[28px] leading-8 text-zinc-900 mt-6">
-                Are you sure you want to{"\n"}
-                <Text className="font-bold">sign out?</Text>
-              </Text>
+                <Text className="text-[22px] leading-8 text-zinc-900 mt-6">
+                  Are you sure you want to{"\n"}
+                  <Text className="font-bold">sign out?</Text>
+                </Text>
+              </View>
 
               <View className="mt-8">
                 <Text className="text-[28px] font-bold text-zinc-900">
@@ -173,7 +182,7 @@ export default function ClassesDetailScreen() {
     <SafeAreaView style={{ flex: 1 }}>
       <BackgroundGlow showText={true} />
 
-      <View className="h-14 px-4 justify-center">
+      <View className="h-14 px-6 justify-center">
         <Pressable
           className="h-11 w-11 rounded-xl bg-zinc-300 items-center justify-center"
           onPress={() => router.back()}
@@ -182,7 +191,7 @@ export default function ClassesDetailScreen() {
         </Pressable>
       </View>
 
-      <ScrollView className="flex-1 mx-4" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1 mx-6" showsVerticalScrollIndicator={false}>
         <View className="h-[210px] rounded-[18px] overflow-hidden bg-zinc-300 mt-1">
           <Image
             source={{ uri: activity.image }}
@@ -191,12 +200,12 @@ export default function ClassesDetailScreen() {
           />
         </View>
 
-        <View className="flex-row items-center mt-4">
-          <Text className="flex-1 text-[44px] font-bold tracking-[1px] text-zinc-950">
+        <View className="flex-row items-center mt-6">
+          <Text className="flex-1 text-[36px] font-semibold tracking-[1px] text-zinc-950">
             {activity.title}
           </Text>
 
-          <View className="flex-row items-center gap-2 bg-zinc-300/80 border border-white px-4 py-2 rounded-full">
+          <View className="flex-row items-center gap-2 bg-[#DAA770] px-4 py-2 rounded-full">
             <Clock size={16} color="#fff" />
             <Text className="text-base font-semibold text-white">
               {activity.duration}
@@ -204,27 +213,45 @@ export default function ClassesDetailScreen() {
           </View>
         </View>
 
-        <Text className="mt-2 text-[22px] font-bold text-zinc-900">
+        <Text className="mt-2 text-[20px] font-bold text-zinc-900">
           {activity.date}
         </Text>
 
-        <View className="flex-row items-center gap-3 mt-4">
-          <Clock size={20} color="#111" />
-          <Text className="text-lg text-zinc-900">{activity.time}</Text>
-        </View>
+        <View className="mt-6 w-full max-w-[520px] space-y-4">
+          <View className="flex-row items-center">
+            <View className="h-10 w-10 rounded-xl bg-gray-200 items-center justify-center">
+              <Clock size={20} color="#111827" />
+            </View>
+            <Text className="ml-4 text-lg text-gray-800 font-semibold">
+              {activity.time}
+            </Text>
+          </View>
 
-        <View className="flex-row items-center gap-3 mt-4">
-          <Contact size={20} color="#111" />
-          <Text className="text-lg text-zinc-900">{activity.instructor}</Text>
+          <View className="flex-row items-center mt-2">
+            <View className="h-10 w-10 rounded-xl bg-gray-200 items-center justify-center">
+              <UserIcon size={20} color="#111827" />
+            </View>
+            <Text className="ml-4 text-lg text-gray-800 font-semibold">
+              {activity.instructor}
+            </Text>
+          </View>
         </View>
 
         {userProfile.role === "Member" ? (
-          <Text className="mt-7 text-[17px] leading-7 text-zinc-900/90">
+          <Text
+            style={{
+              marginTop: 28,
+              fontSize: 20,
+              lineHeight: 30,
+              color: "rgba(24,24,27,0.9)",
+              textAlign: "justify",
+            }}
+          >
             {activity.description}
           </Text>
         ) : userProfile.role === "Trainer" ? (
           <View className="mt-7">
-            <Text className="text-[17px] leading-7 text-zinc-900/90 font-extrabold">
+            <Text className="text-[20px] text-zinc-900/90 font-bold">
               Member:
             </Text>
             <View className="mt-3 bg-white rounded-2xl border border-zinc-200 overflow-hidden">
@@ -233,23 +260,27 @@ export default function ClassesDetailScreen() {
                 return (
                   <View key={m.id}>
                     <View className="flex-row items-center px-5 py-5">
-                      <Checkbox
-                        checked={checked}
-                        onPress={() => toggleMember(m.id)}
-                      />
+                      {activity.status === "Ongoing" && (
+                        <Checkbox
+                          checked={checked}
+                          onPress={() => toggleMember(m.id)}
+                        />
+                      )}
 
                       <Text className="ml-4 flex-1 text-[14px] text-black">
                         {m.name}
                       </Text>
 
-                      <Pressable
-                        onPress={() => console.log("Open journal for", m.id)}
-                        hitSlop={10}
-                      >
-                        <Text className="text-[18px] text-zinc-500 underline">
-                          Journal
-                        </Text>
-                      </Pressable>
+                      {activity.status === "Ongoing" && (
+                        <Pressable
+                          onPress={() => console.log("Open journal for", m.id)}
+                          hitSlop={10}
+                        >
+                          <Text className="text-[14px] text-zinc-500 underline">
+                            Journal
+                          </Text>
+                        </Pressable>
+                      )}
                     </View>
 
                     {idx !== members.length - 1 ? (
@@ -264,34 +295,31 @@ export default function ClassesDetailScreen() {
 
         <View className="h-32" />
       </ScrollView>
-
-      <View className="absolute bottom-0 left-0 right-0 bg-zinc-100 px-[18px] pb-[18px] pt-2">
-        <Pressable
-          onPress={() =>
-            isOngoing
-              ? setOpen(true)
-              : router.push({
-                  pathname: "/classes/[id]/barcode",
-                  params: {
-                    id: String(activity.id),
-                    trainer: String(userProfile.role === "Trainer"),
-                  },
-                })
-          }
-          className={`h-16 rounded-[14px] items-center justify-center ${
-            !activity.owned
-              ? "bg-gray-400"
-              : isOngoing
-              ? "bg-[#E11D48]"
-              : "bg-cyan-600"
-          }`}
-          disabled={!activity.owned}
-        >
-          <Text className="text-white text-[22px] font-bold">
-            {isOngoing ? "Sign Out" : "Sign In"}
-          </Text>
-        </Pressable>
-      </View>
+      {activity.owned && (
+        <View className="absolute bottom-2 left-0 right-0 bg-zinc-100/60 px-[40px] pb-[18px] pt-2">
+          <Pressable
+            onPress={() =>
+              isOngoing
+                ? setOpen(true)
+                : router.push({
+                    pathname: "/classes/[id]/barcode",
+                    params: {
+                      id: String(activity.id),
+                      trainer: String(userProfile.role === "Trainer"),
+                    },
+                  })
+            }
+            className={`h-16 rounded-[14px] items-center justify-center ${
+              isOngoing ? "bg-[#E11D48]" : "bg-cyan-600"
+            }`}
+            disabled={!activity.owned}
+          >
+            <Text className="text-white text-[22px] font-bold">
+              {isOngoing ? "Sign Out" : "Sign In"}
+            </Text>
+          </Pressable>
+        </View>
+      )}
 
       <SignOutModal
         visible={open}

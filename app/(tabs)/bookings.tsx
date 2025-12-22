@@ -1,17 +1,19 @@
-// Bookings.tsx
 import { BackgroundGlow } from "@/components/Theme/background";
 import { router } from "expo-router";
-import { ArrowLeft, Clock, Contact, X } from "lucide-react-native";
+import { Clock, Contact, UserIcon, X } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
-    FlatList,
-    Image,
-    Modal,
-    Pressable,
-    Text,
-    TouchableWithoutFeedback,
-    View
+  Animated,
+  FlatList,
+  Image,
+  Modal,
+  Pressable,
+  Text,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { bookings } from "../bookings/dummy_data";
 
@@ -21,109 +23,102 @@ const TABS: TabKey[] = ["Upcoming", "Completed", "Cancelled"];
 type Booking = (typeof bookings)[number];
 
 function TabPill({
-    label,
-    active,
-    onPress,
+  label,
+  active,
+  onPress,
 }: {
-    label: TabKey;
-    active: boolean;
-    onPress: () => void;
+  label: TabKey;
+  active: boolean;
+  onPress: () => void;
 }) {
-    return (
-        <Pressable
-            onPress={onPress}
-            className={[
-                "flex-1 items-center justify-center rounded-xl py-2",
-                active ? "bg-[#0891B2]" : "bg-transparent",
-            ].join(" ")}
-            android_ripple={{ color: "rgba(0,0,0,0.08)", borderless: false }}
-        >
-            <Text
-                className={[
-                    "text-sm font-semibold",
-                    active ? "text-white" : "text-slate-600",
-                ].join(" ")}
-            >
-                {label}
-            </Text>
-        </Pressable>
-    );
+  return (
+    <Pressable
+      onPress={onPress}
+      className={[
+        "flex-1 items-center justify-center rounded-xl py-2",
+        active ? "bg-[#0891B2]" : "bg-transparent",
+      ].join(" ")}
+      android_ripple={{ color: "rgba(0,0,0,0.08)", borderless: false }}
+    >
+      <Text
+        className={[
+          "text-md font-semibold",
+          active ? "text-white" : "text-slate-600",
+        ].join(" ")}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
 }
 
-function BookingCard({
-    item,
-    onCancel,
-    showCancel,
-}: {
-    item: Booking;
-    onCancel: () => void;
-    showCancel: boolean;
-}) {
+function BookingCard({ item, onCancel, showCancel }: any) {
+  const renderRightActions = (_progress: any, _dragX: any) => {
+    if (!showCancel) return null;
     return (
-        <View className="mb-4">
+      <Pressable
+        onPress={onCancel}
+        className="justify-center items-center w-15 mb-4 bg-red-500 rounded-2xl ml-2"
+      >
+        <X size={24} color="white" />
+      </Pressable>
+    );
+  };
 
-            <View className="rounded-2xl bg-white p-3 shadow-sm">
-                <View className="flex-row items-center justify-between px-2">
-                    <Text className="text-xs text-slate-500">{item.date}</Text>
-                    <Text className="text-[10px] text-slate-400">{item.location}</Text>
-                </View>
-
-                <View className="mt-2 flex-row">
-                    <Image
-                        source={{ uri: item.image }}
-                        className="h-18 w-18 rounded-xl"
-                        resizeMode="cover"
-                    />
-
-                    <View className="ml-3 flex-1">
-                        <Text className="text-base font-extrabold tracking-wide text-slate-900">
-                            {item.title}
-                        </Text>
-                        <View className="mt-1 flex-row items-center gap-3">
-                            <Clock size={14} color="#111" />
-                            <Text className="text-[8px] text-zinc-900">
-                                {item.time}
-                            </Text>
-                        </View>
-
-                        <View className="mt-1 flex-row items-center gap-3">
-                            <Contact size={14} color="#111" />
-                            <Text className="text-[8px] text-zinc-900">
-                                {item.instructor}
-                            </Text>
-                        </View>
-                    </View>
-
-                    <View className="ml-2 items-end justify-center">
-                        <Pressable
-                            onPress={() =>
-                                    router.push({
-                                    pathname: "/classes/[id]/detail",
-                                    params: { id: item.id },
-                                    })
-                                }
-                            className="w-[92px] items-center justify-center rounded-md bg-[#DAA770] px-3 py-2"
-                        >
-                            <Text className="text-xs font-bold text-white">
-                                See Details
-                            </Text>
-                        </Pressable>
-
-                        {showCancel && (
-                            <Pressable
-                                onPress={onCancel}
-                                className="mt-2 w-[92px] items-center justify-center rounded-md bg-[#FF2D55] px-3 py-2"
-                            >
-                                <Text className="text-xs font-bold text-white">Cancel</Text>
-                            </Pressable>
-                        )}
-                    </View>
-                </View>
+  return (
+    <ReanimatedSwipeable
+      renderRightActions={showCancel ? renderRightActions : undefined}
+      friction={1}
+    >
+      <Pressable
+        onPress={() =>
+          router.push({
+            pathname: "/classes/[id]/detail",
+            params: { id: item.id },
+          })
+        }
+      >
+        <Animated.View pointerEvents="box-none">
+          <View className="mb-4 rounded-2xl bg-white p-3 shadow-md">
+            <View className="flex-row justify-between px-2">
+              <Text className="text-slate-500">{item.date}</Text>
+              <Text className="text-slate-400">{item.location}</Text>
             </View>
-        </View>
-    );
-}
 
+            <View className="mt-2 flex-row">
+              <Image
+                source={{ uri: item.image }}
+                className="w-24 h-24 rounded-lg"
+              />
+
+              <View className="ml-3 flex-1">
+                <Text className="text-lg font-bold text-slate-900">
+                  {item.title}
+                </Text>
+
+                <View className="mt-7 space-y-1">
+                  <View className="flex-row items-center">
+                    <Clock size={12} color="#111827" />
+                    <Text className="ml-1.5 font-semibold text-slate-900">
+                      {item.time}
+                    </Text>
+                  </View>
+
+                  <View className="flex-row items-center">
+                    <UserIcon size={12} color="#111827" />
+                    <Text className="ml-1.5 font-semibold text-slate-900">
+                      {item.instructor}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </Animated.View>
+      </Pressable>
+    </ReanimatedSwipeable>
+  );
+}
 
 function CancelModal({
   visible,
@@ -194,9 +189,7 @@ function CancelModal({
                   onPress={onClose}
                   className="flex-1 h-16 rounded-2xl border border-black items-center justify-center"
                 >
-                  <Text className="text-[18px] font-bold text-black">
-                    Back
-                  </Text>
+                  <Text className="text-[18px] font-bold text-black">Back</Text>
                 </Pressable>
 
                 <Pressable
@@ -217,99 +210,87 @@ function CancelModal({
 }
 
 export default function Bookings() {
-    const [tab, setTab] = useState<TabKey>("Upcoming");
-    const [list, setList] = useState<Booking[]>(bookings);
-    const data = useMemo(
-        () => list.filter((b) => b.status === tab),
-        [list, tab]
-    );
+  const [tab, setTab] = useState<TabKey>("Upcoming");
+  const [list, setList] = useState<Booking[]>(bookings);
+  const data = useMemo(() => list.filter((b) => b.status === tab), [list, tab]);
 
-        
-    const [open, setOpen] = useState(false);
-    const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [open, setOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
-    const handleOpenCancel = (booking: Booking) => {
+  const handleOpenCancel = (booking: Booking) => {
     setSelectedBooking(booking);
     setOpen(true);
-    };
+  };
 
-    const handleConfirmCancel = () => {
+  const handleConfirmCancel = () => {
     if (!selectedBooking) return;
 
     setList((prev) =>
-        prev.map((b) =>
+      prev.map((b) =>
         b.id === selectedBooking.id ? { ...b, status: "Cancelled" } : b
-        )
+      )
     );
 
     setOpen(false);
     setSelectedBooking(null);
-    };
+  };
 
-    return (
-        <SafeAreaView style={{ flex: 1 }} >
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <BackgroundGlow showText={true} />
 
-            <BackgroundGlow showText={true} />
-            <View className="h-14 px-4 justify-center">
-                <Pressable
-                className="h-11 w-11 rounded-xl bg-zinc-300 items-center justify-center"
-                onPress={() => router.back()}
-                >
-                <ArrowLeft size={22} color="#fff" />
-                </Pressable>
-            </View>
+        <View className="mx-3">
+          <Text className="mt-4 text-3xl font-extrabold tracking-wide text-slate-900">
+            BOOKINGS
+          </Text>
 
-            <View className="mx-3">
+          {/* Tabs */}
+          <View className="mt-4 flex-row rounded-2xl bg-white px-1 py-1">
+            {TABS.map((t) => (
+              <TabPill
+                key={t}
+                label={t}
+                active={tab === t}
+                onPress={() => setTab(t)}
+              />
+            ))}
+          </View>
+        </View>
 
-                <Text className="mt-4 text-3xl font-extrabold tracking-wide text-slate-900">
-                    BOOKINGS
+        <View className="flex-1 px-4 pt-3">
+          <FlatList
+            data={data}
+            keyExtractor={(i) => String(i.id)}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 24 }}
+            renderItem={({ item }) => (
+              <BookingCard
+                item={item}
+                showCancel={tab === "Upcoming"}
+                onCancel={() => handleOpenCancel(item)}
+              />
+            )}
+            ListEmptyComponent={
+              <View className="mt-10 items-center">
+                <Text className="text-sm text-slate-500">
+                  No {tab.toLowerCase()} bookings.
                 </Text>
+              </View>
+            }
+          />
+        </View>
 
-                {/* Tabs */}
-                <View className="mt-4 flex-row rounded-2xl bg-white px-1 py-1">
-                    {TABS.map((t) => (
-                        <TabPill
-                            key={t}
-                            label={t}
-                            active={tab === t}
-                            onPress={() => setTab(t)}
-                        />
-                    ))}
-                </View>
-            </View>
-
-            <View className="flex-1 px-4 pt-3">
-                <FlatList
-                    data={data}
-                    keyExtractor={(i) => String(i.id)}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 24 }}
-                    renderItem={({ item }) => (
-                        <BookingCard
-                            item={item}
-                            showCancel={tab === "Upcoming"}
-                            onCancel={() => handleOpenCancel(item)}
-                        />
-                    )}
-                    ListEmptyComponent={
-                        <View className="mt-10 items-center">
-                            <Text className="text-sm text-slate-500">
-                                No {tab.toLowerCase()} bookings.
-                            </Text>
-                        </View>
-                    }
-                />
-            </View>
-
-            <CancelModal
-                visible={open}
-                booking={selectedBooking}
-                onClose={() => {
-                    setOpen(false);
-                    setSelectedBooking(null);
-                }}
-                onConfirm={handleConfirmCancel}
-            />
+        <CancelModal
+          visible={open}
+          booking={selectedBooking}
+          onClose={() => {
+            setOpen(false);
+            setSelectedBooking(null);
+          }}
+          onConfirm={handleConfirmCancel}
+        />
       </SafeAreaView>
-    );
+    </GestureHandlerRootView>
+  );
 }
