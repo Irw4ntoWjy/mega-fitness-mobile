@@ -31,8 +31,8 @@ export function TimeAvailabilitySection({
     data.days.find((d) => d.key === selectedDay)?.label ?? selectedDay;
 
   return (
-    <View className="my-5">
-      <Text className="text-gray-900 text-lg font-semibold mb-3">
+    <View className="my-3">
+      <Text className="text-gray-900 text-2xl font-semibold mb-3">
         Time Availability
       </Text>
       <ScrollView

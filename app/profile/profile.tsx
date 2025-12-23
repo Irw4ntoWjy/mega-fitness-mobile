@@ -215,7 +215,6 @@ export default function Profile() {
 
           {isTrainer ? (
             <>
-              <SectionTitle title="Time Availability" className="mt-6" />
               <TimeAvailabilitySection
                 data={timeAvailabilityData}
                 defaultDayKey="Sun"

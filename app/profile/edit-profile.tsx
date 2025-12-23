@@ -53,7 +53,7 @@ function Label({ children }: { children: React.ReactNode }) {
 
 function InputBox({ children }: { children: React.ReactNode }) {
   return (
-    <View className="bg-white border border-gray-300 rounded-lg px-3 py-3">
+    <View className="bg-white rounded-xl px-3 py-3 border-2 border-gray-200 justify-center">
       {children}
     </View>
   );
@@ -176,7 +176,7 @@ export default function EditProfile() {
               <TextInput
                 value={form.fullName}
                 onChangeText={(v) => setForm({ ...form, fullName: v })}
-                className="text-lg text-gray-900 p-0"
+                className="text-lg text-gray-900"
               />
             </InputBox>
           </View>
@@ -188,7 +188,7 @@ export default function EditProfile() {
                 value={form.contactNumber}
                 placeholder="(+62) xxxxxxxxx"
                 onChangeText={(v) => setForm({ ...form, contactNumber: v })}
-                className="text-lg text-gray-900 p-0"
+                className="text-lg text-gray-900"
               />
             </InputBox>
           </View>
@@ -199,7 +199,7 @@ export default function EditProfile() {
               <TextInput
                 value={form.address}
                 onChangeText={(v) => setForm({ ...form, address: v })}
-                className="text-lg text-gray-900 p-0"
+                className="text-lg text-gray-900"
               />
             </InputBox>
           </View>
@@ -280,7 +280,7 @@ export default function EditProfile() {
                   <TextInput
                     value={form.certification}
                     onChangeText={(v) => setForm({ ...form, certification: v })}
-                    className="text-lg text-gray-900 p-0"
+                    className="text-lg text-gray-900"
                   />
                 </InputBox>
               </View>
@@ -291,7 +291,7 @@ export default function EditProfile() {
                   <TextInput
                     value={form.experience}
                     onChangeText={(v) => setForm({ ...form, experience: v })}
-                    className="text-lg text-gray-900 p-0"
+                    className="text-lg text-gray-900"
                   />
                 </InputBox>
               </View>
@@ -302,7 +302,7 @@ export default function EditProfile() {
                   <TextInput
                     value={form.availability}
                     onChangeText={(v) => setForm({ ...form, availability: v })}
-                    className="text-lg text-gray-900 p-0"
+                    className="text-lg text-gray-900"
                   />
                 </InputBox>
               </View>
@@ -320,7 +320,7 @@ export default function EditProfile() {
                   value={form.weight}
                   onChangeText={(v) => setForm({ ...form, weight: v })}
                   keyboardType="numeric"
-                  className="text-lg text-gray-900 p-0 flex-1"
+                  className="text-lg text-gray-900 flex-1"
                 />
                 <Text className="text-lg text-gray-400 ml-2">kg</Text>
               </View>
@@ -335,7 +335,7 @@ export default function EditProfile() {
                   value={form.height}
                   onChangeText={(v) => setForm({ ...form, height: v })}
                   keyboardType="numeric"
-                  className="text-lg text-gray-900 p-0 flex-1"
+                  className="text-lg text-gray-900 flex-1"
                 />
                 <Text className="text-lg text-gray-400 ml-2">cm</Text>
               </View>
