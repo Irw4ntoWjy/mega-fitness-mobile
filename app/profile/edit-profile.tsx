@@ -53,7 +53,7 @@ function Label({ children }: { children: React.ReactNode }) {
 
 function InputBox({ children }: { children: React.ReactNode }) {
   return (
-    <View className="bg-white rounded-xl px-3 py-3 border-2 border-gray-200 justify-center">
+    <View className="bg-white rounded-xl px-2 border-2 border-gray-200 justify-center">
       {children}
     </View>
   );
@@ -146,18 +146,24 @@ export default function EditProfile() {
 
       <View
         style={{
+          flexDirection: "row",
+          width: "100%",
           paddingTop: insets.top + 8,
-          paddingRight: insets.right + 6,
-          paddingLeft: insets.left + 6,
+          paddingRight: insets.right + 8,
+          paddingLeft: insets.left + 8,
+          alignItems: "center",
         }}
       >
         <Pressable
+          className="w-10 h-10 items-center justify-center"
           onPress={() => router.back()}
-          className="w-12 h-12 m-4 rounded-lg bg-gray-200 items-center justify-center"
         >
-          <ChevronLeft size={24} color="#000" />
+          <ChevronLeft size={22} />
         </Pressable>
+
+        <Text className="text-2xl font-bold">Edit Info</Text>
       </View>
+
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -167,40 +173,43 @@ export default function EditProfile() {
           contentContainerStyle={{ paddingBottom: insets.bottom }}
           showsVerticalScrollIndicator={false}
         >
-          <Text className="mb-4 text-2xl font-bold text-gray-800">
-            Edit Info
-          </Text>
-          <View className="mb-4">
+          <View className="mb-4 ">
             <Label>Full Name</Label>
             <InputBox>
-              <TextInput
-                value={form.fullName}
-                onChangeText={(v) => setForm({ ...form, fullName: v })}
-                className="text-gray-900"
-              />
+              <View className="flex-row justify-between items-center">
+                <TextInput
+                  value={form.fullName}
+                  onChangeText={(v) => setForm({ ...form, fullName: v })}
+                  className=" text-gray-900 w-full"
+                />
+              </View>
             </InputBox>
           </View>
 
           <View className="mb-4">
             <Label>Contact Number</Label>
             <InputBox>
-              <TextInput
-                value={form.contactNumber}
-                placeholder="(+62) xxxxxxxxx"
-                onChangeText={(v) => setForm({ ...form, contactNumber: v })}
-                className=" text-gray-900"
-              />
+              <View className="flex-row justify-between items-center">
+                <TextInput
+                  value={form.contactNumber}
+                  placeholder="(+62) xxxxxxxxx"
+                  onChangeText={(v) => setForm({ ...form, contactNumber: v })}
+                  className=" text-gray-900 w-full"
+                />
+              </View>
             </InputBox>
           </View>
 
           <View className="mb-4">
             <Label>Address</Label>
             <InputBox>
-              <TextInput
-                value={form.address}
-                onChangeText={(v) => setForm({ ...form, address: v })}
-                className=" text-gray-900"
-              />
+              <View className="flex-row justify-between items-center">
+                <TextInput
+                  value={form.address}
+                  onChangeText={(v) => setForm({ ...form, address: v })}
+                  className=" text-gray-900 w-full"
+                />
+              </View>
             </InputBox>
           </View>
 
@@ -210,7 +219,7 @@ export default function EditProfile() {
             <Pressable onPress={() => setOpenDate(!openDate)}>
               <InputBox>
                 <View className="flex-row justify-between items-center">
-                  <Text className=" text-gray-900">
+                  <Text className=" text-gray-900 py-3 px-1">
                     {formatDate(form.birthDate)}
                   </Text>
                   <ChevronDown size={16} color="#9CA3AF" />
@@ -244,7 +253,7 @@ export default function EditProfile() {
             <Pressable onPress={() => setOpenGender(!openGender)}>
               <InputBox>
                 <View className="flex-row items-center justify-between">
-                  <Text className=" text-gray-900">
+                  <Text className=" text-gray-900 py-3 px-1">
                     {form.gender || "Select gender"}
                   </Text>
                   <ChevronDown size={16} color="#9CA3AF" />
@@ -278,33 +287,43 @@ export default function EditProfile() {
               <View className="mb-4">
                 <Label>Certification</Label>
                 <InputBox>
-                  <TextInput
-                    value={form.certification}
-                    onChangeText={(v) => setForm({ ...form, certification: v })}
-                    className=" text-gray-900"
-                  />
+                  <View className="flex-row justify-between items-center">
+                    <TextInput
+                      value={form.certification}
+                      onChangeText={(v) =>
+                        setForm({ ...form, certification: v })
+                      }
+                      className=" text-gray-900 w-full"
+                    />
+                  </View>
                 </InputBox>
               </View>
 
               <View className="mb-4">
                 <Label>Experience</Label>
                 <InputBox>
-                  <TextInput
-                    value={form.experience}
-                    onChangeText={(v) => setForm({ ...form, experience: v })}
-                    className=" text-gray-900"
-                  />
+                  <View className="flex-row justify-between items-center">
+                    <TextInput
+                      value={form.experience}
+                      onChangeText={(v) => setForm({ ...form, experience: v })}
+                      className=" text-gray-900 w-full"
+                    />
+                  </View>
                 </InputBox>
               </View>
 
               <View className="mb-4">
                 <Label>Availability</Label>
                 <InputBox>
-                  <TextInput
-                    value={form.availability}
-                    onChangeText={(v) => setForm({ ...form, availability: v })}
-                    className=" text-gray-900"
-                  />
+                  <View className="flex-row justify-between items-center">
+                    <TextInput
+                      value={form.availability}
+                      onChangeText={(v) =>
+                        setForm({ ...form, availability: v })
+                      }
+                      className=" text-gray-900 w-full"
+                    />
+                  </View>
                 </InputBox>
               </View>
             </>
@@ -316,14 +335,14 @@ export default function EditProfile() {
           <View className="mb-4">
             <Label>Weight</Label>
             <InputBox>
-              <View className="flex-row items-center">
+              <View className="flex-row justify-between items-center">
                 <TextInput
                   value={form.weight}
                   onChangeText={(v) => setForm({ ...form, weight: v })}
                   keyboardType="numeric"
-                  className=" text-gray-900 flex-1"
+                  className=" text-gray-900 w-7/8"
                 />
-                <Text className=" text-gray-400 ml-2">kg</Text>
+                <Text className=" text-gray-400">kg</Text>
               </View>
             </InputBox>
           </View>
@@ -331,14 +350,14 @@ export default function EditProfile() {
           <View className="mb-4">
             <Label>Height</Label>
             <InputBox>
-              <View className="flex-row items-center">
+              <View className="flex-row justify-between items-center">
                 <TextInput
                   value={form.height}
                   onChangeText={(v) => setForm({ ...form, height: v })}
                   keyboardType="numeric"
-                  className=" text-gray-900 flex-1"
+                  className=" text-gray-900 w-7/8"
                 />
-                <Text className=" text-gray-400 ml-2">cm</Text>
+                <Text className=" text-gray-400">cm</Text>
               </View>
             </InputBox>
           </View>
@@ -347,8 +366,8 @@ export default function EditProfile() {
       <View
         style={{
           paddingBottom: insets.bottom + 30,
-          paddingRight: insets.right + 16,
-          paddingLeft: insets.left + 16,
+          paddingRight: insets.right + 20,
+          paddingLeft: insets.left + 20,
         }}
       >
         <Pressable
@@ -359,5 +378,22 @@ export default function EditProfile() {
         </Pressable>
       </View>
     </View>
+  );
+}
+
+function HeaderIcon({
+  children,
+  onPress,
+}: {
+  children: React.ReactNode;
+  onPress?: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className="w-10 h-10 rounded-xl items-center justify-center bg-white shadow-sm"
+    >
+      {children}
+    </Pressable>
   );
 }
