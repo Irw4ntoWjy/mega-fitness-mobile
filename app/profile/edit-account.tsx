@@ -60,17 +60,22 @@ export default function EditAccount() {
       >
         <View
           style={{
+            flexDirection: "row",
+            width: "100%",
             paddingTop: insets.top + 8,
-            paddingRight: insets.right + 6,
-            paddingLeft: insets.left + 6,
+            paddingRight: insets.right + 8,
+            paddingLeft: insets.left + 8,
+            alignItems: "center",
           }}
         >
           <Pressable
+            className="w-10 h-10 items-center justify-center"
             onPress={() => router.back()}
-            className="w-12 h-12 m-4 rounded-lg bg-gray-200 items-center justify-center"
           >
-            <ChevronLeft size={24} color="#000" />
+            <ChevronLeft size={22} />
           </Pressable>
+
+          <Text className="text-2xl font-bold">Edit Account</Text>
         </View>
 
         <ScrollView
@@ -80,10 +85,6 @@ export default function EditAccount() {
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
         >
-          <Text className="mb-4 text-2xl font-bold text-gray-800">
-            Edit Account
-          </Text>
-
           <View className="mb-4">
             <Label>Email</Label>
             <InputBox>
@@ -140,11 +141,12 @@ export default function EditAccount() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
       <View
         style={{
-          paddingRight: insets.right + 16,
-          paddingLeft: insets.left + 16,
           paddingBottom: insets.bottom + 30,
+          paddingRight: insets.right + 20,
+          paddingLeft: insets.left + 20,
         }}
       >
         <Pressable
