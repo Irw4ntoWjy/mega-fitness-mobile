@@ -14,23 +14,26 @@ const personalTrainers = [
   { id: '4', PTname: 'Alex Brown' },
   { id: '5', PTname: 'Chris White' },
   { id: '6', PTname: 'Emma Green' },
+  { id: '7', PTname: 'Emma Green' },
+  { id: '8', PTname: 'Emma Green' },
+  { id: '9', PTname: 'Emma Green' },
+  { id: '10', PTname: 'Emma Green' },
 ];
 
 
   return (
-    <View className="bg-[#EFEFEF] w-full h-full">
-      <ScrollView className="bg-[#EFEFEF] w-full h-full ">
-        <View className="pt-[5vh] rounded-t-xl pb-30 w-full">
-        <BackgroundGlow></BackgroundGlow>
+    <View className="bg-[#EFEFEF] w-full h-full flex flex-col justify-center items-center">
+      <BackgroundGlow></BackgroundGlow>
         {/* <View className="bg-[#FF30D9] blur-[70px] w-[50vh] h-[50vh] opacity-[15%] rounded-full absolute z-0 right-[-60vw] top-[-20vh]"></View> */}
         <Image
             source={require("../assets/png/MegaText.png")}
-            className="h-[60vh] absolute z-0 right-[-0vw] top-[60vh]"
+            className="h-[60vh] absolute z-0 right-[-0vw] top-[25vh]"
             resizeMode="contain"
             /> 
-        <View className="bg-[#5CD6D6] blur-[70px] w-[50vh] h-[50vh] opacity-[30%] rounded-full absolute z-0 left-[-60vw] bottom-[-20vh]"></View>
+        {/* <View className="bg-[#5CD6D6] blur-[70px] w-[50vh] h-[50vh] opacity-[30%] rounded-full absolute z-0 left-[-60vw] bottom-[-20vh]"></View> */}
 
-
+      <ScrollView className="w-full h-full ">
+        <View className="pt-[5vh] rounded-t-xl pb-10 w-full">
           <Pressable
             onPress={() => router.back()}
             className="px-[5%]"
@@ -65,23 +68,23 @@ const personalTrainers = [
                 <ContactRound size={40} color="black"/>
                 <Text className="text-3xl font-bold">Personal Trainer</Text>
             </View>
-            <View className="bg-white w-full rounded-xl h-[30vh] shadow-[0_0_20px_rgba(0,0,0,0.3)] p-5">
-                <ScrollView showsVerticalScrollIndicator={false}>
-                    <View className="flex-row flex-wrap">
+            <View className="w-full rounded-xl h-fit p-5">
+                <View>
+                    <View className="flex-row flex-wrap gap-[5%]">
                     {personalTrainers.map((item) => (
-                        <View key={item.id} className="w-1/2 mb-3">
-                        <Text className="text-md">• {item.PTname}</Text>
+                        <View key={item.id} className="bg-white shadow-[0_0_20px_rgba(0,0,0,0.3)] p-2 rounded-full w-[45%] mb-3 overflow-hidden">
+                          <Text className="text-md text-nowrap">• {item.PTname}</Text>
                         </View>
                     ))}
                     </View>
-                </ScrollView>
+                </View>
             </View>
         </View>
         
         </View>
       </ScrollView>
 
-      <View className="absolute flex flex-row justify-center items-center overflow-hidden bottom-12 left-1/2 -translate-x-1/2 rounded-lg bg-[#DAA770] w-[90vw] h-[8vh] shadow-[0_0_20px_rgba(0,0,0,0.3)]">
+      <View className="flex flex-row justify-center items-center overflow-hidden mb-12 mt-5 rounded-lg bg-[#DAA770] w-[90vw] h-[8vh] shadow-[0_0_20px_rgba(0,0,0,0.3)]">
         <Text className="text-2xl text-white">Buy Package</Text>
       </View>
     </View>
