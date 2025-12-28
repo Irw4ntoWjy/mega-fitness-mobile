@@ -22,6 +22,19 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="profile/profile" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="profile/settings-list"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="profile/edit-profile"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="profile/edit-account"
+          options={{ headerShown: false }}
+        />
       </Stack>
     </SafeAreaProvider>
   );
