@@ -61,6 +61,7 @@ export default function RootLayout() {
           name="profile/edit-account"
           options={{ headerShown: false }}
         />
+        <Stack.Screen name="history/history" options={{ headerShown: false }} />
       </Stack>
     </SafeAreaProvider>
   );

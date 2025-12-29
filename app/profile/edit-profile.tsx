@@ -1,9 +1,10 @@
+import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
 import { BackgroundGlow } from "@components/Theme/background";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronDown, ChevronLeft } from "lucide-react-native";
+import { ChevronDown } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -143,26 +144,7 @@ export default function EditProfile() {
   return (
     <View className="flex-1 bg-[#F3F3F3]">
       <BackgroundGlow />
-
-      <View
-        style={{
-          flexDirection: "row",
-          width: "100%",
-          paddingTop: insets.top + 8,
-          paddingRight: insets.right + 8,
-          paddingLeft: insets.left + 8,
-          alignItems: "center",
-        }}
-      >
-        <Pressable
-          className="w-10 h-10 items-center justify-center"
-          onPress={() => router.back()}
-        >
-          <ChevronLeft size={22} />
-        </Pressable>
-
-        <Text className="text-2xl font-bold">Edit Info</Text>
-      </View>
+      <HeaderNavBar title="Edit Info" backOnly />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -378,22 +360,5 @@ export default function EditProfile() {
         </Pressable>
       </View>
     </View>
-  );
-}
-
-function HeaderIcon({
-  children,
-  onPress,
-}: {
-  children: React.ReactNode;
-  onPress?: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className="w-10 h-10 rounded-xl items-center justify-center bg-white shadow-sm"
-    >
-      {children}
-    </Pressable>
   );
 }

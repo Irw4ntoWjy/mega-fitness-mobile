@@ -1,6 +1,6 @@
+import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -58,25 +58,7 @@ export default function EditAccount() {
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            width: "100%",
-            paddingTop: insets.top + 8,
-            paddingRight: insets.right + 8,
-            paddingLeft: insets.left + 8,
-            alignItems: "center",
-          }}
-        >
-          <Pressable
-            className="w-10 h-10 items-center justify-center"
-            onPress={() => router.back()}
-          >
-            <ChevronLeft size={22} />
-          </Pressable>
-
-          <Text className="text-2xl font-bold">Edit Account</Text>
-        </View>
+        <HeaderNavBar title="Edit Account" backOnly />
 
         <ScrollView
           className="px-6 mt-6"

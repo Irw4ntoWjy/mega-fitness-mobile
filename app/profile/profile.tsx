@@ -1,3 +1,4 @@
+import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
 import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
 import {
   TimeAvailabilityData,
@@ -6,13 +7,7 @@ import {
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
-import {
-  Bell,
-  ChevronLeft,
-  FileQuestionMark,
-  Pencil,
-  Settings,
-} from "lucide-react-native";
+import { Pencil } from "lucide-react-native";
 import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -138,40 +133,7 @@ export default function Profile() {
   return (
     <View className="flex-1">
       <BackgroundGlow />
-      <View
-        style={{
-          flexDirection: "row",
-          width: "100%",
-          paddingTop: insets.top + 8,
-          paddingRight: insets.right + 8,
-          paddingLeft: insets.left + 8,
-          paddingBottom: 12,
-        }}
-        className="px-4"
-      >
-        <Pressable
-          onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center"
-        >
-          <ChevronLeft size={22} color="#000" />
-        </Pressable>
-
-        <View className="flex-row items-center ml-auto">
-          <HeaderIcon>
-            <FileQuestionMark size={18} color="black" />
-          </HeaderIcon>
-          <View className="ml-3">
-            <HeaderIcon>
-              <Bell size={18} color="black" />
-            </HeaderIcon>
-          </View>
-          <View className="ml-3 mr-1">
-            <HeaderIcon onPress={() => router.push("/profile/settings-list")}>
-              <Settings size={18} color="black" />
-            </HeaderIcon>
-          </View>
-        </View>
-      </View>
+      <HeaderNavBar />
 
       <ScrollView className="px-4 mb-10" showsVerticalScrollIndicator={false}>
         <View className="relative">
@@ -314,23 +276,6 @@ function ProfileInfoSection({
         ))}
       </View>
     </View>
-  );
-}
-
-function HeaderIcon({
-  children,
-  onPress,
-}: {
-  children: React.ReactNode;
-  onPress?: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className="w-10 h-10 rounded-xl items-center justify-center bg-white shadow-sm"
-    >
-      {children}
-    </Pressable>
   );
 }
 

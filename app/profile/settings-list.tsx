@@ -1,12 +1,7 @@
+import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Trash2,
-  User,
-  X,
-} from "lucide-react-native";
+import { ChevronRight, Trash2, User, X } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
   Keyboard,
@@ -17,10 +12,8 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function SettingsList() {
-  const insets = useSafeAreaInsets();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -62,29 +55,7 @@ export default function SettingsList() {
   return (
     <View className="flex-1">
       <BackgroundGlow showText={true} />
-      <View
-        style={{
-          flexDirection: "row",
-          width: "100%",
-          paddingTop: insets.top + 8,
-          paddingRight: insets.right + 8,
-          paddingLeft: insets.left + 8,
-        }}
-        className="px-4"
-      >
-        <Pressable
-          onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center"
-        >
-          <ChevronLeft size={22} color="#000" />
-        </Pressable>
-
-        <View className="flex-row items-center">
-          <Text className="text-gray-900 text-lg font-semibold ml-2">
-            Settings
-          </Text>
-        </View>
-      </View>
+      <HeaderNavBar title="Settings" backOnly />
 
       <View
         style={{
