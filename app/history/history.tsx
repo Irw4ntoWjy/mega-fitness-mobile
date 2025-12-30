@@ -4,16 +4,210 @@ import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import React, { useCallback, useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 
-export default function Profile() {
-  const [selectedDate, setSelectedDate] = useState(new Date(2020, 10, 6));
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [firstEventHeight, setFirstEventHeight] = useState<number | null>(null);
-  const [eventsHeight, setEventsHeight] = useState<number | null>(null);
+type Response = {
+  id: string;
+  start_at: string;
+  end_at: string;
+  title: string;
+  coach: string;
+  color?: string;
+};
 
-  const { day, monthLabel, year } = useMemo(() => {
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function dayKeyFromISO(iso: string) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+function formatMonthLabelFromKey(dayKey: string) {
+  const [y, m, d] = dayKey.split("-").map((x) => Number(x));
+  const dt = new Date(y, m - 1, d);
+  return new Intl.DateTimeFormat("en", { month: "long" }).format(dt);
+}
+
+function formatDayNumberFromKey(dayKey: string) {
+  return Number(dayKey.split("-")[2]);
+}
+
+function formatTimeRange(startISO: string, endISO: string) {
+  const start = new Date(startISO);
+  const end = new Date(endISO);
+  const fmt = (d: Date) =>
+    d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return `${fmt(start)} - ${fmt(end)}`;
+}
+
+function EventCard({
+  title,
+  coach,
+  time,
+  onFirstLayout,
+}: {
+  title: string;
+  coach: string;
+  time: string;
+  onFirstLayout?: (height: number) => void;
+}) {
+  return (
+    <View
+      className="rounded-2xl p-4 shadow-sm bg-amber-300 max-w-full"
+      onLayout={(e) => {
+        if (!onFirstLayout) return;
+        const h = e.nativeEvent.layout.height;
+        onFirstLayout(h);
+      }}
+    >
+      <View className="flex-row">
+        <View className="justify-between">
+          <Text
+            className=" text-white font-extrabold text-lg uppercase"
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {title}
+          </Text>
+
+          <View className="flex-row justify-between">
+            <Text
+              className="text-white/90 text-sm"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {coach}
+            </Text>
+            <Text
+              className="text-white text-sm font-semibold ml-auto"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {time}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function DayRow({
+  dayNumber,
+  monthLabel,
+  events,
+  firstEventHeight,
+  eventsHeight,
+  onEventsColumnLayout,
+  onFirstCardHeight,
+  rowGap = 0,
+}: {
+  dayNumber: number;
+  monthLabel: string;
+  events: {
+    id: string;
+    title: string;
+    coach: string;
+    time: string;
+    color?: string;
+  }[];
+  firstEventHeight: number | null;
+  eventsHeight: number | null;
+  onEventsColumnLayout: (height: number) => void;
+  onFirstCardHeight: (height: number) => void;
+  rowGap?: number;
+}) {
+  return (
+    <View className="flex-row justify-between gap-6">
+      <View
+        style={
+          firstEventHeight
+            ? { height: firstEventHeight, justifyContent: "center" }
+            : { justifyContent: "center" }
+        }
+      >
+        <Text className="text-4xl font-bold text-gray-900 text-center">
+          {dayNumber}
+        </Text>
+        <Text className="text-xl  text-gray-500 text-center">{monthLabel}</Text>
+      </View>
+
+      <View
+        style={{
+          alignItems: "center",
+          justifyContent: "center",
+          height: eventsHeight ?? undefined,
+        }}
+      >
+        <View
+          style={{
+            alignSelf: "stretch",
+            minHeight: eventsHeight ?? undefined,
+            borderLeftWidth: 3,
+            borderColor: "#D1D5DB",
+          }}
+        />
+        {firstEventHeight ? (
+          <View
+            style={{
+              position: "absolute",
+              top: (firstEventHeight ?? 0) / 2,
+              width: 14,
+              height: 14,
+              borderRadius: 7,
+              backgroundColor: "#fff",
+              borderWidth: 2,
+              borderColor: "#9CA3AF",
+            }}
+          />
+        ) : null}
+      </View>
+
+      <View
+        style={{
+          paddingBottom: rowGap,
+          gap: rowGap,
+          flexShrink: 1,
+        }}
+        onLayout={(e) => {
+          const h = e.nativeEvent.layout.height;
+          onEventsColumnLayout(h);
+        }}
+      >
+        {events.map((ev, idx) => (
+          <EventCard
+            key={ev.id}
+            title={ev.title}
+            coach={ev.coach}
+            time={ev.time}
+            onFirstLayout={
+              idx === 0
+                ? (h) => {
+                    onFirstCardHeight(h);
+                  }
+                : undefined
+            }
+          />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+export default function Profile() {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const [firstEventHeightByDay, setFirstEventHeightByDay] = useState<
+    Record<string, number | null>
+  >({});
+  const [eventsHeightByDay, setEventsHeightByDay] = useState<
+    Record<string, number | null>
+  >({});
+
+  const { monthLabel, year } = useMemo(() => {
     const formatter = new Intl.DateTimeFormat("en", { month: "long" });
     return {
-      day: selectedDate.getDate(),
       monthLabel: formatter.format(selectedDate),
       year: selectedDate.getFullYear(),
     };
@@ -53,61 +247,77 @@ export default function Profile() {
     [selectedDate]
   );
 
-  // const events = useMemo(
-  //   () => [
-  //     {
-  //       day: "01",
-  //       month: "November",
-  //       title: "CAMPFIRE",
-  //       coach: "Michael Sugeh",
-  //       time: "03.00 PM - 04.00 PM",
-  //       duration: "60 min",
-  //       status: "Completed",
-  //       color: "#0E8BAA",
-  //     },
-  //     {
-  //       day: "01",
-  //       month: "November",
-  //       title: "CAMPFIRE",
-  //       coach: "Kita Aznah",
-  //       time: "03.00 PM - 04.00 PM",
-  //       duration: "60 min",
-  //       status: "Completed",
-  //       color: "#C98F52",
-  //     },
-  //     {
-  //       day: "03",
-  //       month: "November",
-  //       title: "CAMPFIRE",
-  //       coach: "Michael Sugeh",
-  //       time: "03.00 PM - 04.00 PM",
-  //       duration: "60 min",
-  //       status: "Completed",
-  //       color: "#0E8BAA",
-  //     },
-  //     {
-  //       day: "07",
-  //       month: "November",
-  //       title: "CAMPFIRE",
-  //       coach: "Michael Sugeh",
-  //       time: "03.00 PM - 04.00 PM",
-  //       duration: "60 min",
-  //       status: "Completed",
-  //       color: "#0E8BAA",
-  //     },
-  //     {
-  //       day: "12",
-  //       month: "November",
-  //       title: "CAMPFIRE",
-  //       coach: "Michael Sugeh",
-  //       time: "03.00 PM - 04.00 PM",
-  //       duration: "60 min",
-  //       status: "Completed",
-  //       color: "#C98F52",
-  //     },
-  //   ],
-  //   []
-  // );
+  const response: Response[] = useMemo(
+    () => [
+      {
+        id: "e1",
+        start_at: "2025-12-06T09:00:00.000Z",
+        end_at: "2025-12-06T10:00:00.000Z",
+        title: "test eventttttttttttttttttttttttttttttttttttttt",
+        coach: "Test Coach",
+        color: "#FCD34D",
+      },
+      {
+        id: "e2",
+        start_at: "2025-12-06T09:00:00.000Z",
+        end_at: "2025-12-06T10:00:00.000Z",
+        title: "test eventttttttttttttttttttttttttttttttttttttt",
+        coach: "Test Coach",
+        color: "#FCD34D",
+      },
+      {
+        id: "e3",
+        start_at: "2025-12-07T09:00:00.000Z",
+        end_at: "2025-12-07T10:00:00.000Z",
+        title: "test eventttttttttttttttttttttttttttttttttttttt",
+        coach: "Test Coach",
+        color: "#FCD34D",
+      },
+      {
+        id: "e4",
+        start_at: "2025-12-07T09:00:00.000Z",
+        end_at: "2025-12-07T10:00:00.000Z",
+        title: "test eventttttttttttttttttttttttttttttttttttttt",
+        coach: "Test Coach",
+        color: "#FCD34D",
+      },
+      {
+        id: "e5",
+        start_at: "2025-12-08T09:00:00.000Z",
+        end_at: "2025-12-08T10:00:00.000Z",
+        title: "test eventttttttttttttttttttttttttttttttttttttt",
+        coach: "Test Coach",
+        color: "#FCD34D",
+      },
+    ],
+    []
+  );
+
+  const eventsInSelectedMonth = useMemo(() => {
+    return response.filter((ev) => {
+      const d = new Date(ev.start_at);
+      return (
+        d.getFullYear() === selectedDate.getFullYear() &&
+        d.getMonth() === selectedDate.getMonth()
+      );
+    });
+  }, [response, selectedDate]);
+
+  const eventsByDay = useMemo(() => {
+    const grouped: Record<string, Response[]> = {};
+    for (const ev of eventsInSelectedMonth) {
+      const key = dayKeyFromISO(ev.start_at);
+      (grouped[key] ||= []).push(ev);
+    }
+    Object.keys(grouped).forEach((k) => {
+      grouped[k].sort((a, b) => +new Date(a.start_at) - +new Date(b.start_at));
+    });
+    return grouped;
+  }, [eventsInSelectedMonth]);
+
+  const dayKeysSorted = useMemo(() => {
+    return Object.keys(eventsByDay).sort((a, b) => +new Date(a) - +new Date(b));
+  }, [eventsByDay]);
 
   return (
     <View className="flex-1">
@@ -121,7 +331,9 @@ export default function Profile() {
         >
           <View className="flex-row items-center justify-between">
             <View className="w-10 h-10 rounded-full bg-gray-300 items-center justify-center">
-              <Text className="text-2xl font-semibold text-white">{day}</Text>
+              <Text className="text-2xl font-semibold text-white">
+                {eventsInSelectedMonth.length}
+              </Text>
             </View>
 
             <View className="items-end">
@@ -132,6 +344,7 @@ export default function Profile() {
             </View>
           </View>
         </Pressable>
+
         <Modal
           animationType="fade"
           visible={pickerOpen}
@@ -187,106 +400,53 @@ export default function Profile() {
             </Pressable>
           </Pressable>
         </Modal>
+
         <ScrollView showsVerticalScrollIndicator={false}>
           <View className="bg-white rounded-2xl px-8 py-6">
-            <View className="flex-row justify-between">
-              <View
-                style={
-                  firstEventHeight
-                    ? {
-                        height: firstEventHeight,
-                        justifyContent: "center",
-                      }
-                    : { justifyContent: "center" }
-                }
-              >
-                <Text className="text-4xl font-bold text-gray-900 text-center">
-                  {day}
+            <View className="flex-col">
+              {dayKeysSorted.length === 0 ? (
+                <Text className="text-gray-400 text-center text-xl py-6">
+                  No events in this month.
                 </Text>
-                <Text className="text-xl text-gray-500 text-center">
-                  {monthLabel}
-                </Text>
-              </View>
-              <View
-                style={{
-                  marginHorizontal: 12,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  height: eventsHeight ?? undefined,
-                  alignSelf: "stretch",
-                  position: "relative",
-                }}
-              >
-                <View
-                  style={{
-                    alignSelf: "stretch",
-                    minHeight: eventsHeight,
-                    borderLeftWidth: 3,
-                    borderColor: "#D1D5DB",
-                  }}
-                />
-                {firstEventHeight ? (
-                  <View
-                    style={{
-                      position: "absolute",
-                      top: (firstEventHeight ?? 0) / 2,
-                      width: 14,
-                      height: 14,
-                      borderRadius: 7,
-                      backgroundColor: "#fff",
-                      borderWidth: 2,
-                      borderColor: "#9CA3AF",
-                    }}
-                  />
-                ) : null}
-              </View>
+              ) : null}
 
-              <View
-                className="flex-col gap-4"
-                onLayout={(e) => setEventsHeight(e.nativeEvent.layout.height)}
-              >
-                <View
-                  className="rounded-2xl p-4 shadow-sm bg-amber-300"
-                  onLayout={(e) => {
-                    if (!firstEventHeight) {
-                      setFirstEventHeight(e.nativeEvent.layout.height);
+              {dayKeysSorted.map((dayKey, idx) => {
+                const dayEvents = eventsByDay[dayKey];
+
+                const cardEvents = dayEvents.map((ev) => ({
+                  id: ev.id,
+                  title: ev.title,
+                  coach: ev.coach,
+                  time: formatTimeRange(ev.start_at, ev.end_at),
+                  color: ev.color,
+                }));
+
+                const firstEventHeight = firstEventHeightByDay[dayKey] ?? null;
+                const eventsHeight = eventsHeightByDay[dayKey] ?? null;
+
+                const isLast = idx === dayKeysSorted.length - 1;
+
+                return (
+                  <DayRow
+                    key={dayKey}
+                    dayNumber={formatDayNumberFromKey(dayKey)}
+                    monthLabel={formatMonthLabelFromKey(dayKey)}
+                    events={cardEvents}
+                    firstEventHeight={firstEventHeight}
+                    eventsHeight={eventsHeight}
+                    onEventsColumnLayout={(h) =>
+                      setEventsHeightByDay((prev) => ({ ...prev, [dayKey]: h }))
                     }
-                  }}
-                >
-                  <View className="flex-row justify-between items-center">
-                    <View className="max-w-2/3">
-                      <Text className=" text-white font-extrabold text-lg uppercase">
-                        test eventttttttttttttttttttttttttttttttttttttt
-                      </Text>
-                      <View className="flex-row gap-10">
-                        <Text className="text-white/90 text-sm">
-                          Test Coach
-                        </Text>
-                        <Text className="text-white text-sm font-semibold ml-auto">
-                          09.00 AM - 10.00 AM
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                </View>
-                <View className="rounded-2xl p-4 shadow-sm bg-amber-300">
-                  <View className="flex-row justify-between items-center">
-                    <View className="max-w-2/3">
-                      <Text className=" text-white font-extrabold text-lg uppercase">
-                        test eventttttttttttttttttttttttttttttttttttttt
-                      </Text>
-                      <View className="flex-row gap-10">
-                        <Text className="text-white/90 text-sm">
-                          Test Coach
-                        </Text>
-                        <Text className="text-white text-sm font-semibold ml-auto">
-                          09.00 AM - 10.00 AM
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                </View>
-              </View>
+                    onFirstCardHeight={(h) =>
+                      setFirstEventHeightByDay((prev) => {
+                        if (prev[dayKey]) return prev;
+                        return { ...prev, [dayKey]: h };
+                      })
+                    }
+                    rowGap={isLast ? 0 : 16}
+                  />
+                );
+              })}
             </View>
           </View>
         </ScrollView>
