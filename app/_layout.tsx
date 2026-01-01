@@ -22,6 +22,18 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="classes/[id]/detail"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="classes/[id]/barcode"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="transactions/[id]/detail"
+          options={{ headerShown: false }}
+        />
         <Stack.Screen name="profile/profile" options={{ headerShown: false }} />
         <Stack.Screen
           name="profile/settings-list"

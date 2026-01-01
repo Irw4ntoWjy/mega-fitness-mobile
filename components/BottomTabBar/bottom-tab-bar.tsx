@@ -1,5 +1,5 @@
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { BookText, House, ScanQrCode } from "lucide-react-native";
+import { BookText, House, ScanQrCode, Search, Wallet } from "lucide-react-native";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,12 +16,16 @@ const BottomTabBar = ({
     let size = 25;
 
     switch (routeName) {
-      case "home":
-        return <House color={color} size={size} />;
+      case "classes":
+        return <ScanQrCode color="#ffff" size={40} />;
       case "explore":
+        return <Search color={color} size={size} />;
+      case "transaction":
+        return <Wallet color={color} size={size} />;
+      case "bookings":
         return <BookText color={color} size={size} />;
       default:
-        return <ScanQrCode color="#ffff" size={40} />;
+        return <House color={color} size={size} />;
     }
   };
 
@@ -49,7 +53,7 @@ const BottomTabBar = ({
           style={{
             position: "absolute",
             top: -7,
-            left: 67,
+            left: 152,
             width: 70,
             height: 70,
             borderRadius: 35,
@@ -107,7 +111,7 @@ const BottomTabBar = ({
             );
           }
 
-          const tabWidth = 60;
+          const tabWidth = 70;
           const tabHeight: number | undefined = undefined;
           const tabBorderRadius = 0;
           const tabPaddingVertical = 8;
@@ -138,7 +142,7 @@ const BottomTabBar = ({
                 }}
               >
                 {getIcon(route.name, isFocused)}
-                {route.name !== "index" && label}
+                {route.name !== "classes" && label}
               </View>
             </TouchableOpacity>
           );
