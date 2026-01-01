@@ -1,16 +1,25 @@
 import { BackgroundGlow } from "@/components/Theme/background";
 import { useRouter } from "expo-router";
+import { ChevronLeft, Eye, EyeOff } from "lucide-react-native";
 import { useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
-  Platform,
+  Pressable,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+function InputBox({ children }: { children: React.ReactNode }) {
+  return (
+    <View className="bg-gray-50   border border-gray-300 rounded-lg px-3 py-3">
+      {children}
+    </View>
+  );
+}
 
 export default function SignUp() {
   const router = useRouter();
@@ -21,18 +30,17 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <KeyboardAvoidingView className="flex-1" behavior={"padding"}>
       <SafeAreaView style={{ flex: 1 }}>
         {/* Background glow same as login */}
         <BackgroundGlow showText={true} />
         <TouchableOpacity className="mx-4" onPress={() => router.back()}>
-          <Image
-            source={require("@/assets/icons/chevron-left.png")}
-            resizeMode="contain"
-          />
+          <Pressable
+            className="w-10 h-10 items-center justify-center"
+            onPress={() => router.back()}
+          >
+            <ChevronLeft size={22} />
+          </Pressable>
         </TouchableOpacity>
 
         <View className="flex-1 justify-center items-center">
@@ -47,45 +55,59 @@ export default function SignUp() {
             Create an Account
           </Text>
 
-          {/* Username */}
           <View className="mb-3 gap-2">
             <Text className="text-black text-lg font-medium">Username</Text>
-            <TextInput
-              placeholder="Enter Username"
-              placeholderTextColor="#000000"
-              className="bg-[#EFEEEF] text-black rounded-xl py-3.5 px-4 text-base"
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-            />
+            <InputBox>
+              <TextInput
+                placeholder="Enter Email or Phone Number"
+                placeholderTextColor={"#212121"}
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                className="text-gray-900"
+              />
+            </InputBox>
           </View>
 
-          {/* Email */}
           <View className="mb-3 gap-2">
             <Text className="text-black text-lg font-medium">
               Email or Phone Number
             </Text>
-            <TextInput
-              placeholder="Enter Email or Phone Number"
-              placeholderTextColor="#000000"
-              className="bg-[#EFEEEF] text-black rounded-xl py-3.5 px-4 text-base"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-            />
+            <InputBox>
+              <TextInput
+                placeholder="Enter Username"
+                placeholderTextColor={"#212121"}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                className="text-gray-900"
+              />
+            </InputBox>
           </View>
 
-          {/* Password */}
           <View className="mb-3 gap-2">
             <Text className="text-black text-lg font-medium">Password</Text>
-            <TextInput
-              placeholder="Enter Password"
-              placeholderTextColor="#000000"
-              secureTextEntry={!showPassword}
-              className="bg-[#EFEEEF] text-black rounded-xl py-3.5 px-4 text-base"
-              value={password}
-              onChangeText={setPassword}
-            />
+
+            <InputBox>
+              <View className="flex flex-row items-center">
+                <TextInput
+                  placeholder="Enter Password"
+                  placeholderTextColor={"#212121"}
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                  className="flex-1 text-gray-900"
+                />
+
+                <Pressable onPress={() => setShowPassword(!showPassword)}>
+                  {showPassword ? (
+                    <EyeOff size={20} color="#6B7280" />
+                  ) : (
+                    <Eye size={20} color="#6B7280" />
+                  )}
+                </Pressable>
+              </View>
+            </InputBox>
           </View>
 
           {error && (
@@ -93,7 +115,7 @@ export default function SignUp() {
           )}
 
           <TouchableOpacity
-            className="bg-[#DAA770] w-full py-3.5 rounded-xl items-center mt-1"
+            className="bg-[#259AAA] w-full py-3.5 rounded-xl items-center mt-1"
             onPress={() => router.push("/otp")}
           >
             <Text className="text-white text-base font-medium">Sign Up</Text>

@@ -1,10 +1,11 @@
 import { BackgroundGlow } from "@/components/Theme/background";
 import { useRouter } from "expo-router";
+import { ChevronLeft } from "lucide-react-native";
 import { useRef, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
-  Platform,
+  Pressable,
   Text,
   TextInput,
   TouchableOpacity,
@@ -43,20 +44,19 @@ export default function OtpVerification() {
   };
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <KeyboardAvoidingView className="flex-1" behavior={"padding"}>
       <SafeAreaView style={{ flex: 1 }}>
         {/* Background glow same as login */}
         <BackgroundGlow showText={true} />
 
         {/* Back Button */}
         <TouchableOpacity className="mx-4" onPress={() => router.back()}>
-          <Image
-            source={require("@/assets/icons/chevron-left.png")}
-            resizeMode="contain"
-          />
+          <Pressable
+            className="w-10 h-10 items-center justify-center"
+            onPress={() => router.back()}
+          >
+            <ChevronLeft size={22} />
+          </Pressable>
         </TouchableOpacity>
 
         {/* TOP Logo */}
@@ -101,7 +101,7 @@ export default function OtpVerification() {
           </View>
 
           {/* Verify Button */}
-          <TouchableOpacity className="bg-[#DAA770] w-full py-4 rounded-xl items-center">
+          <TouchableOpacity className="bg-[#259AAA] w-full py-4 rounded-xl items-center">
             <Text className="text-white text-lg font-semibold">Verify OTP</Text>
           </TouchableOpacity>
         </View>
