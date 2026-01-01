@@ -2,8 +2,8 @@
 import { BackgroundGlow } from "@/components/Theme/background";
 import { router, useLocalSearchParams } from "expo-router";
 import {
-  ArrowLeft,
   CalendarDays,
+  ChevronLeft,
   ClipboardList,
   Contact,
   MapPin,
@@ -21,7 +21,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { transactions } from "../dummy_data";
 
 type Props = {
@@ -63,14 +62,14 @@ function ReadonlyField({
 }) {
   return (
     <View className="mb-4">
-      <Text className="text-lg text-zinc-500 mb-2">{label}</Text>
-      <View className="flex-row items-center gap-2 bg-zinc-100/20 border border-zinc-200/60 rounded-xl px-3 py-3">
+      <Text className="text-lg text-gray-500 mb-2">{label}</Text>
+      <View className="bg-gray-50 flex flex-row gap-2 rounded-xl px-3 py-3 text-lg items-center border-1 border-gray-200">
         {icon ? <View className="opacity-70">{icon}</View> : null}
         <TextInput
           value={value}
           editable={false}
           selectTextOnFocus={false}
-          className="flex-1 text-zinc-900"
+          className="flex-1 text-gray-500"
         />
       </View>
     </View>
@@ -88,29 +87,31 @@ export default function Transaction({ navigation, route }: Props) {
 
   if (!tx) {
     return (
-      <SafeAreaView style={{ flex: 1 }}>
-        <Text className="text-zinc-900">Transaction not found.</Text>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <Text className="text-zinc-900 mt-20">Transaction not found.</Text>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <BackgroundGlow showText={true} />
-      <View className="h-14 px-6 justify-center">
-        <Pressable
-          className="h-11 w-11 rounded-xl bg-zinc-300 items-center justify-center"
-          onPress={() => router.back()}
-        >
-          <ArrowLeft size={22} color="#fff" />
-        </Pressable>
-      </View>
-      <View className="px-6 pt-3 pb-2 flex-row items-center gap-3">
-        <View className="flex-1">
-          <Text className="text-3xl font-extrabold tracking-tight">
-            ORDER FORM
-          </Text>
-          <Text className="text-zinc-500 mt-1 text-xl">{tx.orderNo}</Text>
+    <View style={{ flex: 1 }}>
+      <BackgroundGlow />
+      <View className="mt-20">
+        <View className="h-14 px-4 justify-center">
+          <Pressable
+            onPress={() => router.back()}
+            className="w-10 h-10 items-center justify-center"
+          >
+            <ChevronLeft size={22} color="#000" />
+          </Pressable>
+        </View>
+        <View className="px-6 pt-3 pb-2 flex-row items-center gap-3">
+          <View className="flex-1">
+            <Text className="text-3xl font-extrabold tracking-tight">
+              ORDER FORM
+            </Text>
+            <Text className="text-zinc-500 mt-1 text-xl">{tx.orderNo}</Text>
+          </View>
         </View>
       </View>
 
@@ -189,6 +190,6 @@ export default function Transaction({ navigation, route }: Props) {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

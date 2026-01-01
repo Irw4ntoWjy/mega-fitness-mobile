@@ -14,7 +14,6 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { bookings } from "../bookings/dummy_data";
 
 type TabKey = "Upcoming" | "Completed" | "Cancelled";
@@ -81,8 +80,8 @@ function BookingCard({ item, onCancel, showCancel }: any) {
         <Animated.View pointerEvents="box-none">
           <View className="mb-4 rounded-2xl bg-white p-3 shadow-md">
             <View className="flex-row justify-between px-2">
-              <Text className="text-slate-500">{item.date}</Text>
-              <Text className="text-slate-400">{item.location}</Text>
+              <Text className="text-slate-500 text-lg">{item.date}</Text>
+              <Text className="text-slate-400 text-lg">{item.location}</Text>
             </View>
 
             <View className="mt-2 flex-row">
@@ -140,63 +139,69 @@ function CancelModal({
       onRequestClose={onClose}
     >
       <TouchableWithoutFeedback onPress={onClose}>
-        <View className="flex-1 items-center justify-center px-4">
-          <View className="absolute inset-0 bg-zinc-900/40" />
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 24,
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
           <TouchableWithoutFeedback onPress={() => {}}>
             <View className="w-full max-w-[420px] bg-white rounded-[26px] px-6 pt-6 pb-5">
-              <Pressable
-                onPress={onClose}
-                className="absolute right-4 top-4 h-11 w-11 rounded-xl bg-zinc-300 items-center justify-center"
-              >
-                <X size={22} color="#fff" />
-              </Pressable>
-
-              <Text className="text-[28px] leading-8 text-zinc-900 mt-6">
-                Are you sure you want to{"\n"}
-                <Text className="font-bold">cancel?</Text>
-              </Text>
+              <View className="flex flex-row justify-between items-center">
+                <Text className="text-xl text-gray-900 mt-2">
+                  Are you sure you want to{" "}
+                  <Text className="font-semibold">cancel?</Text>
+                </Text>
+                <Pressable
+                  onPress={onClose}
+                  className="w-8 h-8 rounded-md bg-gray-100 items-center justify-center ml-auto"
+                >
+                  <X size={22} color="#fff" />
+                </Pressable>
+              </View>
 
               <View className="mt-8">
-                <Text className="text-[28px] font-bold text-zinc-900">
+                <Text className="font-bold text-xl text-gray-900">
                   {booking.title}
                 </Text>
 
-                <Text className="mt-3 text-[18px] font-medium text-zinc-900">
+                <Text className="font-bold text-xl text-gray-900">
                   {booking.date}
                 </Text>
 
-                <View className="mt-4 flex-row items-center gap-3">
+                <View className="mt-2 flex-row items-center gap-3">
                   <Clock size={22} color="#111" />
-                  <Text className="text-[16px] text-zinc-900">
-                    {booking.time}
-                  </Text>
+                  <Text className="text-xl text-gray-900">{booking.time}</Text>
                 </View>
 
-                <View className="mt-3 flex-row items-center gap-3">
+                <View className="mt-1 flex-row items-center gap-3">
                   <Contact size={22} color="#111" />
-                  <Text className="text-[16px] text-zinc-900">
+                  <Text className="text-xl text-gray-900">
                     {booking.instructor}
                   </Text>
                 </View>
               </View>
 
-              <Text className="mt-8 text-center text-[16px] font-semibold text-[#E11D48]">
+              <Text className="mt-8 text-md font-bold text-red-600 text-center">
                 This action can’t be undone!
               </Text>
 
               <View className="mt-4 flex-row gap-4">
                 <Pressable
                   onPress={onClose}
-                  className="flex-1 h-16 rounded-2xl border border-black items-center justify-center"
+                  className="flex-1 h-12 rounded-xl border border-black items-center justify-center"
                 >
-                  <Text className="text-[18px] font-bold text-black">Back</Text>
+                  <Text className="text-xl font-semibold text-black">Back</Text>
                 </Pressable>
 
                 <Pressable
                   onPress={onConfirm}
-                  className="flex-1 h-16 rounded-2xl bg-[#E11D48] items-center justify-center"
+                  className="flex-1 h-12 rounded-xl bg-red-600 items-center justify-center"
                 >
-                  <Text className="text-[18px] font-bold text-white">
+                  <Text className="text-xl font-semibold text-white">
                     Cancel
                   </Text>
                 </Pressable>
@@ -237,10 +242,10 @@ export default function Bookings() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <View className="flex-1">
         <BackgroundGlow showText={true} />
 
-        <View className="mx-3">
+        <View className="mx-3 mt-20">
           <Text className="mt-4 text-3xl font-extrabold tracking-wide text-slate-900">
             BOOKINGS
           </Text>
@@ -290,7 +295,7 @@ export default function Bookings() {
           }}
           onConfirm={handleConfirmCancel}
         />
-      </SafeAreaView>
+      </View>
     </GestureHandlerRootView>
   );
 }

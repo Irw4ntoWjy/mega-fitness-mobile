@@ -4,7 +4,6 @@ import { router } from "expo-router";
 import { CheckCircle, Clock, XCircle } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import { FlatList, Image, Pressable, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { transactions } from "../transactions/dummy_data";
 
 const statusConfig = {
@@ -128,10 +127,10 @@ export default function Transactions() {
   }, [list, tab]);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <View className="flex-1">
       <BackgroundGlow showText={true} />
 
-      <View className="mx-3">
+      <View className="mx-3 mt-20">
         <Text className="mt-4 text-3xl font-extrabold tracking-wide text-slate-900">
           TRANSACTIONS
         </Text>
@@ -164,6 +163,6 @@ export default function Transactions() {
           }
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

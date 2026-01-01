@@ -292,20 +292,20 @@ function ProfileInfoSection({
       <View className="mt-4">
         {fields.map((f) => (
           <View key={f.key} className="mb-4">
-            <Text className="text-md text-gray-500 mb-2">{f.label}</Text>
+            <Text className="text-lg text-gray-500 mb-2">{f.label}</Text>
 
-            <View className="bg-[#FFFFFF] rounded-xl px-3 py-3 border-2 border-gray-200">
+            <View className="bg-gray-50 rounded-xl px-3 py-3 text-lg border-1 border-gray-200">
               {f.key === "weight" || f.key === "height" ? (
                 <View className="flex-row items-center justify-between">
-                  <Text className="text-lg text-gray-900">
+                  <Text className="text-md text-black">
                     {values[f.key] || "-"}
                   </Text>
-                  <Text className="text-lg text-gray-400">
+                  <Text className="text-md text-gray-400">
                     {f.key === "weight" ? "kg" : "cm"}
                   </Text>
                 </View>
               ) : (
-                <Text className="text-lg text-gray-900">
+                <Text className="text-md text-black">
                   {values[f.key] || "-"}
                 </Text>
               )}

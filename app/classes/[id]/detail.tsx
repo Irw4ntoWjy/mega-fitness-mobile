@@ -18,7 +18,6 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { activities, member, profile } from "../dummy_data";
 
 type Activity = {
@@ -74,67 +73,71 @@ function SignOutModal({
       onRequestClose={onClose}
     >
       <TouchableWithoutFeedback onPress={onClose}>
-        <View className="flex-1 items-center justify-center px-6">
-          <View className="absolute inset-0 bg-zinc-900/40" />
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 24,
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
           <TouchableWithoutFeedback onPress={() => {}}>
-            <View className="w-full max-w-[420px] bg-white rounded-[26px] px-6 pt-2 pb-5">
-              <View className="flex justify-between">
+            <View className="w-full rounded-2xl bg-white p-5 shadow-lg">
+              <View className="flex flex-row justify-between items-center">
+                <Text className="text-xl text-gray-900 mt-2">
+                  Are you sure you want to{" "}
+                  <Text className="font-semibold">sign out?</Text>
+                </Text>
                 <Pressable
                   onPress={onClose}
-                  className="absolute right-1 top-4 h-11 w-11 rounded-xl bg-zinc-300 items-center justify-center"
+                  className="w-8 h-8 rounded-md bg-gray-100 items-center justify-center ml-auto"
                 >
                   <X size={22} color="#fff" />
                 </Pressable>
-
-                <Text className="text-[22px] leading-8 text-zinc-900 mt-6">
-                  Are you sure you want to{"\n"}
-                  <Text className="font-bold">sign out?</Text>
-                </Text>
               </View>
 
-              <View className="mt-8">
-                <Text className="text-[28px] font-bold text-zinc-900">
+              <View className="mt-4 ">
+                <Text className="font-bold text-xl text-gray-900">
                   {activity.title}
                 </Text>
 
-                <Text className="mt-3 text-[18px] font-medium text-zinc-900">
+                <Text className="mt-1 font-bold text-xl text-gray-900">
                   {activity.date}
                 </Text>
 
-                <View className="mt-4 flex-row items-center gap-3">
+                <View className="mt-2 flex-row items-center gap-3">
                   <Clock size={22} color="#111" />
-                  <Text className="text-[16px] text-zinc-900">
-                    {activity.time}
-                  </Text>
+                  <Text className="text-xl text-gray-900">{activity.time}</Text>
                 </View>
 
-                <View className="mt-3 flex-row items-center gap-3">
+                <View className="mt-1 flex-row items-center gap-3">
                   <Contact size={22} color="#111" />
-                  <Text className="text-[16px] text-zinc-900">
+                  <Text className="text-xl text-gray-900">
                     {activity.instructor}
                   </Text>
                 </View>
               </View>
 
-              <Text className="mt-8 text-center text-[16px] font-semibold text-[#E11D48]">
+              <Text className="mt-8 text-md font-bold text-red-600 text-center">
                 This action can’t be undone!
               </Text>
 
               <View className="mt-4 flex-row gap-4">
                 <Pressable
                   onPress={onClose}
-                  className="flex-1 h-16 rounded-2xl border border-black items-center justify-center"
+                  className="flex-1 h-12 rounded-xl border border-black items-center justify-center"
                 >
-                  <Text className="text-[18px] font-bold text-black">
+                  <Text className="text-xl font-semibold text-black">
                     Cancel
                   </Text>
                 </Pressable>
 
                 <Pressable
                   onPress={onConfirm}
-                  className="flex-1 h-16 rounded-2xl bg-[#E11D48] items-center justify-center"
+                  className="flex-1 h-12 rounded-xl bg-red-600 items-center justify-center"
                 >
-                  <Text className="text-[18px] font-bold text-white">
+                  <Text className="text-xl font-semibold text-white">
                     Sign Out
                   </Text>
                 </Pressable>
@@ -179,10 +182,10 @@ export default function ClassesDetailScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       <BackgroundGlow showText={true} />
 
-      <View className="h-14 px-6 justify-center">
+      <View className="h-14 px-6 justify-center mt-20">
         <Pressable
           className="h-11 w-11 rounded-xl bg-zinc-300 items-center justify-center"
           onPress={() => router.back()}
@@ -309,12 +312,12 @@ export default function ClassesDetailScreen() {
                     },
                   })
             }
-            className={`h-16 rounded-[14px] items-center justify-center ${
-              isOngoing ? "bg-[#E11D48]" : "bg-cyan-600"
+            className={`w-full h-14 rounded-xl items-center justify-center ${
+              isOngoing ? "bg-red-600" : "bg-cyan-600"
             }`}
             disabled={!activity.owned}
           >
-            <Text className="text-white text-[22px] font-bold">
+            <Text className="text-white text-xl font-semibold">
               {isOngoing ? "Sign Out" : "Sign In"}
             </Text>
           </Pressable>
@@ -327,6 +330,6 @@ export default function ClassesDetailScreen() {
         onClose={() => setOpen(false)}
         onConfirm={handleSignOut}
       />
-    </SafeAreaView>
+    </View>
   );
 }

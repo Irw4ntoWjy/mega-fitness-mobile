@@ -3,10 +3,7 @@ import { router } from "expo-router";
 import { User } from "lucide-react-native";
 import React from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { activities, profile } from "../classes/dummy_data";
 
 const ongoingActivities = activities.filter(
@@ -140,70 +137,70 @@ const Home = () => {
   const userProfile = profile;
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <View className="flex-1">
       <ScrollView>
-        <View className="px-5 pt-4">
-          <BackgroundGlow showText={true} />
-          <View className="w-[95%] flex flex-row justify-between items-center mb-4">
-            <View>
-              <Text className="text-3xl font-semibold text-slate-900">
-                {profile.username}
-              </Text>
-              <Text className="text-base text-slate-500">{profile.userId}</Text>
+        {/* <View className="px-5 pt-4"> */}
+        <BackgroundGlow showText={true} />
+        <View className="flex flex-row justify-between items-center mb-4 mt-20 mx-5">
+          <View>
+            <Text className="text-3xl font-semibold text-slate-900">
+              {profile.username}
+            </Text>
+            <Text className="text-base text-slate-500">{profile.userId}</Text>
 
-              <View
-                className={`flex flex-row mt-3 self-start rounded-full items-center text-center border gap-2 px-4 py-1 ${
+            <View
+              className={`flex flex-row mt-3 self-start rounded-full items-center text-center border gap-2 px-4 py-1 ${
+                profile.role === "Trainer"
+                  ? "border-purple-400 bg-purple-50"
+                  : "border-amber-400 bg-amber-50"
+              }`}
+            >
+              <User
+                size={14}
+                color={profile.role === "Trainer" ? "#7C3AED" : "#B45309"}
+              />
+              <Text
+                className={`text-xs font-semibold ${
                   profile.role === "Trainer"
-                    ? "border-purple-400 bg-purple-50"
-                    : "border-amber-400 bg-amber-50"
+                    ? "text-purple-700"
+                    : "text-amber-700"
                 }`}
               >
-                <User
-                  size={14}
-                  color={profile.role === "Trainer" ? "#7C3AED" : "#B45309"}
-                />
-                <Text
-                  className={`text-xs font-semibold ${
-                    profile.role === "Trainer"
-                      ? "text-purple-700"
-                      : "text-amber-700"
-                  }`}
-                >
-                  {profile.role}
-                </Text>
-              </View>
-            </View>
-
-            <View className="w-46 h-40 bg-[#FEFEFE] rounded-3xl items-center justify-center shadow-2xl">
-              <Text className="text-lg font-medium mb-2">Active Packages</Text>
-              <View className="w-20 h-20 rounded-full bg-cyan-600 items-center justify-center">
-                <Text className="text-3xl font-semibold text-white">
-                  {profile.total_activity}
-                </Text>
-              </View>
+                {profile.role}
+              </Text>
             </View>
           </View>
 
-          <Text className="text-2xl font-bold text-slate-800 mb-4">
-            Ongoing Activity
-          </Text>
-          <View className="flex flex-row flex-wrap justify-between">
-            {ongoingActivities.map((item) => (
-              <OngoingCard key={item.id} item={item} />
-            ))}
-          </View>
-
-          <Text className="text-2xl font-bold text-slate-800 mb-4">
-            Today’s Activity
-          </Text>
-          <View className="flex flex-row flex-wrap justify-between">
-            {todaysActivities.map((item) => (
-              <TodaysCard key={item.id} item={item} />
-            ))}
+          <View className="w-46 h-40 bg-[#FEFEFE] rounded-3xl items-center justify-center shadow-2xl">
+            <Text className="text-lg font-medium mb-2">Active Packages</Text>
+            <View className="w-20 h-20 rounded-full bg-cyan-600 items-center justify-center">
+              <Text className="text-3xl font-semibold text-white">
+                {profile.total_activity}
+              </Text>
+            </View>
           </View>
         </View>
+
+        <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
+          Ongoing Activity
+        </Text>
+        <View className="flex flex-row flex-wrap justify-between mx-5">
+          {ongoingActivities.map((item) => (
+            <OngoingCard key={item.id} item={item} />
+          ))}
+        </View>
+
+        <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
+          Today’s Activity
+        </Text>
+        <View className="flex flex-row flex-wrap justify-between mx-5">
+          {todaysActivities.map((item) => (
+            <TodaysCard key={item.id} item={item} />
+          ))}
+        </View>
+        {/* </View> */}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

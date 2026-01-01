@@ -8,7 +8,6 @@ import {
 } from "lucide-react-native";
 import React, { useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { activities } from "../dummy_data";
 
 export default function barcodePages() {
@@ -27,9 +26,9 @@ export default function barcodePages() {
   const [isRefreshed, setIsRefreshed] = useState(isTrainer ?? false);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       <BackgroundGlow showText={true} />
-      <View className="px-6 pt-2">
+      <View className="px-6 pt-2 mt-20">
         <Pressable
           onPress={() => router.back()}
           className="h-12 w-12 rounded-xl bg-zinc-300 items-center justify-center"
@@ -105,14 +104,14 @@ export default function barcodePages() {
           <View className="bottom-2 left-0 right-0 bg-zinc-100/60 px-[40px] pb-[18px] pt-2">
             <Pressable
               onPress={() => setIsRefreshed(true)}
-              className={`h-16 rounded-[14px] items-center justify-center bg-cyan-600
+              className={`w-full h-14 rounded-xl items-center justify-center bg-cyan-600
                    `}
             >
-              <Text className="text-white text-[22px] font-bold">Refresh</Text>
+              <Text className="text-white text-xl font-semibold">Refresh</Text>
             </Pressable>
           </View>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
