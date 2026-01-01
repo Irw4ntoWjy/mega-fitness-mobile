@@ -273,7 +273,6 @@ export default function Profile() {
         end_at: "2026-1-06T10:00:00.000Z",
         title: "t",
         coach: "Test Coach",
-        color: "#FCD34D",
       },
       {
         id: "e2",
@@ -281,7 +280,6 @@ export default function Profile() {
         end_at: "2026-1-06T10:00:00.000Z",
         title: "test eventttttttttttttttttttttttttttttttttttttt",
         coach: "Test Coach",
-        color: "#FCD34D",
       },
       {
         id: "e3",
@@ -289,7 +287,6 @@ export default function Profile() {
         end_at: "2026-1-07T10:00:00.000Z",
         title: "test eventttttttttttttttttttttttttttttttttttttt",
         coach: "Test Coach",
-        color: "#FCD34D",
       },
       {
         id: "e4",
@@ -297,7 +294,6 @@ export default function Profile() {
         end_at: "2026-1-07T10:00:00.000Z",
         title: "test eventttttttttttttttttttttttttttttttttttttt",
         coach: "Test Coach",
-        color: "#FCD34D",
       },
       {
         id: "e5",
@@ -305,7 +301,6 @@ export default function Profile() {
         end_at: "2026-1-08T10:00:00.000Z",
         title: "test eventttttttttttttttttttttttttttttttttttttt",
         coach: "Test Coach",
-        color: "#FCD34D",
       },
     ],
     []
