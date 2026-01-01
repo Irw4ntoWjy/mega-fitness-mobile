@@ -1,6 +1,7 @@
 import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
 import { BackgroundGlow } from "@components/Theme/background";
-import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import { router } from "expo-router";
+import { ChevronLeft, ChevronRight, Timer } from "lucide-react-native";
 import React, { useCallback, useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 
@@ -44,51 +45,69 @@ function EventCard({
   title,
   coach,
   time,
+  bgColor,
+  status,
+  durationMinutes,
   onFirstLayout,
 }: {
   title: string;
   coach: string;
   time: string;
+  bgColor: string;
+  status?: "completed" | "upcoming";
+  durationMinutes?: number;
   onFirstLayout?: (height: number) => void;
 }) {
   return (
-    <View
-      className="rounded-2xl p-4 shadow-sm bg-amber-300 max-w-full"
-      onLayout={(e) => {
-        if (!onFirstLayout) return;
-        const h = e.nativeEvent.layout.height;
-        onFirstLayout(h);
-      }}
-    >
-      <View className="flex-row">
-        <View className="justify-between">
-          <Text
-            className=" text-white font-extrabold text-lg uppercase"
-            numberOfLines={2}
-            ellipsizeMode="tail"
+    <Pressable onPress={() => router.push("/journal/journal")}>
+      <View className="flex-col">
+        <View style={{ backgroundColor: bgColor, borderRadius: 16 }}>
+          <View
+            className="rounded-2xl p-4 shadow-sm max-w-full"
+            onLayout={(e) => {
+              if (!onFirstLayout) return;
+              onFirstLayout(e.nativeEvent.layout.height);
+            }}
           >
-            {title}
-          </Text>
+            <View className="flex-row">
+              <View className="justify-between">
+                <Text
+                  className="text-white font-extrabold text-lg uppercase"
+                  numberOfLines={2}
+                >
+                  {title}
+                </Text>
 
-          <View className="flex-row justify-between">
-            <Text
-              className="text-white/90 text-sm"
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {coach}
+                <View className="flex-row justify-between w-full">
+                  <Text className="text-white/90 text-sm" numberOfLines={1}>
+                    {coach}
+                  </Text>
+
+                  <Text className="text-white text-sm font-semibold ml-auto">
+                    {time}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View className="flex-row gap-2 mt-3">
+          <View className="bg-white/90 px-3 py-1 rounded-full flex-row items-center shadow-sm shadow-neutral-400/50">
+            <Text className="text-xs font-semibold text-gray-800 leading-none">
+              {status === "completed" ? "Completed" : "Upcoming"}
             </Text>
-            <Text
-              className="text-white text-sm font-semibold ml-auto"
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {time}
+          </View>
+
+          <View className="bg-white/90 px-3 py-1 rounded-full flex-row items-center gap-1 shadow-sm shadow-neutral-400/50">
+            <Timer size={16} color="black" />
+            <Text className="text-xs font-semibold text-gray-800 leading-none">
+              {durationMinutes} mins
             </Text>
           </View>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -174,21 +193,20 @@ function DayRow({
           onEventsColumnLayout(h);
         }}
       >
-        {events.map((ev, idx) => (
-          <EventCard
-            key={ev.id}
-            title={ev.title}
-            coach={ev.coach}
-            time={ev.time}
-            onFirstLayout={
-              idx === 0
-                ? (h) => {
-                    onFirstCardHeight(h);
-                  }
-                : undefined
-            }
-          />
-        ))}
+        {events.map((ev, idx) => {
+          return (
+            <EventCard
+              key={ev.id}
+              title={ev.title}
+              coach={ev.coach}
+              time={ev.time}
+              bgColor={idx % 2 === 0 ? "#DAA770" : "#0891B2"}
+              status="completed"
+              durationMinutes={60}
+              onFirstLayout={idx === 0 ? onFirstCardHeight : undefined}
+            />
+          );
+        })}
       </View>
     </View>
   );
@@ -251,40 +269,40 @@ export default function Profile() {
     () => [
       {
         id: "e1",
-        start_at: "2025-12-06T09:00:00.000Z",
-        end_at: "2025-12-06T10:00:00.000Z",
-        title: "test eventttttttttttttttttttttttttttttttttttttt",
+        start_at: "2026-1-06T09:00:00.000Z",
+        end_at: "2026-1-06T10:00:00.000Z",
+        title: "t",
         coach: "Test Coach",
         color: "#FCD34D",
       },
       {
         id: "e2",
-        start_at: "2025-12-06T09:00:00.000Z",
-        end_at: "2025-12-06T10:00:00.000Z",
+        start_at: "2026-1-06T09:00:00.000Z",
+        end_at: "2026-1-06T10:00:00.000Z",
         title: "test eventttttttttttttttttttttttttttttttttttttt",
         coach: "Test Coach",
         color: "#FCD34D",
       },
       {
         id: "e3",
-        start_at: "2025-12-07T09:00:00.000Z",
-        end_at: "2025-12-07T10:00:00.000Z",
+        start_at: "2026-1-07T09:00:00.000Z",
+        end_at: "2026-1-07T10:00:00.000Z",
         title: "test eventttttttttttttttttttttttttttttttttttttt",
         coach: "Test Coach",
         color: "#FCD34D",
       },
       {
         id: "e4",
-        start_at: "2025-12-07T09:00:00.000Z",
-        end_at: "2025-12-07T10:00:00.000Z",
+        start_at: "2026-1-07T09:00:00.000Z",
+        end_at: "2026-1-07T10:00:00.000Z",
         title: "test eventttttttttttttttttttttttttttttttttttttt",
         coach: "Test Coach",
         color: "#FCD34D",
       },
       {
         id: "e5",
-        start_at: "2025-12-08T09:00:00.000Z",
-        end_at: "2025-12-08T10:00:00.000Z",
+        start_at: "2026-1-08T09:00:00.000Z",
+        end_at: "2026-1-08T10:00:00.000Z",
         title: "test eventttttttttttttttttttttttttttttttttttttt",
         coach: "Test Coach",
         color: "#FCD34D",
