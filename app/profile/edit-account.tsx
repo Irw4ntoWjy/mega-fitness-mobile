@@ -76,7 +76,7 @@ export default function EditAccount() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
-                className="text-lg text-gray-900 p-0"
+                className="text-gray-900"
               />
             </InputBox>
           </View>
@@ -88,7 +88,7 @@ export default function EditAccount() {
                 value={form.oldPassword}
                 onChangeText={(v) => setForm({ ...form, oldPassword: v })}
                 secureTextEntry
-                className="text-lg text-gray-900 p-0"
+                className=" text-gray-900 "
               />
             </InputBox>
           </View>
@@ -100,7 +100,7 @@ export default function EditAccount() {
                 value={form.newPassword}
                 onChangeText={(v) => setForm({ ...form, newPassword: v })}
                 secureTextEntry
-                className="text-lg text-gray-900 p-0"
+                className=" text-gray-900"
               />
             </InputBox>
           </View>
@@ -112,7 +112,7 @@ export default function EditAccount() {
                 value={form.confirmPassword}
                 onChangeText={(v) => setForm({ ...form, confirmPassword: v })}
                 secureTextEntry
-                className="text-lg text-gray-900 p-0"
+                className=" text-gray-900"
               />
             </InputBox>
             {form.confirmPassword.length > 0 && !passwordsMatch && (

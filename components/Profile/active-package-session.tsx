@@ -44,53 +44,47 @@ export function ActivePackagesSessionsCard({
             </View>
           </View>
         </View>
+        <Pressable onPress={() => console.log("clicked")}>
+          <View className="h-full flex-[1.6] bg-white rounded-3xl border border-[#F1E6F4] p-4 overflow-hidden shadow-sm">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-sm text-gray-500">
+                {completedSessions}/{totalSessions} Active Sessions Done
+              </Text>
+            </View>
+            <View className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1.5 flex-row">
+              <View
+                style={{
+                  flex: clamped,
+                  backgroundColor: "#0891B2",
+                }}
+              />
 
-        <View className="h-full flex-[1.6] bg-white rounded-3xl border border-[#F1E6F4] p-4 overflow-hidden shadow-sm">
-          <View className="flex-row items-center justify-between">
-            <Text className="text-sm font-bold text-gray-800">
+              <View
+                style={{
+                  flex: 1 - clamped,
+                  backgroundColor: "transparent",
+                }}
+              />
+            </View>
+            <Text className="ml-auto text-sm font-bold text-gray-800 mt-1">
               {clampedPercent}%
             </Text>
-            <Text className="text-sm text-gray-500">
-              {completedSessions}/{totalSessions} Active Sessions Done
-            </Text>
-          </View>
 
-          <View className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1.5 flex-row">
-            <View
-              style={{
-                flex: clamped,
-                backgroundColor: "#0891B2",
-              }}
-            />
+            <View className="mt-4">
+              {packages.map((pkg) => (
+                <View key={pkg.id} className="flex-row items-center mb-2">
+                  <View className="rounded-full bg-[#0891B2] px-2 py-0.5 mr-2">
+                    <Text className="text-[#ffffff] text-xs font-semibold">
+                      {pkg.currentSessions}/{pkg.totalSessions}
+                    </Text>
+                  </View>
 
-            <View
-              style={{
-                flex: 1 - clamped,
-                backgroundColor: "transparent",
-              }}
-            />
-          </View>
-
-          <View className="mt-4">
-            {packages.map((pkg) => (
-              <View key={pkg.id} className="flex-row items-center mb-2">
-                <View className="rounded-full bg-[#0891B2] px-2 py-0.5 mr-2">
-                  <Text className="text-[#ffffff] text-xs font-semibold">
-                    {pkg.currentSessions}/{pkg.totalSessions}
-                  </Text>
+                  <Text className="text-gray-700 text-sm">{pkg.label}</Text>
                 </View>
-
-                <Text className="text-gray-700 text-sm">{pkg.label}</Text>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
-
-          <Pressable className="mt-1 ml-auto rounded-full px-3 py-1.5 bg-[#E1B07C] shadow-sm">
-            <Text className="text-white text-sm font-semibold">
-              My Packages
-            </Text>
-          </Pressable>
-        </View>
+        </Pressable>
       </View>
     </View>
   );
