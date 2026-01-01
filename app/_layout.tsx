@@ -30,8 +30,18 @@ export default function RootLayout() {
           name="classes/[id]/barcode"
           options={{ headerShown: false }}
         />
+        <Stack.Screen name="transactions/[id]/detail" />
+        <Stack.Screen name="profile/profile" options={{ headerShown: false }} />
         <Stack.Screen
-          name="transactions/[id]/detail"
+          name="profile/settings-list"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="profile/edit-profile"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="profile/edit-account"
           options={{ headerShown: false }}
         />
       </Stack>
