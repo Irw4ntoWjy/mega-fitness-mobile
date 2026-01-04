@@ -1,5 +1,11 @@
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { BookText, House, ScanQrCode, Search, Wallet } from "lucide-react-native";
+import {
+  BookText,
+  House,
+  ScanQrCode,
+  Search,
+  Wallet,
+} from "lucide-react-native";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,7 +18,7 @@ const BottomTabBar = ({
   const insets = useSafeAreaInsets();
 
   const getIcon = (routeName: string, isFocused: boolean) => {
-    const color = isFocused ? "black" : "#999999";
+    const color = isFocused ? "#ffff" : "#797496";
     let size = 25;
 
     switch (routeName) {
@@ -47,7 +53,7 @@ const BottomTabBar = ({
         style={{
           flexDirection: "row",
           justifyContent: "center",
-          backgroundColor: "white",
+          backgroundColor: "#26213B",
           borderRadius: 24,
           alignItems: "center",
           height: 56,
@@ -95,7 +101,7 @@ const BottomTabBar = ({
           if (typeof labelOption === "function") {
             label = labelOption({
               focused: isFocused,
-              color: isFocused ? "black" : "#a0aec0",
+              color: isFocused ? "#ffff" : "#a0aec0",
               position: "below-icon",
               children: route.name,
             });
@@ -106,7 +112,7 @@ const BottomTabBar = ({
             label = (
               <Text
                 style={{
-                  color: isFocused ? "black" : "#a0aec0",
+                  color: isFocused ? "#ffff" : "#a0aec0",
                   textAlign: "center",
                   fontSize: 10,
                 }}
