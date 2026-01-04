@@ -14,9 +14,11 @@ export default function Layout() {
         tabBarBackground: () => null,
       }}
     >
-      <Tabs.Screen name="home" />
       <Tabs.Screen name="index" />
       <Tabs.Screen name="explore" />
+      <Tabs.Screen name="classes" />
+      <Tabs.Screen name="transaction" />
+      <Tabs.Screen name="bookings" />
     </Tabs>
   );
 }

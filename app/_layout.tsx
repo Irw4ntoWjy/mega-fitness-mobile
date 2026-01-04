@@ -1,3 +1,4 @@
+import "@/global.css";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -20,8 +21,35 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack screenOptions={{ headerShown: false }} />
+      <Stack initialRouteName="(auth)">
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="classes/[id]/detail"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="classes/[id]/barcode"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="transactions/[id]/detail"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen name="profile/profile" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="profile/settings-list"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="profile/edit-profile"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="profile/edit-account"
+          options={{ headerShown: false }}
+        />
       </Stack>
     </SafeAreaProvider>
   );
