@@ -1,13 +1,10 @@
 import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
-import {
-  TimeAvailabilityData,
-  TimeAvailabilitySection,
-} from "@/components/Profile/time-availability";
+import { TimeAvailabilityData } from "@/components/Profile/time-availability";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { getSession } from "@/lib/session";
 import { useFocusEffect, useRouter } from "expo-router";
-import { ArrowRight, Bell, ShoppingCart } from "lucide-react-native";
+import { ArrowRight, Bell } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -85,7 +82,7 @@ const timeAvailabilityData: TimeAvailabilityData = {
 };
 
 const isTrainer = user.account_role === "Trainer";
-const HERO_H = 100;
+const HERO_H = 76;
 
 const todaysActivityData = [
   {
@@ -199,7 +196,14 @@ export default function Home() {
   type TodayActivity = (typeof todaysActivityData)[number];
   function TodayCard({ item }: { item: TodayActivity }) {
     return (
-      <Pressable key={item.id} style={{ width: CARD_WIDTH, marginRight: 16 }}>
+      <Pressable
+        key={item.id}
+        style={{
+          width: CARD_WIDTH,
+          marginRight: 16,
+          marginTop: 15,
+        }}
+      >
         <View className="bg-white rounded-2xl shadow-md relative">
           <View className="w-full h-44 rounded-t-2xl overflow-hidden">
             <Image
@@ -246,65 +250,99 @@ export default function Home() {
     );
   }
 
-  const renderPromotions = () =>
-    promotionsData.map((item) => (
-      <Pressable
-        key={item.id}
-        className="relative w-50 h-50 flex justify-center items-center"
-      >
-        <View className="bg-white shadow-[0_0_10px_rgba(0,0,0,0.3)] rounded-lg w-[92%] h-[92%] overflow-hidden">
-          <View className="w-full h-[60%] overflow-hidden">
-            <Image source={item.image} className="w-full h-full" />
+  type PromotionActivity = (typeof promotionsData)[number];
+  function PromotionCard({ item }: { item: PromotionActivity }) {
+    return (
+      <View className="w-[48%] mb-4">
+        <Pressable
+          key={item.id}
+          style={{
+            width: CARD_WIDTH,
+            marginRight: 16,
+            marginTop: 15,
+          }}
+        >
+          <View className="bg-white rounded-2xl shadow-md relative">
+            <View className="w-full h-44 rounded-t-2xl overflow-hidden">
+              <Image
+                source={item.image}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
+            </View>
+
+            <View
+              style={{
+                position: "absolute",
+                top: -10,
+                left: -5,
+                backgroundColor: "#06B6D4",
+                paddingHorizontal: 12,
+                paddingVertical: 7,
+                borderRadius: 8,
+                zIndex: 1000,
+                elevation: 30,
+              }}
+            >
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 10,
+                  fontWeight: "700",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.8,
+                }}
+              >
+                {item.discount}
+              </Text>
+            </View>
+
+            <View className="flex-row items-center justify-between px-4 py-4">
+              <View>
+                <Text className="text-black font-bold text-lg">
+                  {item.title}
+                </Text>
+              </View>
+            </View>
           </View>
+        </Pressable>
+      </View>
+    );
+  }
 
-          <View className="w-full h-[40%] flex flex-row justify-between items-center px-3">
-            <Text className="text-black font-semibold text-[18px]">
-              {item.title}
-            </Text>
+  type PackagesActivity = (typeof buyPackagesData)[number];
+  function PackageCard({ item }: { item: PackagesActivity }) {
+    return (
+      <View className="w-[48%] mb-4">
+        <Pressable
+          key={item.id}
+          style={{
+            width: CARD_WIDTH,
+            marginRight: 16,
+            marginTop: 15,
+          }}
+        >
+          <View className="bg-white rounded-2xl shadow-md relative">
+            <View className="w-full h-44 rounded-t-2xl overflow-hidden">
+              <Image
+                source={item.image}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
+            </View>
 
-            <Pressable className="bg-[#DAA770] p-2 rounded-sm">
-              <ShoppingCart size={15} color="white" />
-            </Pressable>
+            <View className="flex-row items-center justify-between px-4 py-4">
+              <View>
+                <Text className="text-black font-bold text-lg">
+                  {item.title}
+                </Text>
+              </View>
+            </View>
           </View>
-        </View>
-
-        <View className="absolute top-0 left-0 bg-cyan-600 rounded-lg px-6 py-2">
-          <Text className="text-[10px] text-white font-medium">
-            {item.discount}
-          </Text>
-        </View>
-      </Pressable>
-    ));
-
-  const renderBuyPackages = () =>
-    buyPackagesData.map((item) => (
-      <Pressable
-        key={item.id}
-        className="bg-white shadow-[0_0_10px_rgba(0,0,0,0.3)] rounded-lg w-47 h-50 overflow-hidden"
-      >
-        <View className="w-full h-[60%]">
-          <Image source={item.image} className="w-full h-full" />
-        </View>
-
-        <View className="w-full h-[40%] flex flex-row justify-between items-center px-3">
-          <Text className="text-black font-semibold text-[18px]">
-            {item.title}
-          </Text>
-
-          <Pressable
-            onPress={() =>
-              router.push({
-                pathname: "/ProductDetails",
-                params: { name: item.title },
-              })
-            }
-            className="bg-[#DAA770] p-2 rounded-sm"
-          >
-            <ShoppingCart size={15} color="white" />
-          </Pressable>
-        </View>
-      </Pressable>
-    ));
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1">
@@ -320,86 +358,84 @@ export default function Home() {
         }}
         className="px-4"
       >
-        <View className="flex-row items-center ml-auto">
-          <View className="ml-3">
-            <HeaderIcon>
-              <Bell size={18} color="black" />
-            </HeaderIcon>
+        <View className="flex-row items-center justify-between w-full">
+          <View className="flex flex-col">
+            <Text className="mt-3 mx-4 font-bold text-2xl">Welcome Back,</Text>
+            <Text className="mt-1 mx-4 font-medium">{user.profile_name}</Text>
           </View>
+
+          <HeaderIcon>
+            <Bell size={18} color="black" />
+          </HeaderIcon>
         </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View className="px-4">
-          <View className="relative ">
-            <View style={{ height: HERO_H }} />
+        <View>
+          <View className="px-4">
+            <View className="relative">
+              <View style={{ height: HERO_H }} />
 
-            <View className="absolute right-0 bottom-4 items-end">
-              <View className="px-[4vw] rounded-full flex flex-row justify-end items-center gap-1">
-                <View className="rounded-full bg-[rgba(0,0,0,0.25)] w-5 h-5 flex items-center justify-center overflow-hidden">
-                  <Text className="text-center text-[10px] text-white font-medium">
-                    2
+              <View className="absolute right-0 bottom-4 items-end px-4">
+                <View className="px-[4vw] rounded-full flex flex-row justify-end items-center gap-1">
+                  <View className="rounded-full bg-[rgba(0,0,0,0.25)] w-5 h-5 flex items-center justify-center overflow-hidden">
+                    <Text className="text-center text-[10px] text-white font-medium">
+                      2
+                    </Text>
+                  </View>
+                  <Text className="text-center text-[12px] text-black font-medium">
+                    Activity
                   </Text>
                 </View>
-                <Text className="text-center text-[12px] text-black font-medium">
-                  Activity
-                </Text>
+              </View>
+
+              <View className="absolute -bottom-15 z-50">
+                <Pressable onPress={() => router.push("/profile/profile")}>
+                  <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
+                    <Text className="text-[#0F6B7E] text-2xl font-semibold">
+                      {user.initials}
+                    </Text>
+                  </View>
+                </Pressable>
               </View>
             </View>
-
-            <View className="absolute -bottom-15 z-50">
-              <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
-                <Text className="text-[#0F6B7E] text-2xl font-semibold">
-                  {user.initials}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View className="-mx-4 px-4 pt-16 pb-6 bg-[#EEEEEE]">
-            <InnerShadowOverlay height={25} />
-            <View className="absolute right-4 top-4 z-40">
-              <View
-                className={`px-5 py-2 rounded-xl border shadow-sm ${
-                  isTrainer
-                    ? "bg-[#F8E6FF] border-[#B44DFF]"
-                    : "bg-[#FFF7E6] border-[#D48B28]"
-                }`}
-              >
-                <Text
-                  className={`text-sm font-semibold ${
-                    isTrainer ? "text-[#7A20C9]" : "text-[#B45C17]"
+            <View className="-mx-4 px-4 pt-16 pb-6 bg-[#EEEEEE]">
+              <InnerShadowOverlay height={25} />
+              <View className="absolute right-4 top-4 z-40">
+                <View
+                  className={`px-5 py-2 rounded-xl border shadow-sm ${
+                    isTrainer
+                      ? "bg-[#F8E6FF] border-[#B44DFF]"
+                      : "bg-[#FFF7E6] border-[#D48B28]"
                   }`}
                 >
-                  {user.account_role}
-                </Text>
+                  <Text
+                    className={`text-sm font-semibold ${
+                      isTrainer ? "text-[#7A20C9]" : "text-[#B45C17]"
+                    }`}
+                  >
+                    {user.account_role}
+                  </Text>
+                </View>
               </View>
-            </View>
 
-            {isTrainer ? (
-              <>
-                <TimeAvailabilitySection
-                  data={timeAvailabilityData}
-                  defaultDayKey="Sun"
+              {isTrainer ? (
+                <ActivePackagesSessionsCard
+                  summary={activePackagesData.activePackagesSummary}
+                  packages={activePackagesData.packages}
                 />
-              </>
-            ) : (
-              <ActivePackagesSessionsCard
-                summary={activePackagesData.activePackagesSummary}
-                packages={activePackagesData.packages}
-              />
-            )}
+              ) : (
+                <ActivePackagesSessionsCard
+                  summary={activePackagesData.activePackagesSummary}
+                  packages={activePackagesData.packages}
+                />
+              )}
+            </View>
           </View>
         </View>
 
-        <View className="bg-[#EFEFEF] shadow-[0_0_10px_rgba(0,0,0,0.3)] pt-5 rounded-t-xl pb-30 overflow-hidden">
+        <View className="pt-5 rounded-t-xl pb-30 overflow-hidden">
           <BackgroundGlow showText={true} />
-
-          <Image
-            source={require("../../assets/png/MegaText.png")}
-            className="h-[60vh] absolute z-0 right-[-0vw] top-[60vh]"
-            resizeMode="contain"
-          />
 
           <View className="w-full flex flex-col justify-center items-center gap-[2vh]">
             <View className="flex justify-between flex-row items-center w-full px-[4vw]">
@@ -419,7 +455,7 @@ export default function Home() {
               horizontal={true}
               showsHorizontalScrollIndicator={false}
               showsVerticalScrollIndicator={false}
-              className="w-[95%] overflow-hidden mb-[40px] rounded-lg h-[40%]"
+              className="w-[100%] overflow-hidden rounded-lg h-[19%] px-4"
             >
               {todaysActivityData.map((item) => (
                 <TodayCard key={item.id} item={item} />
@@ -427,8 +463,8 @@ export default function Home() {
             </ScrollView>
           </View>
 
-          <View className="w-full px-[5%] flex flex-col justify-center items-center gap-[2vh] mb-[40px]">
-            <View className="flex justify-between flex-row items-center w-full">
+          <View className="w-full flex flex-col justify-center items-center gap-[2vh] mb-[40px]">
+            <View className="flex justify-between flex-row items-center w-full px-[4vw]">
               <Text className="text-left text-black font-semibold text-[20px] text-nowrap">
                 Promotions
               </Text>
@@ -441,13 +477,15 @@ export default function Home() {
               </Pressable>
             </View>
 
-            <View className="w-full flex flex-row flex-wrap rounded-lg justify-between gap-1">
-              {renderPromotions()}
+            <View className="w-full flex flex-row flex-wrap justify-between px-4">
+              {promotionsData.map((item) => (
+                <PromotionCard key={item.id} item={item} />
+              ))}
             </View>
           </View>
 
-          <View className="w-full px-[5%] flex flex-col justify-center items-center gap-[2vh] mb-[40px]">
-            <View className="flex justify-between flex-row items-center w-full">
+          <View className="w-full flex flex-col justify-center items-center gap-[2vh] mb-[40px]">
+            <View className="flex justify-between flex-row items-center w-full px-[4vw]">
               <Text className="text-left text-black font-semibold text-[20px] text-nowrap">
                 Buy Packages
               </Text>
@@ -467,8 +505,10 @@ export default function Home() {
               </Pressable>
             </View>
 
-            <View className="w-full flex flex-row flex-wrap rounded-lg justify-center gap-4">
-              {renderBuyPackages()}
+            <View className="w-full flex flex-row flex-wrap justify-between px-4">
+              {buyPackagesData.map((item) => (
+                <PackageCard key={item.id} item={item} />
+              ))}
             </View>
           </View>
         </View>
@@ -487,7 +527,7 @@ function HeaderIcon({
   return (
     <Pressable
       onPress={onPress}
-      className="w-10 h-10 rounded-xl items-center justify-center bg-white shadow-sm"
+      className="w-10 h-10  mx-4 rounded-xl items-center justify-center bg-white shadow-sm"
     >
       {children}
     </Pressable>
