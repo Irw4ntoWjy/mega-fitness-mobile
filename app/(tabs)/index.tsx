@@ -192,18 +192,10 @@ export default function Home() {
     );
   }
 
-  const CARD_WIDTH = (width * 0.95 - 16) / 2;
   type TodayActivity = (typeof todaysActivityData)[number];
   function TodayCard({ item }: { item: TodayActivity }) {
     return (
-      <Pressable
-        key={item.id}
-        style={{
-          width: CARD_WIDTH,
-          marginRight: 16,
-          marginTop: 15,
-        }}
-      >
+      <Pressable key={item.id} className="w-[44vw] mb-4 mr-5">
         <View className="bg-white rounded-2xl shadow-md relative">
           <View className="w-full h-44 rounded-t-2xl overflow-hidden">
             <Image
@@ -253,94 +245,72 @@ export default function Home() {
   type PromotionActivity = (typeof promotionsData)[number];
   function PromotionCard({ item }: { item: PromotionActivity }) {
     return (
-      <View className="w-[48%] mb-4">
-        <Pressable
-          key={item.id}
-          style={{
-            width: CARD_WIDTH,
-            marginRight: 16,
-            marginTop: 15,
-          }}
-        >
-          <View className="bg-white rounded-2xl shadow-md relative">
-            <View className="w-full h-44 rounded-t-2xl overflow-hidden">
-              <Image
-                source={item.image}
-                className="w-full h-full"
-                resizeMode="cover"
-              />
-            </View>
+      <Pressable className="w-[48%] mb-4 mt-2">
+        <View className="bg-white rounded-2xl shadow-md relative">
+          <View className="w-full h-44 rounded-t-2xl overflow-hidden">
+            <Image
+              source={item.image}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          </View>
 
-            <View
+          <View
+            style={{
+              position: "absolute",
+              top: -10,
+              left: -5,
+              backgroundColor: "#06B6D4",
+              paddingHorizontal: 12,
+              paddingVertical: 7,
+              borderRadius: 8,
+              zIndex: 1000,
+              elevation: 30,
+            }}
+          >
+            <Text
               style={{
-                position: "absolute",
-                top: -10,
-                left: -5,
-                backgroundColor: "#06B6D4",
-                paddingHorizontal: 12,
-                paddingVertical: 7,
-                borderRadius: 8,
-                zIndex: 1000,
-                elevation: 30,
+                color: "white",
+                fontSize: 10,
+                fontWeight: "700",
+                textTransform: "uppercase",
+                letterSpacing: 0.8,
               }}
             >
-              <Text
-                style={{
-                  color: "white",
-                  fontSize: 10,
-                  fontWeight: "700",
-                  textTransform: "uppercase",
-                  letterSpacing: 0.8,
-                }}
-              >
-                {item.discount}
-              </Text>
-            </View>
+              {item.discount}
+            </Text>
+          </View>
 
-            <View className="flex-row items-center justify-between px-4 py-4">
-              <View>
-                <Text className="text-black font-bold text-lg">
-                  {item.title}
-                </Text>
-              </View>
+          <View className="flex-row items-center justify-between px-4 py-4">
+            <View>
+              <Text className="text-black font-bold text-lg">{item.title}</Text>
             </View>
           </View>
-        </Pressable>
-      </View>
+        </View>
+      </Pressable>
     );
   }
 
   type PackagesActivity = (typeof buyPackagesData)[number];
   function PackageCard({ item }: { item: PackagesActivity }) {
     return (
-      <View className="w-[48%] mb-4">
-        <Pressable
-          key={item.id}
-          style={{
-            width: CARD_WIDTH,
-            marginRight: 16,
-            marginTop: 15,
-          }}
-        >
-          <View className="bg-white rounded-2xl shadow-md relative">
-            <View className="w-full h-44 rounded-t-2xl overflow-hidden">
-              <Image
-                source={item.image}
-                className="w-full h-full"
-                resizeMode="cover"
-              />
-            </View>
+      <Pressable key={item.id} className="w-[48%] mb-4">
+        <View className="bg-white rounded-2xl shadow-md relative">
+          <View className="w-full h-44 rounded-t-2xl overflow-hidden">
+            <Image
+              source={item.image}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          </View>
 
-            <View className="flex-row items-center justify-between px-4 py-4">
-              <View>
-                <Text className="text-black font-bold text-lg">
-                  {item.title}
-                </Text>
-              </View>
+          <View className="flex-row items-center justify-between px-4 py-4">
+            <View>
+              <Text className="text-black font-bold text-lg">{item.title}</Text>
             </View>
           </View>
-        </Pressable>
-      </View>
+        </View>
+      </Pressable>
     );
   }
 
@@ -437,79 +407,60 @@ export default function Home() {
         <View className="pt-5 rounded-t-xl pb-30 overflow-hidden">
           <BackgroundGlow showText={true} />
 
-          <View className="w-full flex flex-col justify-center items-center gap-[2vh]">
-            <View className="flex justify-between flex-row items-center w-full px-[4vw]">
-              <Text className="text-left text-black font-semibold text-[20px] text-nowrap">
-                Today's Activity
-              </Text>
-              <Pressable className="bg-cyan-600 p-1 flex justify-center items-center rounded-full">
-                <ArrowRight
-                  size={20}
-                  color="white"
-                  className="w-[50%] h-[50%] text-black"
-                />
-              </Pressable>
-            </View>
+          <View className="flex flex-row justify-between">
+            <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
+              Today's Activity
+            </Text>
+            <Pressable className="bg-cyan-600 w-8 h-8 rounded-full mx-5 items-center justify-center">
+              <ArrowRight size={20} color="white" />
+            </Pressable>
+          </View>
 
-            <ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              showsVerticalScrollIndicator={false}
-              className="w-[100%] overflow-hidden rounded-lg h-[19%] px-4"
+          <ScrollView
+            horizontal={true}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            className="overflow-hidden p-5"
+          >
+            {todaysActivityData.map((item) => (
+              <TodayCard key={item.id} item={item} />
+            ))}
+          </ScrollView>
+
+          <View className="flex flex-row justify-between">
+            <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
+              Promotions
+            </Text>
+            <Pressable className="bg-cyan-600 w-8 h-8 rounded-full mx-5 items-center justify-center">
+              <ArrowRight size={20} color="white" />
+            </Pressable>
+          </View>
+          <View className="flex flex-row flex-wrap justify-between mx-5">
+            {promotionsData.map((item) => (
+              <PromotionCard key={item.id} item={item} />
+            ))}
+          </View>
+
+          <View className="flex flex-row justify-between">
+            <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
+              Buy Packages
+            </Text>
+            <Pressable
+              onPress={() => {
+                if (navigating.current) return;
+                navigating.current = true;
+                router.push("./packages/BuyPackages");
+              }}
+              className="bg-cyan-600 w-8 h-8 rounded-full mx-5 items-center justify-center"
             >
-              {todaysActivityData.map((item) => (
-                <TodayCard key={item.id} item={item} />
-              ))}
-            </ScrollView>
+              <ArrowRight size={20} color="white" />
+            </Pressable>
           </View>
 
-          <View className="w-full flex flex-col justify-center items-center gap-[2vh] mb-[40px]">
-            <View className="flex justify-between flex-row items-center w-full px-[4vw]">
-              <Text className="text-left text-black font-semibold text-[20px] text-nowrap">
-                Promotions
-              </Text>
-              <Pressable className="bg-cyan-600 p-1 flex justify-center items-center rounded-full">
-                <ArrowRight
-                  size={20}
-                  color="white"
-                  className="w-[50%] h-[50%] text-black"
-                />
-              </Pressable>
-            </View>
-
-            <View className="w-full flex flex-row flex-wrap justify-between px-4">
-              {promotionsData.map((item) => (
-                <PromotionCard key={item.id} item={item} />
-              ))}
-            </View>
-          </View>
-
-          <View className="w-full flex flex-col justify-center items-center gap-[2vh] mb-[40px]">
-            <View className="flex justify-between flex-row items-center w-full px-[4vw]">
-              <Text className="text-left text-black font-semibold text-[20px] text-nowrap">
-                Buy Packages
-              </Text>
-              <Pressable
-                onPress={() => {
-                  if (navigating.current) return;
-                  navigating.current = true;
-                  router.push("../BuyPackages");
-                }}
-                className="bg-cyan-600 p-1 flex justify-center items-center rounded-full"
-              >
-                <ArrowRight
-                  size={20}
-                  color="white"
-                  className="w-[50%] h-[50%] text-black"
-                />
-              </Pressable>
-            </View>
-
-            <View className="w-full flex flex-row flex-wrap justify-between px-4">
-              {buyPackagesData.map((item) => (
-                <PackageCard key={item.id} item={item} />
-              ))}
-            </View>
+          <View className="flex flex-row flex-wrap justify-between mx-5">
+            {buyPackagesData.map((item) => (
+              <PackageCard key={item.id} item={item} />
+            ))}
           </View>
         </View>
       </ScrollView>
