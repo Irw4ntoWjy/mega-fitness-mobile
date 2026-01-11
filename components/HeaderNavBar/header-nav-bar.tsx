@@ -13,11 +13,19 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 type HeaderNavBarProps = {
   title?: string;
   backOnly?: boolean;
+  showSave?: boolean;
+  onSave?: () => void;
+  saveLabel?: string;
+  onBack?: () => void;
 };
 
 export default function HeaderNavBar({
   title,
   backOnly = false,
+  showSave = false,
+  onSave,
+  saveLabel = "Save",
+  onBack,
 }: HeaderNavBarProps) {
   const insets = useSafeAreaInsets();
 
@@ -31,10 +39,9 @@ export default function HeaderNavBar({
         paddingLeft: insets.left + 8,
         alignItems: "center",
       }}
-      className="px-4"
     >
       <Pressable
-        onPress={() => router.back()}
+        onPress={onBack ?? (() => router.back())}
         className="w-10 h-10 items-center justify-center"
       >
         <ChevronLeft size={22} color="#000" />
@@ -42,7 +49,16 @@ export default function HeaderNavBar({
 
       {title ? <Text className="text-2xl font-bold ml-2">{title}</Text> : null}
 
-      {!backOnly ? (
+      {showSave ? (
+        <Pressable
+          onPress={onSave}
+          className="ml-auto items-center justify-center mr-2"
+        >
+          <Text className="text-2xl text-cyan-600">{saveLabel}</Text>
+        </Pressable>
+      ) : null}
+
+      {!backOnly && !showSave ? (
         <View className="flex-row items-center ml-auto gap-3 mr-2">
           <HeaderIcon onPress={() => router.push("/history/history")}>
             <History size={18} color="black" />
