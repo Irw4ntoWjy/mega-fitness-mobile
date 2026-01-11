@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+console.log(process.env.EXPO_PUBLIC_BACKEND_URL);
 
 function InputBox({ children }: { children: React.ReactNode }) {
   return (
