@@ -441,7 +441,7 @@ export default function Home() {
             ))}
           </View>
 
-          <View className="flex flex-row justify-between">
+          <View className="flex flex-row justify-between mt-4">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
               Buy Packages
             </Text>
@@ -449,7 +449,7 @@ export default function Home() {
               onPress={() => {
                 if (navigating.current) return;
                 navigating.current = true;
-                router.push("./packages/BuyPackages");
+                router.push("./packages/list-package");
               }}
               className="bg-cyan-600 w-8 h-8 rounded-full mx-5 items-center justify-center"
             >
