@@ -41,7 +41,7 @@ export default function SignIn() {
 
   const handleLogin = async () => {
     try {
-      signInSchema.parse({ email, password });
+      // signInSchema.parse({ email, password });
       await saveSession("admin", "true");
       router.replace("/");
     } catch (err: any) {

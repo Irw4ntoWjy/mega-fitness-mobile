@@ -1,13 +1,6 @@
 import { BackgroundGlow } from "@/components/Theme/background";
 import { router, useLocalSearchParams } from "expo-router";
-import {
-  ArrowLeft,
-  Check,
-  Clock,
-  Contact,
-  UserIcon,
-  X,
-} from "lucide-react-native";
+import { ArrowLeft, Check, Clock, Contact, X } from "lucide-react-native";
 import React, { useState } from "react";
 import {
   Image,
@@ -221,22 +214,14 @@ export default function ClassesDetailScreen() {
         </Text>
 
         <View className="mt-6 w-full max-w-[520px] space-y-4">
-          <View className="flex-row items-center">
-            <View className="h-10 w-10 rounded-xl bg-gray-200 items-center justify-center">
-              <Clock size={20} color="#111827" />
-            </View>
-            <Text className="ml-4 text-lg text-gray-800 font-semibold">
-              {activity.time}
-            </Text>
+          <View className="mt-1 flex-row items-center gap-3">
+            <Clock size={22} color="#111" />
+            <Text className="text-xl text-gray-900">{activity.time}</Text>
           </View>
 
-          <View className="flex-row items-center mt-2">
-            <View className="h-10 w-10 rounded-xl bg-gray-200 items-center justify-center">
-              <UserIcon size={20} color="#111827" />
-            </View>
-            <Text className="ml-4 text-lg text-gray-800 font-semibold">
-              {activity.instructor}
-            </Text>
+          <View className="mt-1 flex-row items-center gap-3">
+            <Contact size={22} color="#111" />
+            <Text className="text-xl text-gray-900">{activity.instructor}</Text>
           </View>
         </View>
 
@@ -299,29 +284,27 @@ export default function ClassesDetailScreen() {
         <View className="h-32" />
       </ScrollView>
       {activity.owned && (
-        <View className="absolute bottom-2 left-0 right-0 bg-zinc-100/60 px-[40px] pb-[18px] pt-2">
-          <Pressable
-            onPress={() =>
-              isOngoing
-                ? setOpen(true)
-                : router.push({
-                    pathname: "/classes/[id]/barcode",
-                    params: {
-                      id: String(activity.id),
-                      trainer: String(userProfile.role === "Trainer"),
-                    },
-                  })
-            }
-            className={`w-full h-14 rounded-xl items-center justify-center ${
-              isOngoing ? "bg-red-600" : "bg-cyan-600"
-            }`}
-            disabled={!activity.owned}
-          >
-            <Text className="text-white text-xl font-semibold">
-              {isOngoing ? "Sign Out" : "Sign In"}
-            </Text>
-          </Pressable>
-        </View>
+        <Pressable
+          onPress={() =>
+            isOngoing
+              ? setOpen(true)
+              : router.push({
+                  pathname: "/classes/[id]/barcode",
+                  params: {
+                    id: String(activity.id),
+                    trainer: String(userProfile.role === "Trainer"),
+                  },
+                })
+          }
+          className={`absolute bottom-2 left-1/2 -translate-x-1/2 w-[80%] h-14 rounded-xl items-center justify-center pb-2 pt-2 ${
+            isOngoing ? "bg-red-600" : "bg-cyan-600"
+          }`}
+          disabled={!activity.owned}
+        >
+          <Text className="text-white text-xl font-semibold">
+            {isOngoing ? "Sign Out" : "Sign In"}
+          </Text>
+        </Pressable>
       )}
 
       <SignOutModal
