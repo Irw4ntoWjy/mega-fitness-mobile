@@ -25,6 +25,14 @@ export default function RootLayout() {
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
+          name="packages/list-package"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="packages/[id]/detail"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="classes/[id]/detail"
           options={{ headerShown: false }}
         />
