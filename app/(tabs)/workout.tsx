@@ -2,14 +2,14 @@ import React from "react";
 import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const Explore = () => {
+const Workout = () => {
   const insets = useSafeAreaInsets();
 
   return (
     <View style={{ paddingTop: insets.top }}>
-      <Text>Explore</Text>
+      <Text>Workout</Text>
     </View>
   );
 };
 
-export default Explore;
+export default Workout;
