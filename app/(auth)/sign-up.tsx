@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { signUp } from "../example/fetcher-example";
 import { Gender } from "../models/auth";
 
 function InputBox({ children }: { children: React.ReactNode }) {
@@ -217,7 +218,10 @@ export default function SignUp() {
 
             <TouchableOpacity
               className="bg-[#259AAA] w-full py-3.5 rounded-xl items-center mt-4"
-              onPress={() => router.push("/otp")}
+              onPress={async () => {
+                const res = await signUp();
+                console.log(res);
+              }}
             >
               <Text className="text-white text-base font-medium">Sign Up</Text>
             </TouchableOpacity>
