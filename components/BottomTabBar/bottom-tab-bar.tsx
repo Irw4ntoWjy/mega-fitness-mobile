@@ -1,9 +1,9 @@
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import {
   BookText,
+  Dumbbell,
   House,
   ScanQrCode,
-  Search,
   Wallet,
 } from "lucide-react-native";
 import React from "react";
@@ -24,8 +24,8 @@ const BottomTabBar = ({
     switch (routeName) {
       case "classes":
         return <ScanQrCode color="#ffff" size={40} />;
-      case "explore":
-        return <Search color={color} size={size} />;
+      case "workout":
+        return <Dumbbell color={color} size={size} />;
       case "transaction":
         return <Wallet color={color} size={size} />;
       case "bookings":
