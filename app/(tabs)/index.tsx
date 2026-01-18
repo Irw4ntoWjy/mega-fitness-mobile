@@ -2,6 +2,7 @@ import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-
 import { TimeAvailabilityData } from "@/components/Profile/time-availability";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
+import { checkSession } from "@/lib/auth-session";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ArrowRight, Bell } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
