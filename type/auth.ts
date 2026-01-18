@@ -40,3 +40,8 @@ export type StoredAuth = {
   accessPayload: AccessTokenPayload;
   refreshPayload: RefreshTokenPayload;
 };
+
+export type RefreshResponse = {
+  access_token: string;
+  refresh_token: string;
+};
