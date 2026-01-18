@@ -1,9 +1,6 @@
-export type ApiResponse<T> = {
-  success: boolean;
-  message: string;
-  data: T | null;
-  error?: string;
-};
+import { clearAuth, getAuth, saveAuth } from "@/lib/auth-storage";
+import { parseJwt } from "@/lib/jwt";
+import { ApiResponse } from "@/type/api";
 
 export async function fetcher<T>(
   endpoint: string,
@@ -11,7 +8,8 @@ export async function fetcher<T>(
     method?: "GET" | "POST" | "PUT" | "DELETE";
     headers?: Record<string, string>;
     body?: any;
-  }
+    auth?: boolean;
+  },
 ): Promise<ApiResponse<T>> {
   try {
     const url = `${process.env.EXPO_PUBLIC_BACKEND_URL}${endpoint}`;
@@ -27,17 +25,26 @@ export async function fetcher<T>(
     console.log(cyan + "║      API REQUEST START       ║" + reset);
     console.log(cyan + "╚══════════════════════════════╝" + reset);
 
-    console.log(magenta + "🌐 URL: " + reset + url);
-    console.log(yellow + "📤 METHOD: " + reset + (options?.method || "POST"));
+    console.log(magenta + "URL: " + reset + url);
+    console.log(yellow + "METHOD: " + reset + (options?.method || "POST"));
+
+    let authHeader: Record<string, string> = {};
+    if (options?.auth) {
+      const auth = await getAuth();
+      if (auth?.accessToken) {
+        authHeader.Authorization = `Bearer ${auth.accessToken}`;
+      }
+    }
 
     if (options?.body) {
-      console.log(cyan + "📦 BODY:" + reset, options.body);
+      console.log(cyan + "BODY:" + reset, options.body);
     }
 
     const response = await fetch(url, {
       method: options?.method || "POST",
       headers: {
         "Content-Type": "application/json",
+        ...authHeader,
         ...options?.headers,
       },
       body: options?.body ? JSON.stringify(options.body) : undefined,
@@ -45,31 +52,26 @@ export async function fetcher<T>(
 
     console.log(
       response.ok
-        ? green + `✅ STATUS: ${response.status}` + reset
-        : red + `❌ STATUS: ${response.status}` + reset
+        ? green + `STATUS: ${response.status}` + reset
+        : red + `STATUS: ${response.status}` + reset,
     );
 
     const contentType = response.headers.get("content-type") ?? "";
-
     let payload: any;
+
     if (contentType.includes("application/json")) {
       payload = await response.json();
     } else {
       const text = await response.text();
-      payload = { message: text, data: null, success: false };
+      payload = { success: false, message: text, data: null };
     }
 
-    // ─────────────────────────────────────────────
-    // 📥 RESPONSE BOX
-    // ─────────────────────────────────────────────
     if (!response.ok) {
-      console.log(red + "╔══════════════════════════════╗" + reset);
-      console.log(red + "║         API ERROR (X)        ║" + reset);
-      console.log(red + "╚══════════════════════════════╝" + reset);
+      console.log(red + "ERROR:" + reset, payload?.message);
 
-      console.log(
-        red + "🧨 MESSAGE: " + reset + (payload?.message || "Request failed")
-      );
+      if (response.status === 401) {
+        await clearAuth();
+      }
 
       return {
         success: false,
@@ -79,26 +81,33 @@ export async function fetcher<T>(
       };
     }
 
-    console.log(green + "╔══════════════════════════════╗" + reset);
-    console.log(green + "║        API SUCCESS           ║" + reset);
-    console.log(green + "╚══════════════════════════════╝" + reset);
+    if (payload?.data?.access_token && payload?.data?.refresh_token) {
+      const accessToken = payload.data.access_token;
+      const refreshToken = payload.data.refresh_token;
 
-    console.log(green + "💬 MESSAGE: " + reset + (payload?.message ?? "OK"));
+      const accessPayload = parseJwt(accessToken);
+      const refreshPayload = parseJwt(refreshToken);
+
+      await saveAuth({
+        accessToken,
+        refreshToken,
+        accessPayload,
+        refreshPayload,
+      });
+
+      console.log(green + "AUTH SAVED" + reset);
+      console.log(green + "USER:" + reset, accessPayload);
+    }
+
+    console.log(green + "MESSAGE:" + reset, payload?.message);
 
     return {
       success: payload?.success ?? true,
       message: payload?.message ?? "OK",
-      data: (payload?.data as T) ?? null,
+      data: payload?.data as T,
     };
   } catch (err: any) {
-    const reset = "\x1b[0m";
-    const red = "\x1b[31m";
-
-    console.log(red + "╔══════════════════════════════╗" + reset);
-    console.log(red + "║      NETWORK ERROR           ║" + reset);
-    console.log(red + "╚══════════════════════════════╝" + reset);
-
-    console.log(red + "🧨 ERROR: " + reset + (err?.message || "Network error"));
+    console.log("\x1b[31mNETWORK ERROR\x1b[0m", err?.message);
 
     return {
       success: false,

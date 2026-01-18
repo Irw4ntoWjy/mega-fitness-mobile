@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/session";
+import { checkSession } from "@/lib/auth-session";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -11,16 +11,18 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkSession = async () => {
-      const admin = await getSession("admin");
-      if (!admin) {
+    const guard = async () => {
+      const authenticated = await checkSession();
+
+      if (!authenticated) {
         router.replace("/(auth)/sign-in");
-      } else {
-        setLoading(false);
+        return;
       }
+
+      setLoading(false);
     };
 
-    checkSession();
+    guard();
   }, []);
 
   if (loading) {
