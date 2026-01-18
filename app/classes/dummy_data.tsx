@@ -1,7 +1,7 @@
 export const profile = {
   username: "Kilto Aznah",
   userId: "User123",
-  role: "Trainer",
+  role: "Member",
   total_activity: 10,
 };
 
