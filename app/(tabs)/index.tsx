@@ -2,7 +2,7 @@ import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-
 import { TimeAvailabilityData } from "@/components/Profile/time-availability";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
-import { getSession } from "@/lib/session";
+import { checkSession } from "@/lib/auth-session";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ArrowRight, Bell } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -164,16 +164,18 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkSession = async () => {
-      const admin = await getSession("admin");
-      if (!admin) {
+    const guard = async () => {
+      const authenticated = await checkSession();
+
+      if (!authenticated) {
         router.replace("/(auth)/sign-in");
-      } else {
-        setLoading(false);
+        return;
       }
+
+      setLoading(false);
     };
 
-    checkSession();
+    guard();
   }, []);
 
   const navigating = useRef(false);
@@ -181,7 +183,7 @@ export default function Home() {
   useFocusEffect(
     useCallback(() => {
       navigating.current = false;
-    }, [])
+    }, []),
   );
 
   if (loading) {
