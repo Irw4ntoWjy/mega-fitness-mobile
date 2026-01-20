@@ -1,34 +1,9 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 
-type CommisionProgressBarProps = {
-  summary: {
-    totalActive: number;
-    completedSessions: number;
-    totalSessions: number;
-  };
-  packages: {
-    id: string;
-    label: string;
-    currentSessions: number;
-    totalSessions: number;
-  }[];
-};
+type CommisionProgressBarProps = {};
 
-export function CommisionProgressBar({
-  summary,
-  packages,
-}: CommisionProgressBarProps) {
-  const { totalActive, completedSessions, totalSessions } = summary;
-
-  const progress = totalSessions > 0 ? completedSessions / totalSessions : 0;
-  const clamped = Math.min(Math.max(progress, 0), 1);
-
-  const rawPercent =
-    totalSessions > 0 ? (completedSessions / totalSessions) * 100 : 0;
-  const progressPercent = Math.round(rawPercent);
-  const clampedPercent = Math.min(Math.max(progressPercent, 0), 100);
-
+export function CommisionProgressBar({}: CommisionProgressBarProps) {
   return (
     <View className="w-full my-3">
       <Pressable onPress={() => console.log("clicked")}>
@@ -39,20 +14,21 @@ export function CommisionProgressBar({
           <View className="h-1.5 bg-gray-200 rounded-full overflow-hidden mt-1.5 flex-row">
             <View
               style={{
-                flex: clamped,
+                // Percent / 100
+                flex: 3.5,
                 backgroundColor: "#0891B2",
               }}
             />
 
             <View
               style={{
-                flex: 1 - clamped,
+                flex: 1 - 3.5,
                 backgroundColor: "transparent",
               }}
             />
           </View>
           <Text className="ml-auto text-sm font-bold text-gray-800 mt-1">
-            {clampedPercent}%
+            {35}%
           </Text>
 
           <View>

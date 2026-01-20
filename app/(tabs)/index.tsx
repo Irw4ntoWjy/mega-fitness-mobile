@@ -1,3 +1,4 @@
+import { WarningCard } from "@/components/Member/warning-card";
 import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
 import { TimeAvailabilityData } from "@/components/Profile/time-availability";
 import { BackgroundGlow } from "@/components/Theme/background";
@@ -398,10 +399,7 @@ export default function Home() {
                     summary={activePackagesData.activePackagesSummary}
                     packages={activePackagesData.packages}
                   />
-                  <CommisionProgressBar
-                    summary={activePackagesData.activePackagesSummary}
-                    packages={activePackagesData.packages}
-                  />
+                  <CommisionProgressBar />
                 </View>
               ) : (
                 <View>
@@ -409,6 +407,7 @@ export default function Home() {
                     summary={activePackagesData.activePackagesSummary}
                     packages={activePackagesData.packages}
                   />
+                  <WarningCard />
                 </View>
               )}
             </View>
