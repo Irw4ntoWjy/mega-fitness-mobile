@@ -1,6 +1,5 @@
 import BottomTabBar from "@/components/BottomTabBar/bottom-tab-bar";
 import { Tabs } from "expo-router";
-import React from "react";
 
 export default function Layout() {
   return (
@@ -8,10 +7,15 @@ export default function Layout() {
       tabBar={(props) => <BottomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
+        tabBarStyle: {
+          position: "absolute",
+          backgroundColor: "transparent",
+        },
+        tabBarBackground: () => null,
       }}
     >
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="explore" />
+      <Tabs.Screen name="workout" />
       <Tabs.Screen name="classes" />
       <Tabs.Screen name="transaction" />
       <Tabs.Screen name="bookings" />

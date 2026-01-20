@@ -1,5 +1,5 @@
 import { BackgroundGlow } from "@/components/Theme/background";
-import { saveSession } from "@/lib/session";
+import { signInSchema } from "@/type/auth";
 import { useRouter } from "expo-router";
 import { Eye, EyeOff } from "lucide-react-native";
 import { useState } from "react";
@@ -13,20 +13,11 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { z } from "zod";
-
-const signInSchema = z.object({
-  email: z
-    .string()
-    .refine((val) => val === "admin", { message: "Invalid email or password" }),
-  password: z
-    .string()
-    .refine((val) => val === "admin", { message: "Invalid email or password" }),
-});
+import { login } from "../api/auth";
 
 function InputBox({ children }: { children: React.ReactNode }) {
   return (
-    <View className="bg-gray-50   border border-gray-300 rounded-lg px-3 py-3">
+    <View className="bg-gray-50 border border-gray-300 rounded-lg px-3 py-3">
       {children}
     </View>
   );
@@ -34,27 +25,42 @@ function InputBox({ children }: { children: React.ReactNode }) {
 
 export default function SignIn() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+
+  const [email, setEmail] = useState("seraganteng@gmail.com");
+  const [password, setPassword] = useState("Strong123!");
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    setError(null);
+
+    const parsed = signInSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      setError("Error");
+      return;
+    }
+
     try {
-      signInSchema.parse({ email, password });
-      await saveSession("admin", "true");
-      router.replace("/");
-    } catch (err: any) {
-      if (err.errors?.[0]?.message) {
-        setError(err.errors[0].message);
-      } else {
-        setError("An unexpected error occurred");
+      setLoading(true);
+
+      const res = await login(parsed.data);
+
+      if (!res.success) {
+        setError(res.message);
+        return;
       }
+
+      router.replace("/");
+    } catch (err) {
+      setError("An unexpected error occurred");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }}>
         <BackgroundGlow showText={true} />
 
@@ -67,19 +73,17 @@ export default function SignIn() {
             />
           </View>
 
-          <View className="bg-[#FFF] rounded-[30px] p-6 m-4">
+          <View className="bg-white rounded-[30px] p-6 m-4">
             <Text className="text-black text-2xl font-bold mb-4">
               Welcome Back!
             </Text>
 
             <View className="mb-3 gap-2">
-              <Text className="text-black text-lg font-medium">
-                Email or Phone Number
-              </Text>
+              <Text className="text-black text-lg font-medium">Email</Text>
               <InputBox>
                 <TextInput
-                  placeholder="Enter Email or Phone Number"
-                  placeholderTextColor={"#212121"}
+                  placeholder="Enter Email"
+                  placeholderTextColor="#212121"
                   value={email}
                   onChangeText={setEmail}
                   autoCapitalize="none"
@@ -95,7 +99,7 @@ export default function SignIn() {
                 <View className="flex flex-row items-center">
                   <TextInput
                     placeholder="Enter Password"
-                    placeholderTextColor={"#212121"}
+                    placeholderTextColor="#212121"
                     secureTextEntry={!showPassword}
                     value={password}
                     onChangeText={setPassword}
@@ -111,10 +115,6 @@ export default function SignIn() {
                   </Pressable>
                 </View>
               </InputBox>
-
-              <Text className="text-black text-md font-medium text-right">
-                Forgot Password
-              </Text>
             </View>
 
             {error && (
@@ -122,16 +122,19 @@ export default function SignIn() {
             )}
 
             <TouchableOpacity
-              className="bg-[#259AAA] w-full py-3.5 rounded-xl items-center mt-1"
+              disabled={loading}
+              className="bg-[#259AAA] w-full py-3.5 rounded-xl items-center mt-1 opacity-100"
               onPress={handleLogin}
             >
-              <Text className="text-white text-base font-medium">Sign In</Text>
+              <Text className="text-white text-base font-medium">
+                {loading ? "Signing In..." : "Sign In"}
+              </Text>
             </TouchableOpacity>
 
             <Text className="text-black mt-2 text-base text-center">
               Don't have an account yet?{" "}
               <Text
-                className="text-black font-semibold underline"
+                className="font-semibold underline"
                 onPress={() => router.push("/sign-up")}
               >
                 Register

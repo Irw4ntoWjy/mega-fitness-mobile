@@ -14,5 +14,10 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "nativewind-env.d.ts"
+  ],
+  "content": [
+    "./app/**/*.{js,jsx,ts,tsx}",
+    "./components/**/*.{js,jsx,ts,tsx}",
+    "./node_modules/nativewind/**/*.{js,jsx,ts,tsx}"
   ]
 }
