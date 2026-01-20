@@ -164,6 +164,7 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [openNotification, setOpenNotification] = useState(false);
 
   useEffect(() => {
     const guard = async () => {
@@ -338,7 +339,7 @@ export default function Home() {
             <Text className="mt-1 mx-4 font-medium">{user.profile_name}</Text>
           </View>
 
-          <HeaderIcon>
+          <HeaderIcon onPress={() => router.push("/notification/notification")}>
             <Bell size={18} color="black" />
           </HeaderIcon>
         </View>
