@@ -2,6 +2,7 @@ import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-
 import { TimeAvailabilityData } from "@/components/Profile/time-availability";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
+import { CommisionProgressBar } from "@/components/Trainer/commision-progress-bar";
 import { checkSession } from "@/lib/auth-session";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ArrowRight, Bell } from "lucide-react-native";
@@ -348,7 +349,7 @@ export default function Home() {
             <View className="relative">
               <View style={{ height: HERO_H }} />
 
-              <View className="absolute right-0 bottom-4 items-end px-4">
+              <View className="absolute right-0 bottom-4 items-end">
                 <View className="px-[4vw] rounded-full flex flex-row justify-end items-center gap-1">
                   <View className="rounded-full bg-[rgba(0,0,0,0.25)] w-5 h-5 flex items-center justify-center overflow-hidden">
                     <Text className="text-center text-[10px] text-white font-medium">
@@ -392,15 +393,23 @@ export default function Home() {
               </View>
 
               {isTrainer ? (
-                <ActivePackagesSessionsCard
-                  summary={activePackagesData.activePackagesSummary}
-                  packages={activePackagesData.packages}
-                />
+                <View>
+                  <ActivePackagesSessionsCard
+                    summary={activePackagesData.activePackagesSummary}
+                    packages={activePackagesData.packages}
+                  />
+                  <CommisionProgressBar
+                    summary={activePackagesData.activePackagesSummary}
+                    packages={activePackagesData.packages}
+                  />
+                </View>
               ) : (
-                <ActivePackagesSessionsCard
-                  summary={activePackagesData.activePackagesSummary}
-                  packages={activePackagesData.packages}
-                />
+                <View>
+                  <ActivePackagesSessionsCard
+                    summary={activePackagesData.activePackagesSummary}
+                    packages={activePackagesData.packages}
+                  />
+                </View>
               )}
             </View>
           </View>
