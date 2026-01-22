@@ -1,11 +1,15 @@
-import React from "react";
+import { BackgroundGlow } from "@/components/Theme/background";
+import { router } from "expo-router";
+import { ChevronLeft, User } from "lucide-react-native";
+import React, { useState } from "react";
 import {
   FlatList,
-  SafeAreaView,
+  Pressable,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { notificationDummyData } from "./dummy-data";
 
 type Notification = {
@@ -17,49 +21,83 @@ type Notification = {
 };
 
 export default function NotificationPage() {
-  const notifications = notificationDummyData;
+  const insets = useSafeAreaInsets();
+  const [notifications, setNotifications] = useState(notificationDummyData);
 
-  return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      {/* Header */}
-      <View className="border-b border-gray-200 px-4 py-4">
-        <Text className="text-lg font-semibold text-gray-900">
-          Notifications
-        </Text>
+  const markAllAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
+
+  const renderItem = ({ item }: { item: Notification }) => (
+    <TouchableOpacity
+      className={`flex-row items-start gap-3 px-4 py-4 ${
+        item.read ? "bg-white" : "bg-sky-50"
+      }`}
+    >
+      <View className="h-10 w-10 items-center justify-center rounded-full bg-gray-200">
+        <User size={18} color="#9ca3af" />
       </View>
 
-      {/* Content */}
-      {notifications.length === 0 ? (
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-gray-500">No notifications</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={notifications}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ padding: 12 }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              className={`mb-3 rounded-2xl px-4 py-3 shadow-sm ${
-                item.read ? "bg-white" : "bg-sky-50"
-              }`}
-              onPress={() => {
-                // later: mark as read or navigate to detail
-              }}
-            >
-              <Text className="font-medium text-gray-900">{item.title}</Text>
+      <View className="flex-1">
+        <Text className="text-sm font-medium text-gray-900">{item.title}</Text>
 
-              {item.description && (
-                <Text className="mt-1 text-sm text-gray-600">
-                  {item.description}
-                </Text>
-              )}
+        {item.description && (
+          <Text className="mt-1 text-sm text-gray-600">{item.description}</Text>
+        )}
 
-              <Text className="mt-1 text-xs text-gray-400">{item.time}</Text>
-            </TouchableOpacity>
-          )}
-        />
-      )}
-    </SafeAreaView>
+        <Text className="mt-1 text-xs text-gray-400">{item.time}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  return (
+    <View className="flex-1 bg-white">
+      <BackgroundGlow />
+
+      <View
+        style={{ paddingTop: insets.top + 8 }}
+        className="flex-row items-center border-b border-gray-200 px-2 pb-3"
+      >
+        <Pressable
+          onPress={() => router.back()}
+          className="h-10 w-10 items-center justify-center"
+        >
+          <ChevronLeft size={22} />
+        </Pressable>
+      </View>
+
+      <FlatList
+        className="flex-1"
+        data={notifications}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        ListHeaderComponent={() => (
+          <Text className="px-4 py-4 text-xl font-bold text-gray-600">
+            TODAY
+          </Text>
+        )}
+        ItemSeparatorComponent={() => (
+          <View className="ml-16 h-px bg-gray-200" />
+        )}
+        ListEmptyComponent={() => (
+          <View className="flex-1 items-center justify-center py-20">
+            <Text className="text-gray-400">No notifications</Text>
+          </View>
+        )}
+      />
+
+      <View
+        style={{ paddingBottom: insets.bottom }}
+        className="border-t border-gray-200 bg-white"
+      >
+        <TouchableOpacity onPress={markAllAsRead} className="items-center py-4">
+          <Text className="text-xl font-semibold text-[#0891B2]">
+            Mark all as read
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
