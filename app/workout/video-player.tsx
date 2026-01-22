@@ -76,7 +76,12 @@ export function PopupVideoPlayer({ exercise, visible, onClose, url }: Props) {
               </View>
             </View>
             <VideoView
-              style={{ width: "100%", height: 240, borderRadius: 16 }}
+              style={{
+                width: "100%",
+                height: 240,
+                borderRadius: 16,
+                marginTop: 8,
+              }}
               player={player}
               nativeControls
               allowsFullscreen

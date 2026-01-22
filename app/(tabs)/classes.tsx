@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { activities, profile } from "../classes/dummy_data";
 
 const ongoingActivities = activities.filter(
-  (activity) => activity.status === "Ongoing"
+  (activity) => activity.status === "Ongoing",
 );
 
 type OngoingActivity = (typeof ongoingActivities)[number];
@@ -70,7 +70,7 @@ function OngoingCard({ item }: { item: OngoingActivity }) {
 }
 
 const todaysActivities = activities.filter(
-  (activity) => activity.status !== "Ongoing"
+  (activity) => activity.status !== "Ongoing",
 );
 
 type TodaysActivities = (typeof todaysActivities)[number];
@@ -137,7 +137,7 @@ const Home = () => {
   const userProfile = profile;
 
   return (
-    <View className="flex-1">
+    <View className="flex-1 mb-20">
       <ScrollView>
         {/* <View className="px-5 pt-4"> */}
         <BackgroundGlow showText={true} />

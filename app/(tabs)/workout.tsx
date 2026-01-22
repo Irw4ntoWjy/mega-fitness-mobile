@@ -11,7 +11,7 @@ const Workout = () => {
   const getTotalTime = (activities: any[]) => {
     const totalSeconds = activities.reduce(
       (acc, curr) => acc + curr.duration,
-      0
+      0,
     );
     return Math.round(totalSeconds / 60);
   };
@@ -20,7 +20,6 @@ const Workout = () => {
     <View style={{ flex: 1 }}>
       <BackgroundGlow />
       <View className="mt-14 h-14 px-4 justify-center" />
-
       <View className="w-full flex-row items-center gap-3 px-6">
         <View className="flex-1 flex-row items-center bg-white rounded-full px-4 py-3 shadow">
           <Search size={18} color="#6b7280" />
@@ -32,7 +31,6 @@ const Workout = () => {
         </View>
       </View>
 
-      {/* Use Alert */}
       <View className="flex-col items-start gap-2 mx-6 mt-4 bg-white border border-gray-100 rounded-2xl p-4 shadow-xl">
         <View className="flex flex-row items-center gap-2 ">
           <TriangleAlert size={16} color={"#808080"}></TriangleAlert>
@@ -43,22 +41,23 @@ const Workout = () => {
           full video.
         </Text>
       </View>
-
       <View className="flex-1 mt-4">
-        <ScrollView
-          className="w-full px-6"
-          showsHorizontalScrollIndicator={false}
-        >
-          <View className="w-full gap-4">
-            {workoutTutorial.map((program) => (
-              <WorkoutAccordion
-                key={program.group}
-                title={program.group}
-                description="Workout Program"
-                exercises={program.activities}
-                totalTime={`${getTotalTime(program.activities)} min`}
-              />
-            ))}
+        <ScrollView className="flex-1 px-6">
+          <View className="gap-4">
+            {workoutTutorial.map((program, index) => {
+              const isLast = index === workoutTutorial.length - 1;
+
+              return (
+                <View key={program.group} className={isLast ? "mb-24" : ""}>
+                  <WorkoutAccordion
+                    title={program.group}
+                    description="Workout Program"
+                    exercises={program.activities}
+                    totalTime={`${getTotalTime(program.activities)} min`}
+                  />
+                </View>
+              );
+            })}
           </View>
         </ScrollView>
       </View>
