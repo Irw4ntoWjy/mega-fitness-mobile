@@ -126,7 +126,7 @@ export default function Transactions() {
   }, [list, tab]);
 
   return (
-    <View className="flex-1">
+    <View className="flex-1 mb-20">
       <BackgroundGlow showText={true} />
 
       <View className="mx-3 mt-20">

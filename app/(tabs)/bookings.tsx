@@ -241,7 +241,7 @@ export default function Bookings() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View className="flex-1">
+      <View className="flex-1 mb-20">
         <BackgroundGlow showText={true} />
 
         <View className="mx-3 mt-20">

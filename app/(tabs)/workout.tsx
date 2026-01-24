@@ -17,7 +17,7 @@ const Workout = () => {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, marginBottom: 20 }}>
       <BackgroundGlow />
       <View className="mt-14 h-14 px-4 justify-center" />
       <View className="w-full flex-row items-center gap-3 px-6">

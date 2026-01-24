@@ -137,7 +137,7 @@ const Home = () => {
   const userProfile = profile;
 
   return (
-    <View className="flex-1 mb-20">
+    <View className="flex-1 mb-28">
       <ScrollView>
         {/* <View className="px-5 pt-4"> */}
         <BackgroundGlow showText={true} />
