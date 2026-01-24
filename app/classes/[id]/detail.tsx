@@ -157,7 +157,7 @@ export default function ClassesDetailScreen() {
     setSelectedMemberIds((prev) =>
       prev.includes(memberId)
         ? prev.filter((id) => id !== memberId)
-        : [...prev, memberId]
+        : [...prev, memberId],
     );
   };
 
@@ -296,7 +296,7 @@ export default function ClassesDetailScreen() {
                   },
                 })
           }
-          className={`absolute bottom-2 left-1/2 -translate-x-1/2 w-[80%] h-14 rounded-xl items-center justify-center pb-2 pt-2 ${
+          className={`absolute bottom-10 left-1/2 -translate-x-1/2 w-[80%] h-14 rounded-xl items-center justify-center pb-2 pt-2 ${
             isOngoing ? "bg-red-600" : "bg-cyan-600"
           }`}
           disabled={!activity.owned}

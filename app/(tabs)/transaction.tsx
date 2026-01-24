@@ -63,7 +63,6 @@ function TabPill({
         "flex-1 items-center justify-center rounded-xl py-2",
         active ? "bg-[#0891B2]" : "bg-transparent",
       ].join(" ")}
-      android_ripple={{ color: "rgba(0,0,0,0.08)", borderless: false }}
     >
       <Text
         className={[
@@ -127,7 +126,7 @@ export default function Transactions() {
   }, [list, tab]);
 
   return (
-    <View className="flex-1">
+    <View className="flex-1 mb-20">
       <BackgroundGlow showText={true} />
 
       <View className="mx-3 mt-20">
@@ -149,6 +148,7 @@ export default function Transactions() {
 
       <View className="flex-1 px-4 pt-3">
         <FlatList
+          key={tab}
           data={data}
           keyExtractor={(i) => String(i.id)}
           showsVerticalScrollIndicator={false}

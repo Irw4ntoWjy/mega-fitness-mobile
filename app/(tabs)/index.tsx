@@ -1,7 +1,9 @@
+import { WarningCard } from "@/components/Member/warning-card";
 import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
 import { TimeAvailabilityData } from "@/components/Profile/time-availability";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
+import { CommisionProgressBar } from "@/components/Trainer/commision-progress-bar";
 import { checkSession } from "@/lib/auth-session";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ArrowRight, Bell } from "lucide-react-native";
@@ -162,6 +164,7 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [openNotification, setOpenNotification] = useState(false);
 
   useEffect(() => {
     const guard = async () => {
@@ -336,7 +339,7 @@ export default function Home() {
             <Text className="mt-1 mx-4 font-medium">{user.profile_name}</Text>
           </View>
 
-          <HeaderIcon>
+          <HeaderIcon onPress={() => router.push("/notification/notification")}>
             <Bell size={18} color="black" />
           </HeaderIcon>
         </View>
@@ -348,7 +351,7 @@ export default function Home() {
             <View className="relative">
               <View style={{ height: HERO_H }} />
 
-              <View className="absolute right-0 bottom-4 items-end px-4">
+              <View className="absolute right-0 bottom-4 items-end">
                 <View className="px-[4vw] rounded-full flex flex-row justify-end items-center gap-1">
                   <View className="rounded-full bg-[rgba(0,0,0,0.25)] w-5 h-5 flex items-center justify-center overflow-hidden">
                     <Text className="text-center text-[10px] text-white font-medium">
@@ -392,15 +395,21 @@ export default function Home() {
               </View>
 
               {isTrainer ? (
-                <ActivePackagesSessionsCard
-                  summary={activePackagesData.activePackagesSummary}
-                  packages={activePackagesData.packages}
-                />
+                <View>
+                  <ActivePackagesSessionsCard
+                    summary={activePackagesData.activePackagesSummary}
+                    packages={activePackagesData.packages}
+                  />
+                  <CommisionProgressBar />
+                </View>
               ) : (
-                <ActivePackagesSessionsCard
-                  summary={activePackagesData.activePackagesSummary}
-                  packages={activePackagesData.packages}
-                />
+                <View>
+                  <ActivePackagesSessionsCard
+                    summary={activePackagesData.activePackagesSummary}
+                    packages={activePackagesData.packages}
+                  />
+                  <WarningCard />
+                </View>
               )}
             </View>
           </View>
