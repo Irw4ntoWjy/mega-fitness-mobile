@@ -25,6 +25,10 @@ export default function RootLayout() {
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
+          name="notification/notification"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="packages/list-package"
           options={{ headerShown: false }}
         />
