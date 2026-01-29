@@ -112,9 +112,9 @@ export default function Toast({
           onPress={onHide}
           className={`rounded-xl border px-4 py-3 shadow-sm ${colors.containerClass}`}
         >
-          <View className="flex-row items-center gap-2">
+          <View className="flex-row items-start gap-2">
             <View>{icon ?? defaultIcon}</View>
-            <Text className={`text-lg font-semibold ${colors.textClass}`}>
+            <Text className={`text-lg font-semibold ${colors.textClass} flex-1`}>
               {message}
             </Text>
           </View>

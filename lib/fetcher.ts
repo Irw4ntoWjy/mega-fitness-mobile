@@ -139,6 +139,7 @@ export async function fetcher<T>(
     }
 
     logger.message(payload?.message);
+    logger.data(payload?.data);
 
     return {
       success: payload?.success ?? true,

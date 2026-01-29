@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 const reset = "\x1b[0m";
 const red = "\x1b[31m";
 const green = "\x1b[32m";
@@ -37,6 +35,12 @@ export const logger = {
   message(message?: string) {
     if (message) {
       console.log(green + "MESSAGE: " + reset + message);
+    }
+  },
+
+  data(data: unknown) {
+    if (data !== undefined) {
+      console.log(cyan + "DATA: " + reset + JSON.stringify(data));
     }
   },
 
