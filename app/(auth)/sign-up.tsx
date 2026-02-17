@@ -1,3 +1,4 @@
+import TermsModal from "@/components/auth/terms-and-condition-modal";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
@@ -55,14 +56,16 @@ export default function SignUp() {
   const [error, setError] = useState<string | null>(null);
   const [openDate, setOpenDate] = useState(false);
 
+  const [showTnc, setShowTnc] = useState(false);
+
   const initialBirthDate = useMemo(
     () => resolveDate(birthDate, new Date(birthDate)),
-    [birthDate]
+    [birthDate],
   );
 
   const handleBirthDateChange = (
     event: DateTimePickerEvent,
-    selectedDate?: Date
+    selectedDate?: Date,
   ) => {
     if (Platform.OS === "android") {
       setOpenDate(false);
@@ -218,14 +221,29 @@ export default function SignUp() {
 
             <TouchableOpacity
               className="bg-[#259AAA] w-full py-3.5 rounded-xl items-center mt-4"
-              onPress={async () => {
-                const res = await signUp();
-                console.log(res);
+              // onPress={async () => {
+
+              //   const res = await signUp();
+              //   console.log(res);
+              // }}
+              onPress={() => {
+                setShowTnc(true);
               }}
             >
               <Text className="text-white text-base font-medium">Sign Up</Text>
             </TouchableOpacity>
           </View>
+          <TermsModal
+            visible={showTnc}
+            onDecline={() => {
+              setShowTnc(false);
+            }}
+            onAccept={async () => {
+              setShowTnc(false);
+              const res = await signUp();
+              console.log(res);
+            }}
+          />
         </ScrollView>
       </SafeAreaView>
     </KeyboardAvoidingView>
