@@ -63,6 +63,10 @@ export default function RootLayout() {
         />
         <Stack.Screen name="history/history" options={{ headerShown: false }} />
         <Stack.Screen name="journal/journal" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="assessment/[id]/detail"
+          options={{ headerShown: false }}
+        />
       </Stack>
     </SafeAreaProvider>
   );

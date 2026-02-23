@@ -63,7 +63,7 @@ export default function HeaderNavBar({
           <HeaderIcon onPress={() => router.push("/history/history")}>
             <History size={18} color="black" />
           </HeaderIcon>
-          <HeaderIcon>
+          <HeaderIcon onPress={() => router.push("/assessment/[id]/detail")}>
             <FileQuestionMark size={18} color="black" />
           </HeaderIcon>
           <HeaderIcon>
