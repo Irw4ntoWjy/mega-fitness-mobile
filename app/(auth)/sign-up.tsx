@@ -1,8 +1,14 @@
+import { signUp } from "@/app/api/auth";
+import { FormField } from "@/components/Form/form-field";
 import { BackgroundGlow } from "@/components/Theme/background";
-import { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import { mapFieldErrors } from "@/lib/api-error";
+import { signUpSchema } from "@/type/auth";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import { ChevronDown, ChevronLeft, Eye, EyeOff } from "lucide-react-native";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -14,16 +20,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { signUp } from "../example/fetcher-example";
 import { Gender } from "../models/auth";
-
-function InputBox({ children }: { children: React.ReactNode }) {
-  return (
-    <View className="bg-gray-50 border border-gray-300 rounded-lg px-3 py-3">
-      {children}
-    </View>
-  );
-}
 
 function resolveDate(value: unknown, fallback: Date) {
   if (value instanceof Date && !Number.isNaN(value.getTime())) {
@@ -42,27 +39,43 @@ export default function SignUp() {
   const router = useRouter();
   const [openGender, setOpenGender] = useState(false);
 
-  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [gender, setGender] = useState<Gender>(Gender.Male);
-  const [birthDate, setBirthDate] = useState(""); // ISO string / simple text
+  const [birthDate, setBirthDate] = useState(new Date());
   const [identityNo, setIdentityNo] = useState("");
   const [contactNumber, setContactNumber] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<
+      Record<
+        | "name"
+        | "email"
+        | "password"
+        | "birth_date"
+        | "gender"
+        | "identity_no"
+        | "contact_number",
+        string
+      >
+    >
+  >({});
   const [openDate, setOpenDate] = useState(false);
+  const emailCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastCheckedEmail = useRef<string>("");
 
   const initialBirthDate = useMemo(
-    () => resolveDate(birthDate, new Date(birthDate)),
-    [birthDate]
+    () => resolveDate(birthDate, new Date()),
+    [birthDate],
   );
 
   const handleBirthDateChange = (
     event: DateTimePickerEvent,
-    selectedDate?: Date
+    selectedDate?: Date,
   ) => {
     if (Platform.OS === "android") {
       setOpenDate(false);
@@ -70,6 +83,29 @@ export default function SignUp() {
     if (event.type === "dismissed") {
       return;
     }
+    if (selectedDate) {
+      setBirthDate(selectedDate);
+    }
+  };
+
+  const scheduleEmailCheck = () => {
+    if (emailCheckTimer.current) {
+      clearTimeout(emailCheckTimer.current);
+    }
+    emailCheckTimer.current = setTimeout(async () => {
+      const value = email.trim();
+      if (!value || value === lastCheckedEmail.current) {
+        return;
+      }
+      lastCheckedEmail.current = value;
+
+      const res = await signUp({ email: value } as any);
+      const backendFieldErrors = mapFieldErrors(res, { EMAIL: "email" });
+      setFieldErrors((prev) => ({
+        ...prev,
+        email: backendFieldErrors.email,
+      }));
+    }, 350);
   };
 
   return (
@@ -77,8 +113,11 @@ export default function SignUp() {
       <SafeAreaView style={{ flex: 1 }}>
         <BackgroundGlow showText={true} />
 
-        <TouchableOpacity className="mx-4" onPress={() => router.back()}>
-          <Pressable className="w-10 h-10 items-center justify-center">
+        <TouchableOpacity className="mx-4">
+          <Pressable
+            onPress={() => router.back()}
+            className="w-10 h-10 items-center justify-center"
+          >
             <ChevronLeft size={22} />
           </Pressable>
         </TouchableOpacity>
@@ -86,44 +125,69 @@ export default function SignUp() {
         <ScrollView showsHorizontalScrollIndicator={false}>
           <View className="bg-white rounded-[30px] p-6 m-4">
             <Text className="text-black text-2xl font-bold mb-4">
-              Create an Account
+              Buat Akun
             </Text>
-            {/* Username */}
-            <View className="mb-3 gap-2">
-              <Text className="text-black text-lg font-medium">Username</Text>
-              <InputBox>
+            {/* Name */}
+            <FormField
+              label="Nama"
+              name="name"
+              schema={signUpSchema}
+              error={fieldErrors.name}
+            >
+              <View
+                className={`bg-gray-50 border rounded-lg px-3 py-3 ${
+                  fieldErrors.name ? "border-red-400" : "border-gray-300"
+                }`}
+              >
                 <TextInput
-                  placeholder="Enter username"
-                  value={username}
-                  onChangeText={setUsername}
+                  placeholder="Masukkan nama"
+                  value={name}
+                  onChangeText={setName}
                   autoCapitalize="none"
                   className="text-gray-900"
                 />
-              </InputBox>
-            </View>
+              </View>
+            </FormField>
 
             {/* Email */}
-            <View className="mb-3 gap-2">
-              <Text className="text-black text-lg font-medium">Email</Text>
-              <InputBox>
+            <FormField
+              label="Email"
+              name="email"
+              schema={signUpSchema}
+              error={fieldErrors.email}
+            >
+              <View
+                className={`bg-gray-50 border rounded-lg px-3 py-3 ${
+                  fieldErrors.email ? "border-red-400" : "border-gray-300"
+                }`}
+              >
                 <TextInput
-                  placeholder="Enter email"
+                  placeholder="Masukkan email"
                   value={email}
                   onChangeText={setEmail}
                   autoCapitalize="none"
                   keyboardType="email-address"
+                  onBlur={scheduleEmailCheck}
                   className="text-gray-900"
                 />
-              </InputBox>
-            </View>
+              </View>
+            </FormField>
 
             {/* Password */}
-            <View className="mb-3 gap-2">
-              <Text className="text-black text-lg font-medium">Password</Text>
-              <InputBox>
+            <FormField
+              label="Password"
+              name="password"
+              schema={signUpSchema}
+              error={fieldErrors.password}
+            >
+              <View
+                className={`bg-gray-50 border rounded-lg px-3 py-3 ${
+                  fieldErrors.password ? "border-red-400" : "border-gray-300"
+                }`}
+              >
                 <View className="flex flex-row items-center">
                   <TextInput
-                    placeholder="Enter password"
+                    placeholder="Masukkan password"
                     secureTextEntry={!showPassword}
                     value={password}
                     onChangeText={setPassword}
@@ -133,26 +197,32 @@ export default function SignUp() {
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </Pressable>
                 </View>
-              </InputBox>
-            </View>
+              </View>
+            </FormField>
 
             {/* Gender */}
-            <View className="mb-3 gap-2">
-              <Text className="text-black text-lg font-medium">Gender</Text>
-
+            <FormField
+              label="Gender"
+              name="gender"
+              schema={signUpSchema}
+              error={fieldErrors.gender}
+            >
               <Pressable onPress={() => setOpenGender(!openGender)}>
-                <InputBox>
+                <View
+                  className={`bg-gray-50 border rounded-lg px-3 py-3 ${
+                    fieldErrors.gender ? "border-red-400" : "border-gray-300"
+                  }`}
+                >
                   <View className="flex-row items-center justify-between">
-                    <Text className=" text-gray-900 py-1 px-1">
-                      {gender || "Select gender"}
+                    <Text className="text-gray-900 py-1 px-1">
+                      {gender || "Pilih gender"}
                     </Text>
                     <ChevronDown size={16} color="#9CA3AF" />
                   </View>
-                </InputBox>
+                </View>
               </Pressable>
-
               {openGender && (
-                <View className="mt-2 bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <View className=" bg-white border border-gray-200 rounded-lg overflow-hidden">
                   {(Object.values(Gender) as Gender[]).map((g) => (
                     <Pressable
                       key={g}
@@ -162,32 +232,61 @@ export default function SignUp() {
                       }}
                       className="px-4 py-3 border-b last:border-b-0 border-gray-200"
                     >
-                      <Text className=" text-gray-900">{g}</Text>
+                      <Text className="text-gray-900">{g}</Text>
                     </Pressable>
                   ))}
                 </View>
               )}
-            </View>
+            </FormField>
 
             {/* Birth Date */}
-            <View className="mb-3 gap-2">
-              <Text className="text-black text-lg font-medium">Birth Date</Text>
-              <InputBox>
-                <TextInput
-                  placeholder="1998-04-12"
-                  value={birthDate}
-                  onChangeText={setBirthDate}
-                  className="text-gray-900"
-                />
-              </InputBox>
-            </View>
+            <FormField
+              label="Tanggal Lahir"
+              name="birth_date"
+              schema={signUpSchema}
+              error={fieldErrors.birth_date}
+            >
+              <Pressable onPress={() => setOpenDate(!openDate)}>
+                <View
+                  className={`bg-gray-50 border rounded-lg px-3 py-3 ${
+                    fieldErrors.birth_date
+                      ? "border-red-400"
+                      : "border-gray-300"
+                  }`}
+                >
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-gray-900 py-1 px-1">
+                      {initialBirthDate.toLocaleDateString("en-GB")}
+                    </Text>
+                    <ChevronDown size={16} color="#9CA3AF" />
+                  </View>
+                </View>
+              </Pressable>
+              {openDate && (
+                <View>
+                  <DateTimePicker
+                    value={initialBirthDate}
+                    mode="date"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    onChange={handleBirthDateChange}
+                    textColor="#000"
+                  />
+                </View>
+              )}
+            </FormField>
 
             {/* Identity Number */}
-            <View className="mb-3 gap-2">
-              <Text className="text-black text-lg font-medium">
-                Identity Number
-              </Text>
-              <InputBox>
+            <FormField
+              label="Nomor Induk Kependudukan"
+              name="identity_no"
+              schema={signUpSchema}
+              error={fieldErrors.identity_no}
+            >
+              <View
+                className={`bg-gray-50 border rounded-lg px-3 py-3 ${
+                  fieldErrors.identity_no ? "border-red-400" : "border-gray-300"
+                }`}
+              >
                 <TextInput
                   placeholder="3201xxxxxxxxxxxx"
                   value={identityNo}
@@ -195,15 +294,23 @@ export default function SignUp() {
                   keyboardType="numeric"
                   className="text-gray-900"
                 />
-              </InputBox>
-            </View>
+              </View>
+            </FormField>
 
             {/* Contact Number */}
-            <View className="mb-3 gap-2">
-              <Text className="text-black text-lg font-medium">
-                Contact Number
-              </Text>
-              <InputBox>
+            <FormField
+              label="Nomor Telepon"
+              name="contact_number"
+              schema={signUpSchema}
+              error={fieldErrors.contact_number}
+            >
+              <View
+                className={`bg-gray-50 border rounded-lg px-3 py-3 ${
+                  fieldErrors.contact_number
+                    ? "border-red-400"
+                    : "border-gray-300"
+                }`}
+              >
                 <TextInput
                   placeholder="08xxxxxxxxxx"
                   value={contactNumber}
@@ -211,16 +318,64 @@ export default function SignUp() {
                   keyboardType="phone-pad"
                   className="text-gray-900"
                 />
-              </InputBox>
-            </View>
+              </View>
+            </FormField>
 
             {error && <Text className="text-red-500 text-center">{error}</Text>}
 
             <TouchableOpacity
               className="bg-[#259AAA] w-full py-3.5 rounded-xl items-center mt-4"
               onPress={async () => {
-                const res = await signUp();
-                console.log(res);
+                setError(null);
+                setFieldErrors({});
+                const payload = {
+                  email: email.trim(),
+                  password,
+                  name: name.trim(),
+                  birth_date: birthDate.toISOString(),
+                  gender,
+                  identity_no: identityNo.trim(),
+                  contact_number: contactNumber.trim() || undefined,
+                };
+
+                const parsed = signUpSchema.safeParse(payload);
+                if (!parsed.success) {
+                  const flattened = parsed.error.flatten().fieldErrors;
+                  setFieldErrors({
+                    name: flattened.name?.[0],
+                    email: flattened.email?.[0],
+                    password: flattened.password?.[0],
+                    birth_date: flattened.birth_date?.[0],
+                    gender: flattened.gender?.[0],
+                    identity_no: flattened.identity_no?.[0],
+                    contact_number: flattened.contact_number?.[0],
+                  });
+                  return;
+                }
+
+                const res = await signUp(parsed.data);
+                if (!res.success) {
+                  const backendFieldErrors = mapFieldErrors(res, {
+                    EMAIL: "email",
+                    PASSWORD: "password",
+                    NAME: "name",
+                    BIRTH_DATE: "birth_date",
+                    GENDER: "gender",
+                    IDENTITY_NO: "identity_no",
+                    CONTACT_NUMBER: "contact_number",
+                  });
+                  if (Object.keys(backendFieldErrors).length > 0) {
+                    setFieldErrors(backendFieldErrors);
+                    return;
+                  }
+                  setError(res.message || "Pendaftaran gagal.");
+                  return;
+                }
+
+                router.replace({
+                  pathname: "/(auth)/otp",
+                  params: { email: parsed.data.email },
+                });
               }}
             >
               <Text className="text-white text-base font-medium">Sign Up</Text>

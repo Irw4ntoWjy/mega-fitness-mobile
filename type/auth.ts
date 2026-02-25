@@ -29,6 +29,31 @@ export const signInSchema = z.object({
 
 export type LoginPayload = z.infer<typeof signInSchema>;
 
+export const signUpSchema = z.object({
+  email: z.string().min(1, "Email wajib diisi"),
+  password: z.string().min(1, "Password wajib diisi"),
+  name: z.string().min(1, "Nama wajib diisi"),
+  birth_date: z.string().min(1, "Tanggal lahir wajib diisi"),
+  gender: z.string().min(1, "Gender wajib diisi"),
+  identity_no: z
+    .string()
+    .min(1, "Nomor induk kependudukan wajib diisi")
+    .length(16, "Nomor induk kependudukan harus 16 digit"),
+  contact_number: z.string().optional(),
+});
+export type SignUpPayload = z.infer<typeof signUpSchema>;
+
+export const otpRequestSchema = z.object({
+  email: z.string().min(1, "Email wajib diisi"),
+});
+export type OtpRequestPayload = z.infer<typeof otpRequestSchema>;
+
+export const verifyAccountSchema = z.object({
+  email: z.string().min(1, "Email wajib diisi"),
+  otp: z.string().min(1, "OTP wajib diisi"),
+});
+export type VerifyAccountPayload = z.infer<typeof verifyAccountSchema>;
+
 export type LoginResponse = {
   access_token: string;
   refresh_token: string;
@@ -45,3 +70,6 @@ export type RefreshResponse = {
   access_token: string;
   refresh_token: string;
 };
+
+export type OtpRequestResponse = string;
+export type VerifyAccountResponse = null;
