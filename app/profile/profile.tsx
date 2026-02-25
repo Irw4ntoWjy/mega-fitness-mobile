@@ -5,14 +5,17 @@ import {
   TimeAvailabilitySection,
 } from "@/components/Profile/time-availability";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
+import { getStoredAccountDetail } from "@/lib/auth-storage";
+import { syncAccountDetailFromAuth } from "@/lib/auth-session";
+import { AccountDetail } from "@/type/detail-account";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
 import { Pencil } from "lucide-react-native";
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const user = {
+const fallbackUser = {
   account_id: "9ffd1d6f-e85c-433b-9d68-ddfc09d7a4af",
   account_code: "MFC-191125-PT-25004",
   account_role: "Member",
@@ -75,7 +78,6 @@ const timeAvailabilityData: TimeAvailabilityData = {
   },
 };
 
-const isTrainer = user.account_role === "Trainer";
 const HERO_H = 100;
 
 type ProfileFieldConfig = {
@@ -96,39 +98,92 @@ const BODY_INFO_FIELDS: ProfileFieldConfig[] = [
   { key: "height", label: "Height" },
 ];
 
-const ACCOUNT_INFO_FIELDS: ProfileFieldConfig[] = [
-  { key: "email", label: "Email" },
-  { key: "password", label: "Password" },
-];
-
 const TRAINER_EXTRA_FIELDS: ProfileFieldConfig[] = [
   { key: "certification", label: "Certification" },
-  { key: "experience", label: "Experience" },
-  { key: "availability", label: "Availability" },
+  { key: "experience_year", label: "Experience" },
 ];
 
-const profileFields = isTrainer
-  ? [...BASE_PROFILE_FIELDS, ...TRAINER_EXTRA_FIELDS]
-  : BASE_PROFILE_FIELDS;
+function getInitials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
 
-const profileValues: Record<string, string> = {
-  name: user.profile_name,
-  phone: "(+62) 812-xxxx-xxxx",
-  address: "Jl. Cemara Asri",
-  birth: "11 / 11 / 2000",
-  gender: "Male",
-  weight: "72",
-  height: "175",
-  email: "jovan.torio@email.com",
-  password: "********",
-
-  certification: "NASM CPT",
-  experience: "5 Years",
-  availability: "Mon - Fri",
-};
+function formatBirthDate(value?: string) {
+  if (!value) return "";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleDateString("en-GB");
+}
 
 export default function Profile() {
   const insets = useSafeAreaInsets();
+  const [accountDetail, setAccountDetail] = useState<AccountDetail | null>(
+    null,
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadAccount = async () => {
+      const cached = await getStoredAccountDetail();
+      if (!isMounted) return;
+      if (cached) {
+        setAccountDetail(cached);
+      }
+
+      const synced = await syncAccountDetailFromAuth();
+      if (!isMounted || !synced) return;
+
+      const latest = await getStoredAccountDetail();
+      if (latest) {
+        setAccountDetail(latest);
+      }
+    };
+
+    loadAccount();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const resolvedUser = useMemo(() => {
+    const profileName =
+      accountDetail?.profile_name ?? fallbackUser.profile_name;
+    const initials = getInitials(profileName) || fallbackUser.initials;
+    return {
+      account_id: accountDetail?.account_id ?? fallbackUser.account_id,
+      account_code: accountDetail?.account_code ?? fallbackUser.account_code,
+      account_role: accountDetail?.account_role ?? fallbackUser.account_role,
+      profile_name: profileName,
+      initials,
+      completedPercent: fallbackUser.completedPercent,
+    };
+  }, [accountDetail]);
+
+  const isTrainer = resolvedUser.account_role === "Trainer";
+  const profileFields = isTrainer
+    ? [...BASE_PROFILE_FIELDS, ...TRAINER_EXTRA_FIELDS]
+    : BASE_PROFILE_FIELDS;
+
+  const profileValues: Record<string, string> = {
+    name: resolvedUser.profile_name,
+    phone: accountDetail?.contact_number ?? "-",
+    address: "-",
+    birth: formatBirthDate(accountDetail?.birth_date) || "-",
+    gender: accountDetail?.gender ?? "-",
+    weight: accountDetail?.trainer_detail?.weight?.toString() ?? "-",
+    height: accountDetail?.trainer_detail?.height?.toString() ?? "-",
+
+    certification: accountDetail?.trainer_detail?.certifications ?? "-",
+    experience_year:
+      accountDetail?.trainer_detail?.experience_year != null
+        ? `${accountDetail.trainer_detail.experience_year}`
+        : "-",
+  };
 
   return (
     <View className="flex-1">
@@ -141,15 +196,15 @@ export default function Profile() {
 
           <View className="absolute right-0 bottom-4 items-end">
             <Text className="text-black text-xl font-extrabold">
-              {user.profile_name}
+              {resolvedUser.profile_name}
             </Text>
-            <Text className="text-black/60">@{user.account_code}</Text>
+            <Text className="text-black/60">@{resolvedUser.account_code}</Text>
           </View>
 
           <View className="absolute -bottom-15 z-50">
             <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
               <Text className="text-[#0F6B7E] text-2xl font-semibold">
-                {user.initials}
+                {resolvedUser.initials}
               </Text>
             </View>
           </View>
@@ -170,7 +225,7 @@ export default function Profile() {
                   isTrainer ? "text-[#7A20C9]" : "text-[#B45C17]"
                 }`}
               >
-                {user.account_role}
+                {resolvedUser.account_role}
               </Text>
             </View>
           </View>
@@ -201,11 +256,6 @@ export default function Profile() {
             fields={BODY_INFO_FIELDS}
             values={profileValues}
           />
-          <ProfileInfoSection
-            title="Account Info"
-            fields={ACCOUNT_INFO_FIELDS}
-            values={profileValues}
-          />
         </View>
       </ScrollView>
       <Pressable
@@ -213,8 +263,8 @@ export default function Profile() {
           router.push({
             pathname: "/profile/edit-profile",
             params: {
-              role: user.account_role,
-              accountId: user.account_id,
+              role: resolvedUser.account_role,
+              accountId: resolvedUser.account_id,
             },
           })
         }

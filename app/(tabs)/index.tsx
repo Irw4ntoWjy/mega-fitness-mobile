@@ -1,17 +1,16 @@
 import { WarningCard } from "@/components/Member/warning-card";
 import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
-import { TimeAvailabilityData } from "@/components/Profile/time-availability";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { CommisionProgressBar } from "@/components/Trainer/commision-progress-bar";
-import { checkSession } from "@/lib/auth-session";
-import { logout } from "@/lib/auth-storage";
+import { checkSession, syncAccountDetailFromAuth } from "@/lib/auth-session";
+import { getStoredAccountDetail, logout } from "@/lib/auth-storage";
+import { Image as ExpoImage } from "expo-image";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ArrowRight, Bell, LogOut } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Dimensions,
   Image,
   Pressable,
   ScrollView,
@@ -58,34 +57,17 @@ const activePackagesData = {
   ],
 };
 
-const timeAvailabilityData: TimeAvailabilityData = {
-  days: [
-    { key: "Sun", label: "Sun" },
-    { key: "Mon", label: "Mon" },
-    { key: "Tue", label: "Tue" },
-    { key: "Wed", label: "Wed" },
-    { key: "Thu", label: "Thu" },
-    { key: "Fri", label: "Fri" },
-    { key: "Sat", label: "Sat" },
-  ],
-  slotsByDay: {
-    Sun: [
-      { id: "sun-1", label: "12.00 PM - 04.00 PM" },
-      { id: "sun-2", label: "12.00 PM - 04.00 PM" },
-      { id: "sun-3", label: "12.00 PM - 04.00 PM" },
-      { id: "sun-4", label: "12.00 PM - 04.00 PM" },
-    ],
-    Mon: [],
-    Tue: [],
-    Wed: [],
-    Thu: [],
-    Fri: [],
-    Sat: [],
-  },
-};
-
 const isTrainer = user.account_role === "Trainer";
 const HERO_H = 76;
+
+function getInitials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
 
 const todaysActivityData = [
   {
@@ -159,13 +141,14 @@ const buyPackagesData = [
   { id: 3, title: "Campfire", image: require("../../assets/png/Campfire.png") },
   { id: 4, title: "Campfire", image: require("../../assets/png/Campfire.png") },
 ];
-
-const { width } = Dimensions.get("window");
 export default function Home() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [openNotification, setOpenNotification] = useState(false);
+  const [profileName, setProfileName] = useState(user.profile_name);
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(
+    null,
+  );
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -181,6 +164,13 @@ export default function Home() {
         return;
       }
 
+      await syncAccountDetailFromAuth(true);
+      const detail = await getStoredAccountDetail();
+      if (detail?.profile_name) {
+        setProfileName(detail.profile_name);
+      }
+      setProfilePictureUrl(detail?.picture_url ?? null);
+
       setLoading(false);
     };
 
@@ -188,6 +178,7 @@ export default function Home() {
   }, []);
 
   const navigating = useRef(false);
+  const profileInitials = getInitials(profileName) || user.initials;
 
   useFocusEffect(
     useCallback(() => {
@@ -342,7 +333,7 @@ export default function Home() {
         <View className="flex-row items-center justify-between w-full">
           <View className="flex flex-col">
             <Text className="mt-3 mx-4 font-bold text-2xl">Welcome Back,</Text>
-            <Text className="mt-1 mx-4 font-medium">{user.profile_name}</Text>
+            <Text className="mt-1 mx-4 font-medium">{profileName}</Text>
           </View>
 
           <View className="ml-auto flex-row gap-2">
@@ -351,9 +342,7 @@ export default function Home() {
             >
               <Bell size={18} color="black" />
             </HeaderIcon>
-            <HeaderIcon
-              onPress={handleLogout}
-            >
+            <HeaderIcon onPress={handleLogout}>
               <LogOut size={18} color="black" />
             </HeaderIcon>
           </View>
@@ -381,11 +370,24 @@ export default function Home() {
 
               <View className="absolute -bottom-15 z-50">
                 <Pressable onPress={() => router.push("/profile/profile")}>
-                  <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
-                    <Text className="text-[#0F6B7E] text-2xl font-semibold">
-                      {user.initials}
-                    </Text>
-                  </View>
+                  {profilePictureUrl ? (
+                    <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] overflow-hidden">
+                      <ExpoImage
+                        source={{ uri: profilePictureUrl }}
+                        style={{ width: "100%", height: "100%" }}
+                        contentFit="cover"
+                        onError={() => {
+                          setProfilePictureUrl(null);
+                        }}
+                      />
+                    </View>
+                  ) : (
+                    <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
+                      <Text className="text-[#0F6B7E] text-2xl font-semibold">
+                        {profileInitials}
+                      </Text>
+                    </View>
+                  )}
                 </Pressable>
               </View>
             </View>

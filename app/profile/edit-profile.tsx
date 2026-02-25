@@ -18,8 +18,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const mockAccount = {
-  role: "Member",
-  profile_name: "Member",
+  role: "Trainer",
+  profile_name: "Trainer",
   contact_number: "",
   address: "Jl. Lychee, Cemara Asri",
   birth_date: "2000-11-11T00:00:00Z",
