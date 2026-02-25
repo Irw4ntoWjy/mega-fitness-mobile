@@ -37,6 +37,7 @@ export default function HeaderNavBar({
         paddingTop: insets.top + 8,
         paddingRight: insets.right + 8,
         paddingLeft: insets.left + 8,
+        paddingBottom: 8,
         alignItems: "center",
       }}
     >
