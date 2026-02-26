@@ -71,9 +71,8 @@ export default function PhysicalQuestionCard({
                   placeholder="Jelaskan lebih detail..."
                   placeholderTextColor="#6b7280"
                   multiline
-                  className="border border-gray-300 rounded-2xl p-3 text-sm"
+                  className="border-b border-gray-300 p-3 text-sm"
                   textAlignVertical="top"
-                  style={{ minHeight: 80 }}
                 />
               )}
             </>
@@ -87,9 +86,8 @@ export default function PhysicalQuestionCard({
               placeholder="Tulis jawaban..."
               placeholderTextColor="#6b7280"
               multiline
-              className="border border-gray-300 rounded-2xl p-3 text-sm"
+              className="border-b border-gray-300 p-3 text-sm"
               textAlignVertical="top"
-              style={{ minHeight: 80 }}
             />
           )}
         </View>
