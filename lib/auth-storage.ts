@@ -30,3 +30,7 @@ export async function isAuthenticated(): Promise<boolean> {
 export async function saveAuth(auth: StoredAuth) {
   await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(auth));
 }
+
+export async function logout() {
+  await clearAuth();
+}

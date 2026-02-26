@@ -112,10 +112,11 @@ export async function fetcher<T>(
 
     if (!response.ok) {
       logger.error(payload?.message);
+      logger.error(payload?.data);
       return {
         success: false,
         message: payload?.message || "Request failed",
-        data: null,
+        data: payload?.data ?? null,
         error: payload?.error || payload?.message,
       };
     }
@@ -138,6 +139,7 @@ export async function fetcher<T>(
     }
 
     logger.message(payload?.message);
+    logger.data(payload?.data);
 
     return {
       success: payload?.success ?? true,

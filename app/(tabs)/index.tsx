@@ -5,8 +5,9 @@ import { BackgroundGlow } from "@/components/Theme/background";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { CommisionProgressBar } from "@/components/Trainer/commision-progress-bar";
 import { checkSession } from "@/lib/auth-session";
+import { logout } from "@/lib/auth-storage";
 import { useFocusEffect, useRouter } from "expo-router";
-import { ArrowRight, Bell } from "lucide-react-native";
+import { ArrowRight, Bell, LogOut } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -165,6 +166,11 @@ export default function Home() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [openNotification, setOpenNotification] = useState(false);
+
+  const handleLogout = useCallback(async () => {
+    await logout();
+    router.replace("/(auth)/sign-in");
+  }, [router]);
 
   useEffect(() => {
     const guard = async () => {
@@ -339,9 +345,18 @@ export default function Home() {
             <Text className="mt-1 mx-4 font-medium">{user.profile_name}</Text>
           </View>
 
-          <HeaderIcon onPress={() => router.push("/notification/notification")}>
-            <Bell size={18} color="black" />
-          </HeaderIcon>
+          <View className="ml-auto flex-row gap-2">
+            <HeaderIcon
+              onPress={() => router.push("/notification/notification")}
+            >
+              <Bell size={18} color="black" />
+            </HeaderIcon>
+            <HeaderIcon
+              onPress={handleLogout}
+            >
+              <LogOut size={18} color="black" />
+            </HeaderIcon>
+          </View>
         </View>
       </View>
 
@@ -407,7 +422,7 @@ export default function Home() {
 
           <View className="flex flex-row justify-between">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
-              Today's Activity
+              Today&apos;s Activity
             </Text>
             <Pressable className="bg-cyan-600 w-8 h-8 rounded-full mx-5 items-center justify-center">
               <ArrowRight size={20} color="white" />
@@ -476,7 +491,7 @@ function HeaderIcon({
   return (
     <Pressable
       onPress={onPress}
-      className="w-10 h-10  mx-4 rounded-xl items-center justify-center bg-white shadow-sm"
+      className="w-10 h-10  rounded-xl items-center justify-center bg-white shadow-sm"
     >
       {children}
     </Pressable>
