@@ -1,7 +1,6 @@
 import { AnswerValue, Question } from "@/type/assessments";
 import { Text, TextInput, View } from "react-native";
 import BooleanOption from "./BooleanOption";
-import QuestionNumber from "./QuestionNumber";
 
 type Props = {
   q: Question;
@@ -21,7 +20,7 @@ export default function PhysicalQuestionCard({
   const textValue = value?.text;
 
   const updateBoolean = (v: boolean) => {
-    if (q.type === "boolean") {
+    if (q.type === "boolean" || "boolean_without_description") {
       setAnswer(q.key, { value: v });
     }
   };
@@ -39,14 +38,16 @@ export default function PhysicalQuestionCard({
   return (
     <View className="bg-white rounded-4xl p-4 mb-4 shadow-sm">
       <View className="flex-row">
-        <QuestionNumber index={index + 1} />
-
         <View className="flex-1">
-          <Text className="font-semibold text-[15px]">{q.en}</Text>
+          <Text className="font-semibold text-md leading-6.8">{q.en}</Text>
 
-          <Text className="text-gray-500 text-[13px] mt-1 mb-3">{q.id}</Text>
+          {q.id && (
+            <Text className="text-gray-500 text-sm leading-6.5 mt-1 mb-3">
+              {q.id}
+            </Text>
+          )}
 
-          {q.type === "boolean" ? (
+          {q.type !== "text" ? (
             <>
               <View className="flex-row gap-6 mb-3">
                 <BooleanOption
@@ -64,14 +65,14 @@ export default function PhysicalQuestionCard({
                 />
               </View>
 
-              {booleanValue === true && (
+              {booleanValue === true && q.type === "boolean" && (
                 <TextInput
                   value={detailsValue}
                   onChangeText={updateDetail}
                   placeholder="Jelaskan lebih detail..."
                   placeholderTextColor="#6b7280"
                   multiline
-                  className="border-b border-gray-300 p-3 text-sm"
+                  className="border-b border-gray-300 text-sm"
                   textAlignVertical="top"
                 />
               )}

@@ -1,10 +1,10 @@
-export type QuestionType = "boolean" | "text";
+export type QuestionType = "boolean" | "text" | "boolean_without_description";
 
 export type Question = {
   key: string;
   en: string;
-  id: string;
-  type?: QuestionType;
+  id?: string;
+  type: QuestionType;
 };
 
 export type AnswerValue = {
