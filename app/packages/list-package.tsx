@@ -6,7 +6,7 @@ import {
   LucideSlidersHorizontal,
   Search,
 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FlatList,
   Image,
@@ -46,10 +46,7 @@ function PackageCard({ item }: { item: Package }) {
     router.push({
       pathname: "/packages/[id]/detail",
       params: {
-        id: item.id,
-        packageName: item.packageName,
-        description: item.description ?? "",
-        image: item.image ?? "",
+        id: item.id
       },
     });
     setTimeout(() => setIsNavigating(false), 1000); 

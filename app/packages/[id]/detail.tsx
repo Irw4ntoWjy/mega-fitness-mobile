@@ -1,7 +1,8 @@
 import { BackgroundGlow } from "@/components/Theme/background";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft, Contact } from "lucide-react-native";
-import React from "react";
+import { useEffect, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 
 
@@ -10,10 +11,6 @@ type PersonalTrainer = {
   name: string;
 };
 
-const personalTrainers: PersonalTrainer[] = [
-  { id: "1", name: "John Doe" },
-  { id: "2", name: "Jane Smith" },
-];
 
 const getInitials = (name: string) => {
   return name
@@ -39,15 +36,55 @@ export const TrainerCard = ({ item }: { item: PersonalTrainer }) => {
 };
 
 export default function ProductDetail() {
-  const { packageName, description, image } =
-  useLocalSearchParams<{
-    packageName?: string;
-    description?: string;
-    image?: string;
-  }>();
-  const pts: PersonalTrainer[] = personalTrainers;
+  const [packageData, setPackageData] = useState<any>(null);
+  const [personalTrainers, setPersonalTrainers] = useState<PersonalTrainer[]>([]);
+  const { id } = useLocalSearchParams<{ id: string }>();
 
-  if (!packageName) {
+  useEffect(() => {
+    fetchDetail();
+  }, []);
+
+  const fetchDetail = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+
+      const res = await fetch(
+        `${process.env.EXPO_PUBLIC_BACKEND_URL}/package/detail`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            package_id: id,
+          }),
+        }
+      );
+
+      const json = await res.json();
+
+      if (json.success) {
+        setPackageData(json.data);
+
+        // 🔥 Extract trainers from package_details
+        const details = json.data.package_details || [];
+
+        const trainers = details.flatMap((detail: any) =>
+          (detail.package_detail_trainers || []).map((t: any) => ({
+            id: t.package_trainer_id,
+            name: t.trainer_profile_name,
+          }))
+        );
+
+        setPersonalTrainers(trainers);
+      }
+    } catch (err) {
+      console.log("Detail error:", err);
+    }
+  };
+
+  if (!packageData) {
   return (
     <View className="flex-1 items-center justify-center">
       <Text>Package not found</Text>
@@ -71,7 +108,7 @@ export default function ProductDetail() {
       <ScrollView className="flex-1 mx-6" showsVerticalScrollIndicator={false}>
         <View className="h-[210px] rounded-[18px] overflow-hidden bg-zinc-300 mt-1">
           <Image
-            source={{ uri: image }}
+            source={{ uri: packageData.package_cover_image }}
             className="h-full w-full"
             resizeMode="cover"
           />
@@ -79,7 +116,7 @@ export default function ProductDetail() {
 
         <View className="flex-row items-center mt-6">
           <Text className="flex-1 text-3xl font-semibold tracking-[1px] text-zinc-950">
-            {packageName}
+            {packageData.package_name}
           </Text>
         </View>
         <Text
@@ -91,7 +128,7 @@ export default function ProductDetail() {
             textAlign: "justify",
           }}
         >
-          {description}
+          {packageData.package_description}
         </Text>
         <View className="flex flex-col mt-4 bg-white  p-4 rounded-2xl gap-3 mb-28">
           <View className="flex flex-row items-start gap-2">
