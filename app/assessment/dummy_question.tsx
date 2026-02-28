@@ -1,5 +1,54 @@
+export enum AssessmentPages {
+  PHYSICAL_ACTIVITY_READINESS = "physical-activity-readiness",
+  PHYSIOLOGY_CONDITION_ASSESSMENT = "physiology-condition-assessment",
+  POSTURE_ASSESSMENT = "posture-assessment",
+  MOVEMENT_ANALYSIS = "movement-analysis",
+  PHYSICAL_TESTS = "physical-tests",
+  GOAL_SETTING = "goal-setting",
+}
+
+export const assessmentHeaderDummy = {
+  [AssessmentPages.PHYSICAL_ACTIVITY_READINESS]: {
+    step: 1,
+    section: "SECTION I",
+    subtitle: "Kesiapan Aktivitas Fisik — Jawab dengan jujur",
+  },
+
+  [AssessmentPages.PHYSIOLOGY_CONDITION_ASSESSMENT]: {
+    step: 2,
+    section: "SECTION II",
+    subtitle: "Penilaian Kondisi Fisiologis",
+  },
+
+  [AssessmentPages.POSTURE_ASSESSMENT]: {
+    step: 3,
+    section: "SECTION III",
+    subtitle: "Evaluasi postur tubuh Anda",
+  },
+
+  [AssessmentPages.MOVEMENT_ANALYSIS]: {
+    step: 4,
+    section: "SECTION IV",
+    subtitle: "Analisis pola gerakan dasar",
+  },
+
+  [AssessmentPages.PHYSICAL_TESTS]: {
+    step: 5,
+    section: "SECTION V",
+    subtitle: "Tes kemampuan fisik",
+  },
+
+  [AssessmentPages.GOAL_SETTING]: {
+    step: 6,
+    section: "SECTION VI",
+    subtitle: "Tentukan tujuan kebugaran Anda",
+  },
+};
+
+export const TOTAL_ASSESSMENT_STEPS = Object.keys(assessmentHeaderDummy).length;
+
 export const assessmentAnswer = {
-  PHYSICAL_ACTIVITY_READINESS: {
+  [AssessmentPages.PHYSICAL_ACTIVITY_READINESS]: {
     client_name: "Alexander Justine Santiago",
     age: 23,
     date: "2026-02-23",
@@ -75,7 +124,7 @@ export const assessmentAnswer = {
       },
     },
   },
-  PHYSIOLOGY_CONDITION_ASSESSMENT: {
+  [AssessmentPages.PHYSIOLOGY_CONDITION_ASSESSMENT]: {
     resting_heart_rate_bpm: 68,
     blood_pressure: {
       systolic: 118,
@@ -115,7 +164,7 @@ export const assessmentAnswer = {
     },
     total_body_water_liters: 43.5,
   },
-  POSTURE_ASSESSMENT: {
+  [AssessmentPages.POSTURE_ASSESSMENT]: {
     anterior_view: {
       head: "Neutral",
       upper_back: "Normal",
@@ -136,7 +185,7 @@ export const assessmentAnswer = {
       "Mild upper crossed syndrome",
     ],
   },
-  MOVEMENT_ANALYSIS: {
+  [AssessmentPages.MOVEMENT_ANALYSIS]: {
     squat: {
       air_squat_test: "Pass",
       overhead_squat_test: "Knees slightly inward",
@@ -171,7 +220,7 @@ export const assessmentAnswer = {
       rotation_control: "Normal",
     },
   },
-  PHYSICAL_TESTs: {
+  [AssessmentPages.PHYSICAL_TESTS]: {
     cardiovascular_fitness: {
       rockport_walk: {
         time_minutes: 13.2,
@@ -197,7 +246,7 @@ export const assessmentAnswer = {
       estimated_1rm_deadlift: 140,
     },
   },
-  GOAL_SETTING: {
+  [AssessmentPages.GOAL_SETTING]: {
     name: "Alexander Justine Santiago",
     coach_name: "Michael Tan",
     date: "2026-02-23",
@@ -248,7 +297,7 @@ export const assessmentAnswer = {
 };
 
 export const assessmentQuestion = {
-  PHYSICAL_ACTIVITY_READINESS: {
+  [AssessmentPages.PHYSICAL_ACTIVITY_READINESS]: {
     questions: [
       {
         key: "heart_condition",
@@ -383,7 +432,7 @@ export const assessmentQuestion = {
     ],
   },
 
-  PHYSIOLOGY_CONDITION_ASSESSMENT: {
+  [AssessmentPages.PHYSIOLOGY_CONDITION_ASSESSMENT]: {
     fields: [
       {
         en: "Resting Heart Rate (RHR)",
@@ -420,7 +469,7 @@ export const assessmentQuestion = {
     ],
   },
 
-  POSTURE_ASSESSMENT: {
+  [AssessmentPages.POSTURE_ASSESSMENT]: {
     views: {
       anterior: {
         en: "Anterior View",
@@ -437,7 +486,7 @@ export const assessmentQuestion = {
     },
   },
 
-  MOVEMENT_ANALYSIS: {
+  [AssessmentPages.MOVEMENT_ANALYSIS]: {
     categories: [
       { en: "Squat", id: "Squat" },
       { en: "Lunge", id: "Lunge" },
@@ -449,7 +498,7 @@ export const assessmentQuestion = {
     ],
   },
 
-  PHYSICAL_TEST: {
+  [AssessmentPages.PHYSICAL_TESTS]: {
     tests: [
       {
         en: "Cardiovascular Fitness Test",
@@ -474,7 +523,7 @@ export const assessmentQuestion = {
     ],
   },
 
-  GOAL_SETTING: {
+  [AssessmentPages.GOAL_SETTING]: {
     questions: [
       {
         en: "What is your main training goal? Why?",

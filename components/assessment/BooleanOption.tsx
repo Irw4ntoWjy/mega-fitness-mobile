@@ -6,6 +6,7 @@ type Props = {
   value: boolean;
   selected?: boolean;
   onPress: (value: boolean) => void;
+  editable?: boolean;
 };
 
 export default function BooleanOption({
@@ -13,11 +14,13 @@ export default function BooleanOption({
   value,
   selected,
   onPress,
+  editable,
 }: Props) {
   return (
     <Pressable
       onPress={() => onPress(value)}
       className="flex-row items-center gap-2"
+      disabled={editable}
     >
       <View
         className={`w-5 h-5 rounded-full border items-center justify-center ${

@@ -7,6 +7,7 @@ type Props = {
   index: number;
   value?: AnswerValue;
   setAnswer: (key: string, value: AnswerValue) => void;
+  disabled?: boolean;
 };
 
 export default function PhysicalQuestionCard({
@@ -14,6 +15,7 @@ export default function PhysicalQuestionCard({
   index,
   value,
   setAnswer,
+  disabled,
 }: Props) {
   const booleanValue = value?.value;
   const detailsValue = value?.detail;
@@ -38,8 +40,8 @@ export default function PhysicalQuestionCard({
   return (
     <View className="bg-white rounded-4xl p-4 mb-4 shadow-sm">
       <View className="flex-row">
-        <View className="flex-1">
-          <Text className="font-semibold text-md leading-6.8">{q.en}</Text>
+        <View className="flex-1 px-4">
+          <Text className="font-semibold text-md leading-6.8 pb-2">{q.en}</Text>
 
           {q.id && (
             <Text className="text-gray-500 text-sm leading-6.5 mt-1 mb-3">
@@ -55,6 +57,7 @@ export default function PhysicalQuestionCard({
                   value={true}
                   selected={booleanValue === true}
                   onPress={updateBoolean}
+                  editable={disabled}
                 />
 
                 <BooleanOption
@@ -62,6 +65,7 @@ export default function PhysicalQuestionCard({
                   value={false}
                   selected={booleanValue === false}
                   onPress={updateBoolean}
+                  editable={disabled}
                 />
               </View>
 
@@ -71,9 +75,10 @@ export default function PhysicalQuestionCard({
                   onChangeText={updateDetail}
                   placeholder="Jelaskan lebih detail..."
                   placeholderTextColor="#6b7280"
-                  multiline
-                  className="border-b border-gray-300 text-sm"
+                  className="border-b border-gray-300 text-md py-1"
                   textAlignVertical="top"
+                  multiline
+                  editable={!disabled}
                 />
               )}
             </>
@@ -86,9 +91,10 @@ export default function PhysicalQuestionCard({
               onChangeText={updateText}
               placeholder="Tulis jawaban..."
               placeholderTextColor="#6b7280"
-              multiline
-              className="border-b border-gray-300 p-3 text-sm"
+              className="border-b border-gray-300 text-md py-1"
               textAlignVertical="top"
+              multiline
+              editable={!disabled}
             />
           )}
         </View>

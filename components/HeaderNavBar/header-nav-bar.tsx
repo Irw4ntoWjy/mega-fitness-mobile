@@ -1,3 +1,4 @@
+import { AssessmentPages } from "@/app/assessment/dummy_question";
 import { router } from "expo-router";
 import {
   Bell,
@@ -64,7 +65,16 @@ export default function HeaderNavBar({
           <HeaderIcon onPress={() => router.push("/history/history")}>
             <History size={18} color="black" />
           </HeaderIcon>
-          <HeaderIcon onPress={() => router.push("/assessment/[id]/detail")}>
+          <HeaderIcon
+            onPress={() =>
+              router.push({
+                pathname: "/assessment/[section]/detail",
+                params: {
+                  section: AssessmentPages.PHYSICAL_ACTIVITY_READINESS,
+                },
+              })
+            }
+          >
             <FileQuestionMark size={18} color="black" />
           </HeaderIcon>
           <HeaderIcon>
