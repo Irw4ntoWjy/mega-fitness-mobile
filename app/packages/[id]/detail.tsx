@@ -67,7 +67,6 @@ export default function ProductDetail() {
       if (json.success) {
         setPackageData(json.data);
 
-        // 🔥 Extract trainers from package_details
         const details = json.data.package_details || [];
 
         const trainers = details.flatMap((detail: any) =>
