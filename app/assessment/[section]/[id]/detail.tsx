@@ -18,11 +18,13 @@ import {
   assessmentHeaderDummy,
   AssessmentPages,
   assessmentQuestion,
-} from "../dummy_question";
+} from "../../dummy_question";
 
 export default function AssessmentDetail() {
-  const { section } = useLocalSearchParams<{ section?: string }>();
-
+  const { section, id } = useLocalSearchParams<{
+    section?: string;
+    id?: string;
+  }>();
   const safeSection =
     section && section in assessmentQuestion
       ? section
@@ -177,7 +179,8 @@ export default function AssessmentDetail() {
             console.log("Submit Assessment");
             return;
           }
-          router.push(`/assessment/${nextPage}/detail`);
+          // TODO update use userId
+          router.push(`/assessment/${nextPage}/id/detail`);
         }}
         nextDisabled={false}
       />

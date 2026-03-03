@@ -48,26 +48,30 @@ export function PopupVideoPlayer({ exercise, visible, onClose, url }: Props) {
             </Pressable>
           </View>
 
-          <View className=" bg-gray-200 rounded-xl px-3 pt-4">
-            <View className="flex-row justify-evenly bg-gray-100 p-2 rounded-xl">
-              <View className="flex items-center border-r-1 px-6">
-                <View className="flex flex-row gap-1 items-center">
-                  <Layers size={12}></Layers>
+          <View className="bg-gray-200 rounded-xl px-3 pt-4">
+            <View className="flex-row bg-gray-100 p-2 rounded-xl">
+              {/* Sets */}
+              <View className="flex-1 items-center border-r border-gray-200">
+                <View className="flex-row gap-1 items-center">
+                  <Layers size={12} />
                   <Text className="text-base text-gray-500">Sets</Text>
                 </View>
                 <Text className="text-2xl font-semibold">{exercise.sets}</Text>
               </View>
-              <View className="flex items-center border-r-1 px-6">
-                <View className="flex flex-row gap-1 items-center">
-                  <Repeat size={12}></Repeat>
+
+              {/* Reps */}
+              <View className="flex-1 items-center border-r border-gray-200">
+                <View className="flex-row gap-1 items-center">
+                  <Repeat size={12} />
                   <Text className="text-base text-gray-500">Reps</Text>
                 </View>
                 <Text className="text-2xl font-semibold">{exercise.reps}</Text>
               </View>
 
-              <View className="flex items-center px-6">
-                <View className="flex flex-row gap-1 items-center">
-                  <Clock size={12}></Clock>
+              {/* Duration */}
+              <View className="flex-1 items-center">
+                <View className="flex-row gap-1 items-center">
+                  <Clock size={12} />
                   <Text className="text-base text-gray-500">Duration</Text>
                 </View>
                 <Text className="text-2xl font-semibold">
@@ -75,6 +79,7 @@ export function PopupVideoPlayer({ exercise, visible, onClose, url }: Props) {
                 </Text>
               </View>
             </View>
+
             <VideoView
               style={{
                 width: "100%",

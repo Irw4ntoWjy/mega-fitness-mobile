@@ -74,7 +74,7 @@ export default function RootLayout() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="assessment/[section]/detail"
+            name="assessment/[section]/[id]/detail"
             options={{ headerShown: false }}
           />
         </Stack>

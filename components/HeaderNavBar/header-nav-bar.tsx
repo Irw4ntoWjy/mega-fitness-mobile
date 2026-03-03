@@ -68,9 +68,11 @@ export default function HeaderNavBar({
           <HeaderIcon
             onPress={() =>
               router.push({
-                pathname: "/assessment/[section]/detail",
+                pathname: "/assessment/[section]/[id]/detail",
                 params: {
                   section: AssessmentPages.PHYSICAL_ACTIVITY_READINESS,
+                  // TODO update use userId
+                  id: "1",
                 },
               })
             }

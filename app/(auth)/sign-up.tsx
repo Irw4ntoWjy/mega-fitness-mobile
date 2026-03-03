@@ -21,6 +21,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { z } from "zod";
 import { Gender } from "../models/auth";
 
 function resolveDate(value: unknown, fallback: Date) {
@@ -37,6 +38,9 @@ function resolveDate(value: unknown, fallback: Date) {
 }
 
 export default function SignUp() {
+  type SignUpPayload = z.infer<typeof signUpSchema>;
+  let payload: SignUpPayload;
+
   const router = useRouter();
   const [openGender, setOpenGender] = useState(false);
 
@@ -331,7 +335,7 @@ export default function SignUp() {
               onPress={async () => {
                 setError(null);
                 setFieldErrors({});
-                const payload = {
+                payload = {
                   email: email.trim(),
                   password,
                   name: name.trim(),
@@ -355,30 +359,7 @@ export default function SignUp() {
                   });
                   return;
                 }
-
-                const res = await signUp(parsed.data);
-                if (!res.success) {
-                  const backendFieldErrors = mapFieldErrors(res, {
-                    EMAIL: "email",
-                    PASSWORD: "password",
-                    NAME: "name",
-                    BIRTH_DATE: "birth_date",
-                    GENDER: "gender",
-                    IDENTITY_NO: "identity_no",
-                    CONTACT_NUMBER: "contact_number",
-                  });
-                  if (Object.keys(backendFieldErrors).length > 0) {
-                    setFieldErrors(backendFieldErrors);
-                    return;
-                  }
-                  setError(res.message || "Pendaftaran gagal.");
-                  return;
-                }
-
-                router.replace({
-                  pathname: "/(auth)/otp",
-                  params: { email: parsed.data.email },
-                });
+                setShowTnc(true);
               }}
             >
               <Text className="text-white text-base font-medium">Sign Up</Text>
@@ -391,8 +372,47 @@ export default function SignUp() {
             }}
             onAccept={async () => {
               setShowTnc(false);
-              const res = await signUp({ email: email } as any);
-              console.log(res);
+              const parsed = signUpSchema.safeParse(payload);
+
+              if (!parsed.success) {
+                const flattened = parsed.error.flatten().fieldErrors;
+
+                setFieldErrors({
+                  name: flattened.name?.[0],
+                  email: flattened.email?.[0],
+                  password: flattened.password?.[0],
+                  birth_date: flattened.birth_date?.[0],
+                  gender: flattened.gender?.[0],
+                  identity_no: flattened.identity_no?.[0],
+                  contact_number: flattened.contact_number?.[0],
+                });
+
+                return;
+              }
+
+              const res = await signUp(parsed.data);
+              if (!res.success) {
+                const backendFieldErrors = mapFieldErrors(res, {
+                  EMAIL: "email",
+                  PASSWORD: "password",
+                  NAME: "name",
+                  BIRTH_DATE: "birth_date",
+                  GENDER: "gender",
+                  IDENTITY_NO: "identity_no",
+                  CONTACT_NUMBER: "contact_number",
+                });
+                if (Object.keys(backendFieldErrors).length > 0) {
+                  setFieldErrors(backendFieldErrors);
+                  return;
+                }
+                setError(res.message || "Pendaftaran gagal.");
+                return;
+              }
+
+              router.replace({
+                pathname: "/(auth)/otp",
+                params: { email: parsed.data.email },
+              });
             }}
           />
         </ScrollView>
