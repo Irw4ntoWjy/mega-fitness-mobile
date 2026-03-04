@@ -39,7 +39,7 @@ function resolveDate(value: unknown, fallback: Date) {
 
 export default function SignUp() {
   type SignUpPayload = z.infer<typeof signUpSchema>;
-  let payload: SignUpPayload;
+  const [payload, setPayload] = useState<SignUpPayload | undefined>(undefined);
 
   const router = useRouter();
   const [openGender, setOpenGender] = useState(false);
@@ -114,7 +114,6 @@ export default function SignUp() {
       }));
     }, 350);
   };
-
   return (
     <KeyboardAvoidingView className="flex-1" behavior={"padding"}>
       <SafeAreaView style={{ flex: 1 }}>
@@ -335,7 +334,7 @@ export default function SignUp() {
               onPress={async () => {
                 setError(null);
                 setFieldErrors({});
-                payload = {
+                setPayload({
                   email: email.trim(),
                   password,
                   name: name.trim(),
@@ -343,7 +342,7 @@ export default function SignUp() {
                   gender,
                   identity_no: identityNo.trim(),
                   contact_number: contactNumber.trim() || undefined,
-                };
+                });
 
                 const parsed = signUpSchema.safeParse(payload);
                 if (!parsed.success) {

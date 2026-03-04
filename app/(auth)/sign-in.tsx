@@ -39,7 +39,6 @@ export default function SignIn() {
       showToast({
         message: "Email dan password wajib diisi",
         variant: "error",
-        duration: 2500,
       });
       return;
     }
@@ -53,22 +52,26 @@ export default function SignIn() {
         showToast({
           message: res.message || "Login gagal",
           variant: "error",
-          duration: 2500,
         });
+
+        if (res.message === "Akun tidak aktif") {
+          router.replace({
+            pathname: "/(auth)/otp",
+            params: { email: parsed.data.email },
+          });
+        }
         return;
       }
 
       showToast({
         message: "Sign in berhasil",
         variant: "success",
-        duration: 2500,
       });
       router.replace("/");
     } catch (err) {
       showToast({
         message: "Terjadi kesalahan yang tidak terduga",
         variant: "error",
-        duration: 2500,
       });
     } finally {
       setLoading(false);
