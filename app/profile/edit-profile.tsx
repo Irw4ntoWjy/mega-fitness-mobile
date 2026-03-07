@@ -83,19 +83,19 @@ export default function EditProfile() {
   }, [account]);
   const baseAccount = useMemo(
     () => ({ ...mockAccount, ...(parsedAccount ?? {}) }),
-    [parsedAccount]
+    [parsedAccount],
   );
   const accountRole =
     typeof role === "string"
       ? role
       : typeof baseAccount.role === "string"
-      ? baseAccount.role
-      : mockAccount.role;
+        ? baseAccount.role
+        : mockAccount.role;
   const isTrainer = accountRole === "Trainer";
 
   const initialBirthDate = useMemo(
     () => resolveDate(baseAccount.birth_date, new Date(mockAccount.birth_date)),
-    [baseAccount.birth_date]
+    [baseAccount.birth_date],
   );
   const [openGender, setOpenGender] = useState(false);
 
@@ -118,8 +118,8 @@ export default function EditProfile() {
     typeof accountId === "string"
       ? accountId
       : typeof baseAccount.account_id === "string"
-      ? baseAccount.account_id
-      : undefined;
+        ? baseAccount.account_id
+        : undefined;
 
   const handleSave = () => {
     console.log("SAVE:", { accountId: resolvedAccountId, form });
@@ -128,7 +128,7 @@ export default function EditProfile() {
 
   const handleBirthDateChange = (
     event: DateTimePickerEvent,
-    selectedDate?: Date
+    selectedDate?: Date,
   ) => {
     if (Platform.OS === "android") {
       setOpenDate(false);

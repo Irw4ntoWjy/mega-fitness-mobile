@@ -1,4 +1,5 @@
 import { signUp } from "@/app/api/auth";
+import TermsModal from "@/components/auth/terms-and-condition-modal";
 import { FormField } from "@/components/Form/form-field";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { mapFieldErrors } from "@/lib/api-error";
@@ -20,6 +21,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { z } from "zod";
 import { Gender } from "../models/auth";
 
 function resolveDate(value: unknown, fallback: Date) {
@@ -36,6 +38,9 @@ function resolveDate(value: unknown, fallback: Date) {
 }
 
 export default function SignUp() {
+  type SignUpPayload = z.infer<typeof signUpSchema>;
+  const [payload, setPayload] = useState<SignUpPayload | undefined>(undefined);
+
   const router = useRouter();
   const [openGender, setOpenGender] = useState(false);
 
@@ -67,6 +72,8 @@ export default function SignUp() {
   const [openDate, setOpenDate] = useState(false);
   const emailCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastCheckedEmail = useRef<string>("");
+
+  const [showTnc, setShowTnc] = useState(false);
 
   const initialBirthDate = useMemo(
     () => resolveDate(birthDate, new Date()),
@@ -107,7 +114,6 @@ export default function SignUp() {
       }));
     }, 350);
   };
-
   return (
     <KeyboardAvoidingView className="flex-1" behavior={"padding"}>
       <SafeAreaView style={{ flex: 1 }}>
@@ -328,7 +334,7 @@ export default function SignUp() {
               onPress={async () => {
                 setError(null);
                 setFieldErrors({});
-                const payload = {
+                setPayload({
                   email: email.trim(),
                   password,
                   name: name.trim(),
@@ -336,7 +342,7 @@ export default function SignUp() {
                   gender,
                   identity_no: identityNo.trim(),
                   contact_number: contactNumber.trim() || undefined,
-                };
+                });
 
                 const parsed = signUpSchema.safeParse(payload);
                 if (!parsed.success) {
@@ -352,35 +358,62 @@ export default function SignUp() {
                   });
                   return;
                 }
-
-                const res = await signUp(parsed.data);
-                if (!res.success) {
-                  const backendFieldErrors = mapFieldErrors(res, {
-                    EMAIL: "email",
-                    PASSWORD: "password",
-                    NAME: "name",
-                    BIRTH_DATE: "birth_date",
-                    GENDER: "gender",
-                    IDENTITY_NO: "identity_no",
-                    CONTACT_NUMBER: "contact_number",
-                  });
-                  if (Object.keys(backendFieldErrors).length > 0) {
-                    setFieldErrors(backendFieldErrors);
-                    return;
-                  }
-                  setError(res.message || "Pendaftaran gagal.");
-                  return;
-                }
-
-                router.replace({
-                  pathname: "/(auth)/otp",
-                  params: { email: parsed.data.email },
-                });
+                setShowTnc(true);
               }}
             >
               <Text className="text-white text-base font-medium">Sign Up</Text>
             </TouchableOpacity>
           </View>
+          <TermsModal
+            visible={showTnc}
+            onDecline={() => {
+              setShowTnc(false);
+            }}
+            onAccept={async () => {
+              setShowTnc(false);
+              const parsed = signUpSchema.safeParse(payload);
+
+              if (!parsed.success) {
+                const flattened = parsed.error.flatten().fieldErrors;
+
+                setFieldErrors({
+                  name: flattened.name?.[0],
+                  email: flattened.email?.[0],
+                  password: flattened.password?.[0],
+                  birth_date: flattened.birth_date?.[0],
+                  gender: flattened.gender?.[0],
+                  identity_no: flattened.identity_no?.[0],
+                  contact_number: flattened.contact_number?.[0],
+                });
+
+                return;
+              }
+
+              const res = await signUp(parsed.data);
+              if (!res.success) {
+                const backendFieldErrors = mapFieldErrors(res, {
+                  EMAIL: "email",
+                  PASSWORD: "password",
+                  NAME: "name",
+                  BIRTH_DATE: "birth_date",
+                  GENDER: "gender",
+                  IDENTITY_NO: "identity_no",
+                  CONTACT_NUMBER: "contact_number",
+                });
+                if (Object.keys(backendFieldErrors).length > 0) {
+                  setFieldErrors(backendFieldErrors);
+                  return;
+                }
+                setError(res.message || "Pendaftaran gagal.");
+                return;
+              }
+
+              router.replace({
+                pathname: "/(auth)/otp",
+                params: { email: parsed.data.email },
+              });
+            }}
+          />
         </ScrollView>
       </SafeAreaView>
     </KeyboardAvoidingView>

@@ -44,7 +44,7 @@ const BottomTabBar = ({
         right: 0,
         flexDirection: "row",
         paddingVertical: 4,
-        paddingBottom: insets.bottom + 20,
+        paddingBottom: insets.bottom + 10,
         justifyContent: "center",
         backgroundColor: "transparent",
       }}

@@ -366,19 +366,6 @@ export default function Home() {
             <View className="relative">
               <View style={{ height: HERO_H }} />
 
-              <View className="absolute right-0 bottom-4 items-end">
-                <View className="px-[4vw] rounded-full flex flex-row justify-end items-center gap-1">
-                  <View className="rounded-full bg-[rgba(0,0,0,0.25)] w-5 h-5 flex items-center justify-center overflow-hidden">
-                    <Text className="text-center text-[10px] text-white font-medium">
-                      2
-                    </Text>
-                  </View>
-                  <Text className="text-center text-[12px] text-black font-medium">
-                    Activity
-                  </Text>
-                </View>
-              </View>
-
               <View className="absolute -bottom-15 z-50">
                 <Pressable onPress={() => router.push("/profile/profile")}>
                   <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
