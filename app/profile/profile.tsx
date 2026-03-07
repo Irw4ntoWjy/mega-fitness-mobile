@@ -5,6 +5,7 @@ import {
   TimeAvailabilitySection,
 } from "@/components/Profile/time-availability";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
+import { useAuth } from "@/hooks/useAuth";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
 import { Pencil } from "lucide-react-native";
@@ -127,8 +128,23 @@ const profileValues: Record<string, string> = {
   availability: "Mon - Fri",
 };
 
+export function getInitials(name: string): string {
+  if (!name) return "";
+
+  const words = name.trim().split(" ");
+
+  if (words.length === 1) {
+    return words[0][0].toUpperCase();
+  }
+
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
+
 export default function Profile() {
   const insets = useSafeAreaInsets();
+  const { auth, loading: loadingAuth } = useAuth();
+
+  if (loadingAuth) return null;
 
   return (
     <View className="flex-1">
@@ -141,15 +157,17 @@ export default function Profile() {
 
           <View className="absolute right-0 bottom-4 items-end">
             <Text className="text-black text-xl font-extrabold">
-              {user.profile_name}
+              {auth.accountDetail.profile_name}
             </Text>
-            <Text className="text-black/60">@{user.account_code}</Text>
+            <Text className="text-black/60">
+              {auth.accessPayload.account_code}
+            </Text>
           </View>
 
           <View className="absolute -bottom-15 z-50">
             <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
               <Text className="text-[#0F6B7E] text-2xl font-semibold">
-                {user.initials}
+                {getInitials(auth.accountDetail.profile_name)}
               </Text>
             </View>
           </View>
@@ -170,7 +188,7 @@ export default function Profile() {
                   isTrainer ? "text-[#7A20C9]" : "text-[#B45C17]"
                 }`}
               >
-                {user.account_role}
+                {auth.accountDetail.account_role}
               </Text>
             </View>
           </View>

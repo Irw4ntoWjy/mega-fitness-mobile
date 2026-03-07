@@ -4,6 +4,7 @@ import { TimeAvailabilityData } from "@/components/Profile/time-availability";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { CommisionProgressBar } from "@/components/Trainer/commision-progress-bar";
+import { useAuth } from "@/hooks/useAuth";
 import { checkSession } from "@/lib/auth-session";
 import { logout } from "@/lib/auth-storage";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -19,6 +20,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getInitials } from "../profile/profile";
 
 const user = {
   account_id: "9ffd1d6f-e85c-433b-9d68-ddfc09d7a4af",
@@ -166,6 +168,7 @@ export default function Home() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [openNotification, setOpenNotification] = useState(false);
+  const { auth } = useAuth();
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -341,8 +344,12 @@ export default function Home() {
       >
         <View className="flex-row items-center justify-between w-full">
           <View className="flex flex-col">
-            <Text className="mt-3 mx-4 font-bold text-2xl">Welcome Back,</Text>
-            <Text className="mt-1 mx-4 font-medium">{user.profile_name}</Text>
+            <Text className="mt-3 mx-4 font-bold text-2xl">
+              Mega Fitness Center,
+            </Text>
+            <Text className="mt-1 mx-4 font-medium">
+              {auth.accountDetail.profile_name}
+            </Text>
           </View>
 
           <View className="ml-auto flex-row gap-2">
@@ -351,9 +358,7 @@ export default function Home() {
             >
               <Bell size={18} color="black" />
             </HeaderIcon>
-            <HeaderIcon
-              onPress={handleLogout}
-            >
+            <HeaderIcon onPress={handleLogout}>
               <LogOut size={18} color="black" />
             </HeaderIcon>
           </View>
@@ -370,7 +375,7 @@ export default function Home() {
                 <Pressable onPress={() => router.push("/profile/profile")}>
                   <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
                     <Text className="text-[#0F6B7E] text-2xl font-semibold">
-                      {user.initials}
+                      {getInitials(auth.accountDetail.profile_name)}
                     </Text>
                   </View>
                 </Pressable>
@@ -391,7 +396,7 @@ export default function Home() {
                       isTrainer ? "text-[#7A20C9]" : "text-[#B45C17]"
                     }`}
                   >
-                    {user.account_role}
+                    {auth.accountDetail.account_role}
                   </Text>
                 </View>
               </View>
