@@ -76,7 +76,6 @@ const timeAvailabilityData: TimeAvailabilityData = {
   },
 };
 
-const isTrainer = user.account_role === "Trainer";
 const HERO_H = 100;
 
 type ProfileFieldConfig = {
@@ -107,10 +106,6 @@ const TRAINER_EXTRA_FIELDS: ProfileFieldConfig[] = [
   { key: "experience", label: "Experience" },
   { key: "availability", label: "Availability" },
 ];
-
-const profileFields = isTrainer
-  ? [...BASE_PROFILE_FIELDS, ...TRAINER_EXTRA_FIELDS]
-  : BASE_PROFILE_FIELDS;
 
 const profileValues: Record<string, string> = {
   name: user.profile_name,
@@ -145,6 +140,11 @@ export default function Profile() {
   const { auth, loading: loadingAuth } = useAuth();
 
   if (loadingAuth) return null;
+  const isTrainer = auth.accountDetail.account_role === "Trainer";
+
+  const profileFields = isTrainer
+    ? [...BASE_PROFILE_FIELDS, ...TRAINER_EXTRA_FIELDS]
+    : BASE_PROFILE_FIELDS;
 
   return (
     <View className="flex-1">

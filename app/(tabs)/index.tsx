@@ -86,7 +86,6 @@ const timeAvailabilityData: TimeAvailabilityData = {
   },
 };
 
-const isTrainer = user.account_role === "Trainer";
 const HERO_H = 76;
 
 const todaysActivityData = [
@@ -164,11 +163,12 @@ const buyPackagesData = [
 
 const { width } = Dimensions.get("window");
 export default function Home() {
+  const { auth, loading: loadingAuth } = useAuth();
+
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [openNotification, setOpenNotification] = useState(false);
-  const { auth } = useAuth();
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -197,6 +197,8 @@ export default function Home() {
       navigating.current = false;
     }, []),
   );
+  if (loadingAuth) return null;
+  const isTrainer = auth.accountDetail.account_role === "Trainer";
 
   if (loading) {
     return (
