@@ -93,7 +93,7 @@ const todaysActivityData = [
     title: "Campfire",
     time: "03.00PM - 04.00PM",
     duration: "60 min",
-    label: "Today",
+    label: "Monday",
     image: require("../../assets/png/Campfire.png"),
   },
   {
@@ -101,7 +101,7 @@ const todaysActivityData = [
     title: "Campfire",
     time: "03.00PM - 04.00PM",
     duration: "60 min",
-    label: "Today",
+    label: "Tuesday",
     image: require("../../assets/png/Campfire.png"),
   },
   {
@@ -109,7 +109,7 @@ const todaysActivityData = [
     title: "Campfire",
     time: "03.00PM - 04.00PM",
     duration: "60 min",
-    label: "Today",
+    label: "Wednesday",
     image: require("../../assets/png/Campfire.png"),
   },
   {
@@ -117,7 +117,7 @@ const todaysActivityData = [
     title: "Campfire",
     time: "03.00PM - 04.00PM",
     duration: "60 min",
-    label: "Today",
+    label: "Thursday",
     image: require("../../assets/png/Campfire.png"),
   },
 ];
@@ -145,6 +145,33 @@ const promotionsData = [
     id: 4,
     title: "Campfire",
     discount: "20% Off",
+    image: require("../../assets/png/Campfire.png"),
+  },
+];
+
+const specialClassData = [
+  {
+    id: 1,
+    title: "Campfire",
+    occasion: "Independence Day",
+    image: require("../../assets/png/Campfire.png"),
+  },
+  {
+    id: 2,
+    title: "Campfire",
+    occasion: "Independence Day",
+    image: require("../../assets/png/Campfire.png"),
+  },
+  {
+    id: 3,
+    title: "Campfire",
+    occasion: "Independence Day",
+    image: require("../../assets/png/Campfire.png"),
+  },
+  {
+    id: 4,
+    title: "Campfire",
+    occasion: "Independence Day",
     image: require("../../assets/png/Campfire.png"),
   },
 ];
@@ -310,12 +337,12 @@ export default function Home() {
   type PromotionActivity = (typeof promotionsData)[number];
   function PromotionCard({ item }: { item: PromotionActivity }) {
     return (
-      <Pressable className="w-[48%] mb-4 mt-2">
+      <Pressable key={item.id} className="w-[44vw] mb-4 mr-5">
         <View className="bg-white rounded-2xl shadow-md relative">
           <View className="w-full h-44 rounded-t-2xl overflow-hidden">
             <Image
               source={
-                require("../../assets/png/Campfire.png")
+               require("../../assets/png/Campfire.png")
               }
               className="w-full h-full"
               resizeMode="cover"
@@ -351,12 +378,71 @@ export default function Home() {
           <View className="flex-row items-center justify-between px-4 py-4">
             <View>
               <Text className="text-black font-bold text-lg">{item.title}</Text>
+              {/* <Text className="text-black text-xs mt-1">{item.time}</Text> */}
             </View>
           </View>
         </View>
       </Pressable>
     );
   }
+
+
+
+type SpecialClass = (typeof specialClassData)[number];
+  function SpecialClassCard({ item }: { item: SpecialClass }) {
+    return (
+      <Pressable key={item.id} className="w-[44vw] mb-4 mr-5">
+        <View className="bg-white rounded-2xl shadow-md relative">
+          <View className="w-full h-44 rounded-t-2xl overflow-hidden">
+            <Image
+              source={
+               require("../../assets/png/Campfire.png")
+              }
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          </View>
+
+          <View
+            style={{
+              position: "absolute",
+              top: -10,
+              left: -5,
+              backgroundColor: "#06B6D4",
+              paddingHorizontal: 12,
+              paddingVertical: 7,
+              borderRadius: 8,
+              zIndex: 1000,
+              elevation: 30,
+            }}
+          >
+            <Text
+              style={{
+                color: "white",
+                fontSize: 10,
+                fontWeight: "700",
+                textTransform: "uppercase",
+                letterSpacing: 0.8,
+              }}
+            >
+              {item.occasion}
+            </Text>
+          </View>
+
+          <View className="flex-row items-center justify-between px-4 py-4">
+            <View>
+              <Text className="text-black font-bold text-lg">{item.title}</Text>
+              {/* <Text className="text-black text-xs mt-1">{item.time}</Text> */}
+            </View>
+          </View>
+        </View>
+      </Pressable>
+    );
+  }
+
+
+
+
 
   type PackagesActivity = {
     id: string;
@@ -389,7 +475,7 @@ export default function Home() {
 
 
     return (
-      <Pressable key={item.id} className="w-[48%] mb-4"
+      <Pressable key={item.id} className="w-[44vw] mb-4 mr-5"
         onPress={handlePress}
       >
         <View className="bg-white rounded-2xl shadow-md relative">
@@ -522,11 +608,11 @@ export default function Home() {
 
           <View className="flex flex-row justify-between">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
-              Today's Activity
+              Schedule Activities
             </Text>
-            <Pressable className="bg-cyan-600 w-8 h-8 rounded-full mx-5 items-center justify-center">
+            {/* <Pressable className="bg-cyan-600 w-8 h-8 rounded-full mx-5 items-center justify-center">
               <ArrowRight size={20} color="white" />
-            </Pressable>
+            </Pressable> */}
           </View>
 
           <ScrollView
@@ -540,7 +626,7 @@ export default function Home() {
             ))}
           </ScrollView>
 
-          <View className="flex flex-row justify-between">
+          {/* <View className="flex flex-row justify-between">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
               Promotions
             </Text>
@@ -552,11 +638,56 @@ export default function Home() {
             {promotionsData.map((item) => (
               <PromotionCard key={item.id} item={item} />
             ))}
+          </View> */}
+
+          <View className="flex flex-row justify-between">
+            <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
+              Promotions
+            </Text>
+            <Pressable className="bg-cyan-600 w-8 h-8 rounded-full mx-5 items-center justify-center">
+              <ArrowRight size={20} color="white" />
+            </Pressable>
           </View>
 
-          <View className="flex flex-row justify-between mt-4">
+          <ScrollView
+            horizontal={true}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            className="overflow-hidden p-5"
+          >
+            {promotionsData.map((item) => (
+              <PromotionCard key={item.id} item={item} />
+            ))}
+          </ScrollView>
+
+
+
+
+          <View className="flex flex-row justify-between">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
-              Buy Packages
+              Special Classes
+            </Text>
+            {/* <Pressable className="bg-cyan-600 w-8 h-8 rounded-full mx-5 items-center justify-center">
+              <ArrowRight size={20} color="white" />
+            </Pressable> */}
+          </View>
+
+          <ScrollView
+            horizontal={true}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            className="overflow-hidden p-5"
+          >
+            {specialClassData.map((item) => (
+              <SpecialClassCard key={item.id} item={item} />
+            ))}
+          </ScrollView>
+
+
+
+          <View className="flex flex-row justify-between">
+            <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
+              Package List
             </Text>
             <Pressable
               onPress={() => {
@@ -570,11 +701,16 @@ export default function Home() {
             </Pressable>
           </View>
 
-          <View className="flex flex-row flex-wrap justify-between mx-5">
+          <ScrollView
+            horizontal={true}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            className="overflow-hidden p-5"
+          >
             {buyPackagesData.map((item) => (
               <PackageCard key={item.id} item={item} />
             ))}
-          </View>
+          </ScrollView>
         </View>
       </ScrollView>
     </View>

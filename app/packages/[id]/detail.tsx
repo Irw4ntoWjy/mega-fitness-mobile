@@ -1,7 +1,7 @@
 import { BackgroundGlow } from "@/components/Theme/background";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronLeft, Contact } from "lucide-react-native";
+import { ChevronLeft } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 
@@ -129,7 +129,7 @@ export default function ProductDetail() {
         >
           {packageData.package_description}
         </Text>
-        <View className="flex flex-col mt-4 bg-white  p-4 rounded-2xl gap-3 mb-28">
+        {/* <View className="flex flex-col mt-4 bg-white  p-4 rounded-2xl gap-3 mb-28">
           <View className="flex flex-row items-start gap-2">
             <Contact size={22} color="#000" />
             <Text className="text-xl text-black">Personal Trainer</Text>
@@ -144,12 +144,12 @@ export default function ProductDetail() {
               ))}
             </View>
           </ScrollView>
-        </View>
+        </View> */}
       </ScrollView>
 
-      <Pressable className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[80%] h-14 rounded-xl items-center justify-center bg-cyan-600 pb-2 pt-2">
+      {/* <Pressable className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[80%] h-14 rounded-xl items-center justify-center bg-cyan-600 pb-2 pt-2">
         <Text className="text-white text-xl font-semibold">Buy Package</Text>
-      </Pressable>
+      </Pressable> */}
     </View>
   );
 }
