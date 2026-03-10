@@ -49,15 +49,25 @@ export default function Transactions() {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const customerProfileId = "1";
+        const accountCode = "MFC-180126-MB-26004";
 
-        const res = await fetch(
-          `${process.env.EXPO_PUBLIC_BACKEND_URL}/purchase/list?customer_profile_id=${customerProfileId}`
+      
+        const accountRes = await fetch(
+          `${process.env.EXPO_PUBLIC_BACKEND_URL}/account/detail/code?account_code=${accountCode}`
         );
 
-        const data = await res.json();
+        const accountData = await accountRes.json();
 
-        setList(data.data ?? []);
+        const profileId = accountData.data.profile_id;
+
+      
+        const purchaseRes = await fetch(
+          `${process.env.EXPO_PUBLIC_BACKEND_URL}/purchase/list?customer_profile_id=${profileId}`
+        );
+
+        const purchaseData = await purchaseRes.json();
+
+        setList(purchaseData.data ?? []);
       } catch (error) {
         console.log("Fetch error:", error);
       }

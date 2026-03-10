@@ -120,6 +120,30 @@ const todaysActivityData = [
     label: "Thursday",
     image: require("../../assets/png/Campfire.png"),
   },
+  {
+    id: 5,
+    title: "Campfire",
+    time: "03.00PM - 04.00PM",
+    duration: "60 min",
+    label: "Friday",
+    image: require("../../assets/png/Campfire.png"),
+  },
+  {
+    id: 6,
+    title: "Campfire",
+    time: "03.00PM - 04.00PM",
+    duration: "60 min",
+    label: "Saturday",
+    image: require("../../assets/png/Campfire.png"),
+  },
+  {
+    id: 7,
+    title: "Campfire",
+    time: "03.00PM - 04.00PM",
+    duration: "60 min",
+    label: "Sunday",
+    image: require("../../assets/png/Campfire.png"),
+  },
 ];
 
 const promotionsData = [
@@ -194,7 +218,12 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [openNotification, setOpenNotification] = useState(false);
   const [buyPackagesData, setBuyPackagesData] = useState<any[]>([]);
-  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  const half = Math.ceil(todaysActivityData.length / 2);
+
+  const topRow = todaysActivityData.slice(0, half);
+  const bottomRow = todaysActivityData.slice(half);
 
   useEffect(() => {
     const guard = async () => {
@@ -206,7 +235,7 @@ export default function Home() {
       }
 
       setLoading(false);
-      setProfileLoading(false);
+      // setProfileLoading(false);
     };
 
     guard();
@@ -555,11 +584,11 @@ type SpecialClass = (typeof specialClassData)[number];
               </View>
             </View>
             <View className="-mx-4 px-4 pt-16 pb-6 bg-[#EEEEEE]">
-              {profileLoading ? (
+              {/* {profileLoading ? (
                 <View className="items-center justify-center py-10">
                   <Text className="text-gray-500 text-base">Loading profile...</Text>
                 </View>
-              ) : (
+              ) : ( */}
                 <>
                   <InnerShadowOverlay height={25} />
                   <View className="absolute right-4 top-4 z-40">
@@ -598,7 +627,7 @@ type SpecialClass = (typeof specialClassData)[number];
                     </View>
                   )}
                 </>
-                )}
+                {/* )} */}
             </View>
           </View>
         </View>
@@ -616,6 +645,45 @@ type SpecialClass = (typeof specialClassData)[number];
           </View>
 
           <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="p-5"
+          >
+            {topRow.map((item) => (
+              <TodayCard key={item.id} item={item} />
+            ))}
+          </ScrollView>
+
+          {/* Bottom row */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="p-5 mt-1"
+          >
+            {bottomRow.map((item) => (
+              <TodayCard key={item.id} item={item} />
+            ))}
+          </ScrollView>
+
+          {/* <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="px-5 py-5"
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                width: 600, // make wider than screen so it scrolls
+              }}
+            >
+              {todaysActivityData.map((item) => (
+                <TodayCard key={item.id} item={item} />
+              ))}
+            </View>
+          </ScrollView> */}
+
+          {/* <ScrollView
             horizontal={true}
             showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}
@@ -624,7 +692,7 @@ type SpecialClass = (typeof specialClassData)[number];
             {todaysActivityData.map((item) => (
               <TodayCard key={item.id} item={item} />
             ))}
-          </ScrollView>
+          </ScrollView> */}
 
           {/* <View className="flex flex-row justify-between">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
