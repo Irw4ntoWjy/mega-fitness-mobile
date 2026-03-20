@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import AddBookingModal from "../bookings/add-bookings";
 import { bookings } from "../bookings/dummy_data";
 
 type TabKey = "Upcoming" | "Completed" | "Cancelled";
@@ -221,6 +222,8 @@ export default function Bookings() {
   const [open, setOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
+  const [openAddBooking, setOpenAddBooking] = useState(false);
+
   const handleOpenCancel = (booking: Booking) => {
     setSelectedBooking(booking);
     setOpen(true);
@@ -245,9 +248,15 @@ export default function Bookings() {
         <BackgroundGlow showText={true} />
 
         <View className="mx-3 mt-20">
-          <Text className="mt-4 text-3xl font-extrabold tracking-wide text-slate-900">
-            BOOKINGS
-          </Text>
+          <View className="mt-4 flex-row items-center justify-between">
+            <Text className="text-3xl font-extrabold tracking-wide text-slate-900">
+              BOOKINGS
+            </Text>
+
+            <Pressable onPress={() => setOpenAddBooking(true)}>
+              <Text className="underline">ADD BOOKINGS</Text>
+            </Pressable>
+          </View>
 
           {/* Tabs */}
           <View className="mt-4 flex-row rounded-2xl bg-white px-1 py-1">
@@ -294,6 +303,11 @@ export default function Bookings() {
             setSelectedBooking(null);
           }}
           onConfirm={handleConfirmCancel}
+        />
+
+        <AddBookingModal
+          visible={openAddBooking}
+          onClose={() => setOpenAddBooking(false)}
         />
       </View>
     </GestureHandlerRootView>

@@ -25,7 +25,7 @@ import { getInitials } from "../profile/profile";
 const user = {
   account_id: "9ffd1d6f-e85c-433b-9d68-ddfc09d7a4af",
   account_code: "MFC-191125-PT-25004",
-  account_role: "Member",
+  account_role: "Trainer",
   profile_name: "Kilto Aznah",
   initials: "KA",
   total_activity: 1,
