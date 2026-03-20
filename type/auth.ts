@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AccountDetailResponse } from "./account";
 
 /**
  * Parsed JWT payload (access token)
@@ -64,6 +65,7 @@ export type StoredAuth = {
   refreshToken: string;
   accessPayload: AccessTokenPayload;
   refreshPayload: RefreshTokenPayload;
+  accountDetail?: AccountDetailResponse;
 };
 
 export type RefreshResponse = {

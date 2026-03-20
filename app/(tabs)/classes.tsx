@@ -1,4 +1,5 @@
 import { BackgroundGlow } from "@/components/Theme/background";
+import { useAuth } from "@/hooks/useAuth";
 import { router } from "expo-router";
 import { User } from "lucide-react-native";
 import React from "react";
@@ -135,38 +136,47 @@ function TodaysCard({ item }: { item: TodaysActivities }) {
 const Home = () => {
   const insets = useSafeAreaInsets();
   const userProfile = profile;
+  const { auth, loading: loadingAuth } = useAuth();
 
+  if (loadingAuth) return null;
   return (
     <View className="flex-1 mb-28">
       <ScrollView>
         {/* <View className="px-5 pt-4"> */}
         <BackgroundGlow showText={true} />
-        <View className="flex flex-row justify-between items-center mb-4 mt-20 mx-5">
-          <View>
-            <Text className="text-3xl font-semibold text-slate-900">
-              {profile.username}
+        <View className="flex flex-row justify-between gap-4 items-center mb-4 mt-20 mx-5">
+          <View className="flex-1">
+            <Text className="text-3xl font-semibold text-slate-900 flex-wrap">
+              {auth.accountDetail.profile_name}
             </Text>
-            <Text className="text-base text-slate-500">{profile.userId}</Text>
+
+            <Text className="text-base text-slate-500">
+              {auth.accessPayload.account_code}
+            </Text>
 
             <View
               className={`flex flex-row mt-3 self-start rounded-full items-center text-center border gap-2 px-4 py-1 ${
-                profile.role === "Trainer"
+                auth.accountDetail.account_role === "Trainer"
                   ? "border-purple-400 bg-purple-50"
                   : "border-amber-400 bg-amber-50"
               }`}
             >
               <User
                 size={14}
-                color={profile.role === "Trainer" ? "#7C3AED" : "#B45309"}
+                color={
+                  auth.accountDetail.account_role === "Trainer"
+                    ? "#7C3AED"
+                    : "#B45309"
+                }
               />
               <Text
                 className={`text-xs font-semibold ${
-                  profile.role === "Trainer"
+                  auth.accountDetail.account_role === "Trainer"
                     ? "text-purple-700"
                     : "text-amber-700"
                 }`}
               >
-                {profile.role}
+                {auth.accountDetail.account_role}
               </Text>
             </View>
           </View>

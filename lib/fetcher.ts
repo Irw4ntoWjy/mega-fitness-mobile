@@ -32,11 +32,14 @@ async function tryRefreshToken(): Promise<boolean> {
     const accessToken = res.data.access_token;
     const refreshToken = res.data.refresh_token;
 
+    const accessPayload = parseJwt(accessToken);
+
     await saveAuth({
       accessToken,
       refreshToken,
-      accessPayload: parseJwt(accessToken),
+      accessPayload,
       refreshPayload: parseJwt(refreshToken),
+      accountDetail: auth.accountDetail,
     });
 
     logger.authSaved();
@@ -121,9 +124,15 @@ export async function fetcher<T>(
       };
     }
 
-    if (payload?.data?.access_token && payload?.data?.refresh_token) {
-      const accessToken = payload.data.access_token;
-      const refreshToken = payload.data.refresh_token;
+    if (
+      (payload?.data?.access_token && payload?.data?.refresh_token) ||
+      (payload?.data?.account_id && payload?.data?.account_code)
+    ) {
+      const storedAuth = await getAuth();
+      console.log("test", storedAuth);
+      const accessToken = storedAuth?.accessToken ?? payload.data.access_token;
+      const refreshToken =
+        storedAuth?.refreshToken ?? payload.data.refresh_token;
 
       const accessPayload = parseJwt(accessToken);
 
@@ -132,6 +141,7 @@ export async function fetcher<T>(
         refreshToken,
         accessPayload,
         refreshPayload: parseJwt(refreshToken),
+        accountDetail: payload.data,
       });
 
       logger.authSaved();
