@@ -1,30 +1,33 @@
 // Bookings.tsx
 import { BackgroundGlow } from "@/components/Theme/background";
+import { useAuth } from "@/hooks/useAuth";
+import { PurchaseItemSchema } from "@/type/purchase";
 import { router } from "expo-router";
 import { CheckCircle, Clock, XCircle } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
-import { FlatList, Image, Pressable, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { FlatList, Pressable, Text, View } from "react-native";
+import { getPurchaseList } from "../api/purchase";
 import { transactions } from "../transactions/dummy_data";
 
 const statusConfig = {
-  Completed: {
+  "1": {
     icon: CheckCircle,
     color: "#0891B2",
     label: "Completed",
   },
-  Pending: {
+  "0": {
     icon: Clock,
     color: "#EAB308",
     label: "Pending",
   },
-  Rejected: {
+  "-1": {
     icon: XCircle,
     color: "#E11D48",
     label: "Rejected",
   },
 };
 
-type Status = "Completed" | "Pending" | "Rejected";
+type Status = "1" | "0" | "-1";
 type StatusBadgeProps = {
   status: Status;
 };
@@ -76,7 +79,7 @@ function TabPill({
   );
 }
 
-function TransactionCard({ item }: { item: Transaction }) {
+function TransactionCard({ item }: { item: PurchaseItemSchema }) {
   return (
     <Pressable
       onPress={() =>
@@ -89,26 +92,26 @@ function TransactionCard({ item }: { item: Transaction }) {
     >
       <View className="rounded-2xl bg-white p-3 shadow-sm">
         <View className="flex-row items-center justify-between">
-          <Text className="text-lg text-slate-500">{item.date}</Text>
-          <Text className="text-lg text-slate-400">{item.orderNo}</Text>
+          <Text className="text-lg text-slate-500">{item.requested_at}</Text>
+          {/* <Text className="text-lg text-slate-400">{item.orderNo}</Text> */}
         </View>
 
         <View className="mt-2 flex-row">
-          <Image
+          {/* <Image
             source={{ uri: item.image }}
             className="h-24 w-24 rounded-xl"
             resizeMode="cover"
-          />
+          /> */}
 
           <View className="ml-3 flex-1">
             <Text className="text-base font-bold tracking-wide text-slate-900">
-              {item.packageName}
+              {item.package_name}
             </Text>
             <Text className="text-base tracking-wide text-slate-900">
-              {item.price}
+              {item.product_name}
             </Text>
             <View className="mt-6 items-end justify-between flex-1">
-              <StatusBadge status={item.status as Status} />
+              <StatusBadge status={item.purchase_status_id as Status} />
             </View>
           </View>
         </View>
@@ -120,10 +123,35 @@ function TransactionCard({ item }: { item: Transaction }) {
 export default function Transactions() {
   const [tab, setTab] = useState<TabKey>("All");
   const [list, setList] = useState<Transaction[]>(transactions);
-  const data = useMemo(() => {
-    if (tab === "All") return list;
-    return list.filter((b) => b.status === tab);
-  }, [list, tab]);
+  const { auth, loading: loadingAuth } = useAuth();
+  const [data, setData] = useState<PurchaseItemSchema[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (loadingAuth) return;
+
+    const profileId = auth?.accountDetail?.profile_id;
+    if (!profileId) return;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await getPurchaseList({
+          customer_profile_id: profileId,
+        });
+        const data = res.data;
+        if (data) setData(data.data ?? []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [loadingAuth, auth]);
+  console.log(data);
+  if (loadingAuth) return;
 
   return (
     <View className="flex-1 mb-20">
