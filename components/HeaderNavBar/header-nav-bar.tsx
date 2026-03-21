@@ -42,7 +42,7 @@ export default function HeaderNavBar({
       }}
     >
       <Pressable
-        onPress={onBack ?? (() => router.back())}
+        onPress={onBack ?? (() => router.push("/(tabs)"))}
         className="w-10 h-10 items-center justify-center"
       >
         <ChevronLeft size={22} color="#000" />
