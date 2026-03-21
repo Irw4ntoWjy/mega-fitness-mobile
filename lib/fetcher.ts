@@ -129,7 +129,7 @@ export async function fetcher<T>(
       (payload?.data?.account_id && payload?.data?.account_code)
     ) {
       const storedAuth = await getAuth();
-      console.log("test", storedAuth);
+
       const accessToken = storedAuth?.accessToken ?? payload.data.access_token;
       const refreshToken =
         storedAuth?.refreshToken ?? payload.data.refresh_token;

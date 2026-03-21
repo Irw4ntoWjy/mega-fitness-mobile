@@ -6,21 +6,15 @@ import {
 } from "@/components/Profile/time-availability";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { useAuth } from "@/hooks/useAuth";
+import { AccountSchema } from "@/type/profile";
+import { formatDate } from "@/utils/datetimeFormat";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
 import { Pencil } from "lucide-react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const user = {
-  account_id: "9ffd1d6f-e85c-433b-9d68-ddfc09d7a4af",
-  account_code: "MFC-191125-PT-25004",
-  account_role: "Member",
-  profile_name: "Kilto Aznah",
-  initials: "KA",
-  completedPercent: 10,
-};
+import { profileDetail } from "../api/profile";
 
 const activePackagesData = {
   activePackagesSummary: {
@@ -98,7 +92,6 @@ const BODY_INFO_FIELDS: ProfileFieldConfig[] = [
 
 const ACCOUNT_INFO_FIELDS: ProfileFieldConfig[] = [
   { key: "email", label: "Email" },
-  { key: "password", label: "Password" },
 ];
 
 const TRAINER_EXTRA_FIELDS: ProfileFieldConfig[] = [
@@ -106,22 +99,6 @@ const TRAINER_EXTRA_FIELDS: ProfileFieldConfig[] = [
   { key: "experience", label: "Experience" },
   { key: "availability", label: "Availability" },
 ];
-
-const profileValues: Record<string, string> = {
-  name: user.profile_name,
-  phone: "(+62) 812-xxxx-xxxx",
-  address: "Jl. Cemara Asri",
-  birth: "11 / 11 / 2000",
-  gender: "Male",
-  weight: "72",
-  height: "175",
-  email: "jovan.torio@email.com",
-  password: "********",
-
-  certification: "NASM CPT",
-  experience: "5 Years",
-  availability: "Mon - Fri",
-};
 
 export function getInitials(name: string): string {
   if (!name) return "";
@@ -139,8 +116,59 @@ export default function Profile() {
   const insets = useSafeAreaInsets();
   const { auth, loading: loadingAuth } = useAuth();
 
-  if (loadingAuth) return null;
-  const isTrainer = auth.accountDetail.account_role === "Trainer";
+  const [profile, setProfile] = useState<AccountSchema | null>(null);
+
+  const isTrainer = auth?.accountDetail?.account_role === "Trainer";
+
+  const fetchProfile = async () => {
+    try {
+      const res = await profileDetail({
+        account_id: auth.accountDetail.account_id,
+      });
+
+      if (!res.success || !res.data) {
+        console.error(res.message);
+        return;
+      }
+
+      const data = res.data as AccountSchema;
+
+      console.log("DATA:", data);
+
+      setProfile(data);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (!auth?.accountDetail?.account_id) return;
+    fetchProfile();
+  }, [auth?.accountDetail?.account_id]);
+
+  const profileValues: Record<string, string> = {
+    name: profile?.profile_name ?? "-",
+    phone: profile?.contact_number ?? "-",
+    address: profile?.address ?? "-",
+    birth: formatDate(profile?.birth_date) ?? "-",
+    gender: profile?.gender ?? "-",
+    weight: "-",
+    height: "-",
+    email: profile?.account_email ?? "-",
+    certification: "-",
+    experience: "-",
+    availability: "-",
+  };
+
+  if (loadingAuth) return;
+
+  const user = {
+    account_id: auth.accountDetail.account_id,
+    account_code: auth.accountDetail.account_code,
+    account_role: auth.accountDetail.account_role,
+    profile_name: auth.accountDetail.profile_name,
+    completedPercent: 10,
+  };
 
   const profileFields = isTrainer
     ? [...BASE_PROFILE_FIELDS, ...TRAINER_EXTRA_FIELDS]
@@ -157,17 +185,15 @@ export default function Profile() {
 
           <View className="absolute right-0 bottom-4 items-end">
             <Text className="text-black text-xl font-extrabold">
-              {auth.accountDetail.profile_name}
+              {user.profile_name}
             </Text>
-            <Text className="text-black/60">
-              {auth.accessPayload.account_code}
-            </Text>
+            <Text className="text-black/60">{user.account_code}</Text>
           </View>
 
           <View className="absolute -bottom-15 z-50">
             <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
               <Text className="text-[#0F6B7E] text-2xl font-semibold">
-                {getInitials(auth.accountDetail.profile_name)}
+                {getInitials(user.profile_name)}
               </Text>
             </View>
           </View>
@@ -214,11 +240,13 @@ export default function Profile() {
             fields={profileFields}
             values={profileValues}
           />
-          <ProfileInfoSection
-            title="Body Info"
-            fields={BODY_INFO_FIELDS}
-            values={profileValues}
-          />
+          {isTrainer ? (
+            <ProfileInfoSection
+              title="Body Info"
+              fields={BODY_INFO_FIELDS}
+              values={profileValues}
+            />
+          ) : null}
           <ProfileInfoSection
             title="Account Info"
             fields={ACCOUNT_INFO_FIELDS}
@@ -242,15 +270,17 @@ export default function Profile() {
           bottom: insets.bottom + 20,
         }}
       >
-        <View
-          className={`
+        {!isTrainer && (
+          <View
+            className={`
         w-16 h-16 rounded-full
         items-center justify-center
         shadow-lg bg-[#0891B2]
       `}
-        >
-          <Pencil size={24} color="#FFFFFF" />
-        </View>
+          >
+            <Pencil size={24} color="#FFFFFF" />
+          </View>
+        )}
       </Pressable>
     </View>
   );

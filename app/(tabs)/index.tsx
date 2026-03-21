@@ -197,7 +197,15 @@ export default function Home() {
       navigating.current = false;
     }, []),
   );
-  if (loadingAuth) return null;
+
+  if (loadingAuth || !auth?.accountDetail) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
   const isTrainer = auth.accountDetail.account_role === "Trainer";
 
   if (loading) {
