@@ -5,7 +5,6 @@ import {
   ChevronLeft,
   FileQuestionMark,
   History,
-  Settings,
 } from "lucide-react-native";
 import { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -43,7 +42,7 @@ export default function HeaderNavBar({
       }}
     >
       <Pressable
-        onPress={onBack ?? (() => router.back())}
+        onPress={onBack ?? (() => router.push("/(tabs)"))}
         className="w-10 h-10 items-center justify-center"
       >
         <ChevronLeft size={22} color="#000" />
@@ -82,9 +81,9 @@ export default function HeaderNavBar({
           <HeaderIcon>
             <Bell size={18} color="black" />
           </HeaderIcon>
-          <HeaderIcon onPress={() => router.push("/profile/settings-list")}>
+          {/* <HeaderIcon onPress={() => router.push("/profile/settings-list")}>
             <Settings size={18} color="black" />
-          </HeaderIcon>
+          </HeaderIcon> */}
         </View>
       ) : null}
     </View>
