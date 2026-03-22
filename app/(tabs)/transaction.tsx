@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { PurchaseItemSchema } from "@/type/purchase";
 import { CheckCircle, Clock, XCircle } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Image, Pressable, Text, View } from "react-native";
 import { getPurchaseList } from "../api/purchase";
 import { transactions } from "../transactions/dummy_data";
 
@@ -101,11 +101,15 @@ function TransactionCard({ item }: { item: PurchaseItemSchema }) {
       </View>
 
       <View className="mt-2 flex-row">
-        {/* <Image
+        {item.image ? (
+          <Image
             source={{ uri: item.image }}
             className="h-24 w-24 rounded-xl"
             resizeMode="cover"
-          /> */}
+          />
+        ) : (
+          <View className="h-24 w-24 rounded-xl bg-black" />
+        )}
 
         <View className="ml-3 flex-1">
           <Text className="text-base font-bold tracking-wide text-slate-900">
