@@ -1,7 +1,9 @@
 import { BackgroundGlow } from "@/components/Theme/background";
+import { useAuth } from "@/hooks/useAuth";
+import { BookingSchema } from "@/type/bookings";
 import { router } from "expo-router";
 import { Clock, Contact, UserIcon, X } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Animated,
   FlatList,
@@ -14,11 +16,18 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import { getBookingList } from "../api/booking";
 import AddBookingModal from "../bookings/add-bookings";
 import { bookings } from "../bookings/dummy_data";
 
 type TabKey = "Upcoming" | "Completed" | "Cancelled";
 const TABS: TabKey[] = ["Upcoming", "Completed", "Cancelled"];
+
+const TAB_STATUS_MAP: Record<TabKey, string> = {
+  Upcoming: "1",
+  Completed: "0",
+  Cancelled: "-1",
+};
 
 type Booking = (typeof bookings)[number];
 
@@ -80,7 +89,9 @@ function BookingCard({ item, onCancel, showCancel }: any) {
         <Animated.View pointerEvents="box-none">
           <View className="mb-4 rounded-2xl bg-white p-3 shadow-md">
             <View className="flex-row justify-between px-2">
-              <Text className="text-slate-500 text-lg">{item.date}</Text>
+              <Text className="text-slate-500 text-lg">
+                {item.schedule_date}
+              </Text>
               <Text className="text-slate-400 text-lg">{item.location}</Text>
             </View>
 
@@ -99,14 +110,15 @@ function BookingCard({ item, onCancel, showCancel }: any) {
                   <View className="flex-row items-center">
                     <Clock size={12} color="#111827" />
                     <Text className="ml-1.5 font-semibold text-slate-900">
-                      {item.time}
+                      {item.time_start} - {item.time_end}
                     </Text>
                   </View>
 
                   <View className="flex-row items-center">
                     <UserIcon size={12} color="#111827" />
                     <Text className="ml-1.5 font-semibold text-slate-900">
-                      {item.instructor}
+                      {/* {item.package_trainer_name} */}
+                      Trainer
                     </Text>
                   </View>
                 </View>
@@ -126,7 +138,7 @@ function CancelModal({
   onConfirm,
 }: {
   visible: boolean;
-  booking: Booking | null;
+  booking: BookingSchema | null;
   onClose: () => void;
   onConfirm: () => void;
 }) {
@@ -169,18 +181,21 @@ function CancelModal({
                 </Text>
 
                 <Text className="font-bold text-xl text-gray-900">
-                  {booking.date}
+                  {booking.schedule_date}
                 </Text>
 
                 <View className="mt-2 flex-row items-center gap-3">
                   <Clock size={22} color="#111" />
-                  <Text className="text-xl text-gray-900">{booking.time}</Text>
+                  <Text className="text-xl text-gray-900">
+                    {booking.time_start} - {booking.time_end}
+                  </Text>
                 </View>
 
                 <View className="mt-1 flex-row items-center gap-3">
                   <Contact size={22} color="#111" />
                   <Text className="text-xl text-gray-900">
-                    {booking.instructor}
+                    {/* {booking.package_trainer_name} */}
+                    Trainer
                   </Text>
                 </View>
               </View>
@@ -216,27 +231,54 @@ function CancelModal({
 
 export default function Bookings() {
   const [tab, setTab] = useState<TabKey>("Upcoming");
-  const [list, setList] = useState<Booking[]>(bookings);
-  const data = useMemo(() => list.filter((b) => b.status === tab), [list, tab]);
+  const { auth, loading: loadingAuth } = useAuth();
+  const [data, setData] = useState<BookingSchema[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (loadingAuth) return;
+
+    const profileId = auth?.accountDetail?.profile_id;
+    if (!profileId) return;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await getBookingList({
+          member_profile_id: profileId,
+        });
+        const data = res.data;
+        if (data) setData(data.data ?? []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [loadingAuth, auth]);
+
+  const filteredData = useMemo(() => {
+    return data.filter(
+      (item) => item.booking_status_id === TAB_STATUS_MAP[tab],
+    );
+  }, [data, tab]);
 
   const [open, setOpen] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<BookingSchema | null>(
+    null,
+  );
 
   const [openAddBooking, setOpenAddBooking] = useState(false);
 
-  const handleOpenCancel = (booking: Booking) => {
+  const handleOpenCancel = (booking: BookingSchema) => {
     setSelectedBooking(booking);
     setOpen(true);
   };
 
   const handleConfirmCancel = () => {
     if (!selectedBooking) return;
-
-    setList((prev) =>
-      prev.map((b) =>
-        b.id === selectedBooking.id ? { ...b, status: "Cancelled" } : b,
-      ),
-    );
 
     setOpen(false);
     setSelectedBooking(null);
@@ -274,8 +316,8 @@ export default function Bookings() {
         <View className="flex-1 px-4 pt-3">
           <FlatList
             key={tab}
-            data={data}
-            keyExtractor={(i) => String(i.id)}
+            data={filteredData}
+            keyExtractor={(i) => String(i.booking_id)}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 24 }}
             renderItem={({ item }) => (
