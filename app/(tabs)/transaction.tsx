@@ -2,7 +2,6 @@
 import { BackgroundGlow } from "@/components/Theme/background";
 import { useAuth } from "@/hooks/useAuth";
 import { PurchaseItemSchema } from "@/type/purchase";
-import { router } from "expo-router";
 import { CheckCircle, Clock, XCircle } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
@@ -48,6 +47,12 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
 type TabKey = "All" | "Completed" | "Pending" | "Rejected";
 const TABS: TabKey[] = ["All", "Completed", "Pending", "Rejected"];
 
+const tabToStatus: Record<Exclude<TabKey, "All">, Status> = {
+  Completed: "1",
+  Pending: "0",
+  Rejected: "-1",
+};
+
 type Transaction = (typeof transactions)[number];
 
 function TabPill({
@@ -81,42 +86,41 @@ function TabPill({
 
 function TransactionCard({ item }: { item: PurchaseItemSchema }) {
   return (
-    <Pressable
-      onPress={() =>
-        router.push({
-          pathname: "/transactions/[id]/detail",
-          params: { id: item.id },
-        })
-      }
-      className="mb-4"
-    >
-      <View className="rounded-2xl bg-white p-3 shadow-sm">
-        <View className="flex-row items-center justify-between">
-          <Text className="text-lg text-slate-500">{item.requested_at}</Text>
-          {/* <Text className="text-lg text-slate-400">{item.orderNo}</Text> */}
-        </View>
+    // <Pressable
+    //   onPress={() =>
+    //     router.push({
+    //       pathname: "/transactions/[id]/detail",
+    //       params: { id: item.id },
+    //     })
+    //   }
+    // >
+    <View className="rounded-2xl bg-white p-3 shadow-sm mb-4">
+      <View className="flex-row items-center justify-between">
+        <Text className="text-lg text-slate-500">{item.requested_at}</Text>
+        {/* <Text className="text-lg text-slate-400">{item.orderNo}</Text> */}
+      </View>
 
-        <View className="mt-2 flex-row">
-          {/* <Image
+      <View className="mt-2 flex-row">
+        {/* <Image
             source={{ uri: item.image }}
             className="h-24 w-24 rounded-xl"
             resizeMode="cover"
           /> */}
 
-          <View className="ml-3 flex-1">
-            <Text className="text-base font-bold tracking-wide text-slate-900">
-              {item.package_name}
-            </Text>
-            <Text className="text-base tracking-wide text-slate-900">
-              {item.product_name}
-            </Text>
-            <View className="mt-6 items-end justify-between flex-1">
-              <StatusBadge status={item.purchase_status_id as Status} />
-            </View>
+        <View className="ml-3 flex-1">
+          <Text className="text-base font-bold tracking-wide text-slate-900">
+            {item.package_name}
+          </Text>
+          <Text className="text-base tracking-wide text-slate-900">
+            {item.product_name}
+          </Text>
+          <View className="mt-6 items-end justify-between flex-1">
+            <StatusBadge status={item.purchase_status_id as Status} />
           </View>
         </View>
       </View>
-    </Pressable>
+    </View>
+    // </Pressable>
   );
 }
 
@@ -150,7 +154,12 @@ export default function Transactions() {
 
     fetchData();
   }, [loadingAuth, auth]);
-  console.log(data);
+
+  const filteredData =
+    tab === "All"
+      ? data
+      : data.filter((item) => item.purchase_status_id === tabToStatus[tab]);
+
   if (loadingAuth) return;
 
   return (
@@ -177,7 +186,7 @@ export default function Transactions() {
       <View className="flex-1 px-4 pt-3">
         <FlatList
           key={tab}
-          data={data}
+          data={filteredData}
           keyExtractor={(i) => String(i.id)}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 24 }}
