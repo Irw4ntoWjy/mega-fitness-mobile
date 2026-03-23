@@ -63,7 +63,7 @@ export function ActivePackagesSessionsCard({
         </View>
         <Pressable onPress={() => console.log("clicked")}>
           <View
-            style={{ flex: 1.6 }}
+            // style={{ flex: 1.6 }}
             className="bg-white rounded-3xl border border-[#F1E6F4] p-4 overflow-hidden shadow-sm"
           >
             <View className="flex-row items-center justify-between">
