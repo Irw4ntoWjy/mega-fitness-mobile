@@ -13,3 +13,11 @@ export function getBookingList(payload?: {
     auth: true,
   });
 }
+
+export function cancelBooking(payload: { booking_id: string }) {
+  return fetcher("/booking/cancel", {
+    method: "POST",
+    body: payload,
+    auth: true,
+  });
+}

@@ -22,8 +22,10 @@ export const bookingSchema = z.object({
   created_at: z.string(),
   created_by: z.string(),
 
-  //   package_trainer_id: z.string(),
-  //   package_trainer_name: z.string(),
+  trainer_id: z.string(),
+  trainer_name: z.string(),
+
+  product_name: z.string(),
 
   updated_at: z.string().optional(),
   updated_by: z.string().optional(),

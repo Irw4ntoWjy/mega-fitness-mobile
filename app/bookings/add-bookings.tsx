@@ -1,6 +1,7 @@
 import Combobox from "@/components/Combobox/combobox";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { getPurchaseCombobox } from "../api/combobox/purchase";
 
 type AddBookingModalProps = {
   visible: boolean;
@@ -15,6 +16,26 @@ export default function AddBookingModal({
   visible,
   onClose,
 }: AddBookingModalProps) {
+  const [packages, setPackages] = useState<string[]>([]);
+  const [packageMap, setPackageMap] = useState<Record<string, string>>({});
+  const [loadingPackages, setLoadingPackages] = useState(false);
+
+  const fetchPackages = async (search?: string) => {
+    const res = await getPurchaseCombobox({
+      page: 1,
+      limit: 10,
+    });
+
+    const map: Record<string, string> = {};
+
+    res.data.forEach((item) => {
+      map[item.label] = item.value;
+    });
+
+    setPackageMap(map);
+    setPackages(res.data.map((item) => item.label));
+  };
+
   const [selectedPackage, setSelectedPackage] = useState("");
   const [selectedTrainer, setSelectedTrainer] = useState("");
   const [selectedSchedule, setSelectedSchedule] = useState<string | null>(null);
@@ -31,6 +52,12 @@ export default function AddBookingModal({
     console.log("Booking:", booking);
     onClose();
   };
+
+  useEffect(() => {
+    if (visible) {
+      fetchPackages();
+    }
+  }, [visible]);
 
   return (
     <Modal visible={visible} transparent animationType="fade">
@@ -59,9 +86,12 @@ export default function AddBookingModal({
                   placeholder="Select package"
                   options={packages}
                   open={openPicker === "package"}
-                  onOpenChange={(nextOpen) =>
-                    setOpenPicker(nextOpen ? "package" : null)
-                  }
+                  onOpenChange={(nextOpen) => {
+                    setOpenPicker(nextOpen ? "package" : null);
+
+                    // optional: fetch when opened
+                    if (nextOpen) fetchPackages();
+                  }}
                   onSelect={(value) => {
                     setSelectedPackage(value);
                     setOpenPicker(null);

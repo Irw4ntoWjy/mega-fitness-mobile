@@ -1,4 +1,5 @@
 import { BackgroundGlow } from "@/components/Theme/background";
+import { useToast } from "@/components/Toast/toast-provider";
 import { useAuth } from "@/hooks/useAuth";
 import { BookingSchema } from "@/type/bookings";
 import { router } from "expo-router";
@@ -11,12 +12,13 @@ import {
   Modal,
   Pressable,
   Text,
+  TextInput,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
-import { getBookingList } from "../api/booking";
+import { cancelBooking, getBookingList } from "../api/booking";
 import AddBookingModal from "../bookings/add-bookings";
 import { bookings } from "../bookings/dummy_data";
 
@@ -96,14 +98,21 @@ function BookingCard({ item, onCancel, showCancel }: any) {
             </View>
 
             <View className="mt-2 flex-row">
-              <Image
-                source={{ uri: item.image }}
-                className="w-24 h-24 rounded-lg"
-              />
+              {item.package_cover_image ? (
+                <Image
+                  source={{
+                    uri: `${process.env.EXPO_PUBLIC_URL}${item.package_cover_image}`,
+                  }}
+                  className="h-24 w-24 rounded-xl"
+                  resizeMode="cover"
+                />
+              ) : (
+                <View className="h-24 w-24 rounded-xl bg-black" />
+              )}
 
               <View className="ml-3 flex-1">
                 <Text className="text-lg font-bold text-slate-900">
-                  {item.title}
+                  {item.product_name}
                 </Text>
 
                 <View className="mt-7 space-y-1">
@@ -117,8 +126,7 @@ function BookingCard({ item, onCancel, showCancel }: any) {
                   <View className="flex-row items-center">
                     <UserIcon size={12} color="#111827" />
                     <Text className="ml-1.5 font-semibold text-slate-900">
-                      {/* {item.package_trainer_name} */}
-                      Trainer
+                      {item.trainer_name ?? "-"}
                     </Text>
                   </View>
                 </View>
@@ -175,9 +183,9 @@ function CancelModal({
                 </Pressable>
               </View>
 
-              <View className="mt-8">
+              <View className="mt-4">
                 <Text className="font-bold text-xl text-gray-900">
-                  {booking.title}
+                  {booking.product_name}
                 </Text>
 
                 <Text className="font-bold text-xl text-gray-900">
@@ -194,10 +202,16 @@ function CancelModal({
                 <View className="mt-1 flex-row items-center gap-3">
                   <Contact size={22} color="#111" />
                   <Text className="text-xl text-gray-900">
-                    {/* {booking.package_trainer_name} */}
-                    Trainer
+                    {booking.trainer_name ?? "-"}
                   </Text>
                 </View>
+
+                <TextInput
+                  placeholder="Masukkan Alasan Batal"
+                  placeholderTextColor="#6b7280"
+                  className="mt-4 border border-gray-300 rounded-xl p-3 text-gray-900"
+                  textAlignVertical="top"
+                />
               </View>
 
               <Text className="mt-8 text-md font-bold text-red-600 text-center">
@@ -235,28 +249,27 @@ export default function Bookings() {
   const [data, setData] = useState<BookingSchema[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (loadingAuth) return;
-
+  const fetchBookings = async () => {
     const profileId = auth?.accountDetail?.profile_id;
     if (!profileId) return;
 
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const res = await getBookingList({
-          member_profile_id: profileId,
-        });
-        const data = res.data;
-        if (data) setData(data.data ?? []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      setLoading(true);
+      const res = await getBookingList({
+        member_profile_id: profileId,
+      });
+      const data = res.data;
+      if (data) setData(data.data ?? []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchData();
+  useEffect(() => {
+    if (loadingAuth) return;
+    fetchBookings();
   }, [loadingAuth, auth]);
 
   const filteredData = useMemo(() => {
@@ -277,11 +290,33 @@ export default function Bookings() {
     setOpen(true);
   };
 
-  const handleConfirmCancel = () => {
+  const [loadingCancel, setLoadingCancel] = useState(false);
+  const { showToast } = useToast();
+  const handleConfirmCancel = async () => {
     if (!selectedBooking) return;
 
-    setOpen(false);
-    setSelectedBooking(null);
+    try {
+      setLoadingCancel(true);
+
+      const res = await cancelBooking({
+        booking_id: selectedBooking.booking_id,
+      });
+      if (res.error) {
+        showToast({
+          message: res.error,
+          variant: "warning",
+          duration: 2500,
+        });
+      }
+      await fetchBookings();
+
+      setOpen(false);
+      setSelectedBooking(null);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingCancel(false);
+    }
   };
 
   return (
