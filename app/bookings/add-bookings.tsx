@@ -1,4 +1,5 @@
 import Combobox from "@/components/Combobox/combobox";
+import { ComboboxItem } from "@/type/combobox";
 import { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { getPurchaseCombobox } from "../api/combobox/purchase";
@@ -17,26 +18,32 @@ export default function AddBookingModal({
   onClose,
 }: AddBookingModalProps) {
   const [packages, setPackages] = useState<string[]>([]);
-  const [packageMap, setPackageMap] = useState<Record<string, string>>({});
+  const [packageMap, setPackageMap] = useState<Record<string, ComboboxItem>>(
+    {},
+  );
   const [loadingPackages, setLoadingPackages] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState("");
 
-  const fetchPackages = async (search?: string) => {
+  const fetchPackages = async () => {
     const res = await getPurchaseCombobox({
       page: 1,
       limit: 10,
     });
 
-    const map: Record<string, string> = {};
+    const map: Record<string, ComboboxItem> = {};
 
     res.data.forEach((item) => {
-      map[item.label] = item.value;
+      map[item.label] = {
+        label: item.label,
+        value: item.value,
+        data: item.data,
+      };
     });
 
     setPackageMap(map);
     setPackages(res.data.map((item) => item.label));
   };
 
-  const [selectedPackage, setSelectedPackage] = useState("");
   const [selectedTrainer, setSelectedTrainer] = useState("");
   const [selectedSchedule, setSelectedSchedule] = useState<string | null>(null);
 
@@ -48,8 +55,6 @@ export default function AddBookingModal({
       trainer: selectedTrainer,
       schedule: selectedSchedule,
     };
-
-    console.log("Booking:", booking);
     onClose();
   };
 
@@ -70,9 +75,9 @@ export default function AddBookingModal({
           backgroundColor: "rgba(0,0,0,0.5)",
         }}
       >
-        <View className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">
+        <View className="w-full max-w-md rounded-2xl bg-white p-6 min-h-80 shadow-lg">
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Text className="mb-6 text-xl font-bold text-slate-900">
+            <Text className="mb-6 text-xl font-bold text-slate-900 ">
               Add Booking
             </Text>
 
@@ -89,60 +94,66 @@ export default function AddBookingModal({
                   onOpenChange={(nextOpen) => {
                     setOpenPicker(nextOpen ? "package" : null);
 
-                    // optional: fetch when opened
                     if (nextOpen) fetchPackages();
                   }}
-                  onSelect={(value) => {
-                    setSelectedPackage(value);
+                  onSelect={(label) => {
+                    setSelectedPackage(label);
+                    console.log(packageMap[selectedPackage].data);
                     setOpenPicker(null);
                   }}
                 />
               </View>
             </View>
 
-            {/* TRAINER */}
-            <View className="mb-5">
-              <Text className="mb-2 font-semibold text-slate-700">Trainer</Text>
+            {selectedPackage && (
+              <>
+                {/* TRAINER */}
+                <View className="mb-5">
+                  <Text className="mb-2 font-semibold text-slate-700">
+                    Trainer
+                  </Text>
 
-              <View className="rounded-lg border border-slate-300">
-                <Combobox
-                  value={selectedTrainer}
-                  placeholder="Select trainer"
-                  options={trainers}
-                  open={openPicker === "trainer"}
-                  onOpenChange={(nextOpen) =>
-                    setOpenPicker(nextOpen ? "trainer" : null)
-                  }
-                  onSelect={(value) => {
-                    setSelectedTrainer(value);
-                    setOpenPicker(null);
-                  }}
-                />
-              </View>
-            </View>
+                  <View className="rounded-lg border border-slate-300">
+                    <Combobox
+                      value={selectedTrainer}
+                      placeholder="Select trainer"
+                      options={trainers}
+                      open={openPicker === "trainer"}
+                      onOpenChange={(nextOpen) =>
+                        setOpenPicker(nextOpen ? "trainer" : null)
+                      }
+                      onSelect={(value) => {
+                        setSelectedTrainer(value);
+                        setOpenPicker(null);
+                      }}
+                    />
+                  </View>
+                </View>
 
-            {/* SCHEDULE */}
-            <View className="mb-6">
-              <Text className="mb-3 font-semibold text-slate-700">
-                Schedule
-              </Text>
+                {/* SCHEDULE */}
+                <View className="mb-6">
+                  <Text className="mb-3 font-semibold text-slate-700">
+                    Schedule
+                  </Text>
 
-              <View className="flex-row flex-wrap gap-2">
-                {schedules.map((schedule) => (
-                  <Pressable
-                    key={schedule}
-                    onPress={() => setSelectedSchedule(schedule)}
-                    className={`rounded-full border px-4 py-2 ${
-                      selectedSchedule === schedule
-                        ? "border-[#0891B2] bg-[#0891B2]/10"
-                        : "border-slate-300"
-                    }`}
-                  >
-                    <Text className="text-slate-800">{schedule}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
+                  <View className="flex-row flex-wrap gap-2">
+                    {schedules.map((schedule) => (
+                      <Pressable
+                        key={schedule}
+                        onPress={() => setSelectedSchedule(schedule)}
+                        className={`rounded-full border px-4 py-2 ${
+                          selectedSchedule === schedule
+                            ? "border-[#0891B2] bg-[#0891B2]/10"
+                            : "border-slate-300"
+                        }`}
+                      >
+                        <Text className="text-slate-800">{schedule}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              </>
+            )}
 
             {/* BUTTONS */}
             <View className="flex-row justify-end gap-3">

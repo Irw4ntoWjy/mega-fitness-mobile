@@ -1,11 +1,11 @@
 import { ComboboxItem } from "@/type/combobox";
 import { getPurchaseList } from "../purchase";
 
-export async function getPurchaseCombobox(payload?: {
+export async function getTrainerCombobox(payload?: {
   q?: string | null;
   page?: number;
   limit?: number;
-  customer_profile_id?: string;
+  role: "trainer";
 }): Promise<{ data: ComboboxItem[] }> {
   const res = await getPurchaseList(payload);
   const data = res.data;
