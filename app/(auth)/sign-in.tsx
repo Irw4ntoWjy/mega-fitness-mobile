@@ -27,8 +27,8 @@ function InputBox({ children }: { children: React.ReactNode }) {
 export default function SignIn() {
   const router = useRouter();
 
-  const [email, setEmail] = useState("seraganteng@gmail.com");
-  const [password, setPassword] = useState("Strong123!");
+  const [email, setEmail] = useState("alexjs@gmail.com");
+  const [password, setPassword] = useState("Aa123456");
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);

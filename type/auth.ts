@@ -5,6 +5,7 @@ import { z } from "zod";
  * Tambahin field kalau backend nambah claim
  */
 export type AccessTokenPayload = {
+  account_id?: string;
   account_code: string;
   account_role: string;
   iss: string;
@@ -37,6 +38,7 @@ export type LoginResponse = {
 export type StoredAuth = {
   accessToken: string;
   refreshToken: string;
+  accountId?: string;
   accessPayload: AccessTokenPayload;
   refreshPayload: RefreshTokenPayload;
 };

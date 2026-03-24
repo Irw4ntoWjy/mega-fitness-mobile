@@ -5,6 +5,8 @@ import { BackgroundGlow } from "@/components/Theme/background";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { CommisionProgressBar } from "@/components/Trainer/commision-progress-bar";
 import { checkSession } from "@/lib/auth-session";
+import { getAuth } from "@/lib/auth-storage";
+import { fetcher } from "@/lib/fetcher";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ArrowRight, Bell } from "lucide-react-native";
@@ -19,16 +21,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const user = {
-  account_id: "9ffd1d6f-e85c-433b-9d68-ddfc09d7a4af",
-  account_code: "MFC-191125-PT-25004",
-  account_role: "Member",
-  profile_name: "Kilto Aznah",
-  initials: "KA",
-  total_activity: 1,
-  completedPercent: 30,
-};
 
 const activePackagesData = {
   activePackagesSummary: {
@@ -84,7 +76,6 @@ const timeAvailabilityData: TimeAvailabilityData = {
   },
 };
 
-const isTrainer = user.account_role === "Trainer";
 const HERO_H = 76;
 
 const todaysActivityData = [
@@ -212,6 +203,81 @@ const specialClassData = [
 // ];
 
 const { width } = Dimensions.get("window");
+
+function getInitials(value: string) {
+  const parts = value
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (parts.length === 0) return "";
+
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+
+  return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
+}
+
+function normalizeRole(role: string) {
+  return role.trim().toLowerCase();
+}
+
+function getRoleTheme(role: string) {
+  const r = normalizeRole(role);
+
+  if (r.includes("trainer")) {
+    return {
+      container: "bg-[#F8E6FF] border-[#B44DFF]",
+      text: "text-[#7A20C9]",
+    };
+  }
+
+  if (r.includes("member")) {
+    return {
+      container: "bg-[#FFF7E6] border-[#D48B28]",
+      text: "text-[#B45C17]",
+    };
+  }
+
+  if (r.includes("admin")) {
+    return {
+      container: "bg-[#E6F0FF] border-[#3B82F6]",
+      text: "text-[#1D4ED8]",
+    };
+  }
+
+  if (r.includes("staff") || r.includes("employee")) {
+    return {
+      container: "bg-[#E6FFFA] border-[#14B8A6]",
+      text: "text-[#0F766E]",
+    };
+  }
+
+  return {
+    container: "bg-[#F1F5F9] border-[#94A3B8]",
+    text: "text-[#334155]",
+  };
+}
+
+async function fetchAccountDetailByCode(accountCode: string) {
+  const endpoint = "/account/detail/code";
+  const body = { account_code: accountCode };
+
+  const postRes = await fetcher<any>(endpoint, {
+    method: "POST",
+    auth: true,
+    body,
+  });
+
+  if (postRes.success && postRes.data) return postRes;
+
+  return fetcher<any>(
+    `${endpoint}?account_code=${encodeURIComponent(accountCode)}`,
+    { method: "GET", auth: true },
+  );
+}
+
 export default function Home() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -219,15 +285,61 @@ export default function Home() {
   const [openNotification, setOpenNotification] = useState(false);
   const [buyPackagesData, setBuyPackagesData] = useState<any[]>([]);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [profileName, setProfileName] = useState("");
+  const [profileInitials, setProfileInitials] = useState("");
+  const [accountRole, setAccountRole] = useState("Member");
   const [bottomSectionLayout, setBottomSectionLayout] = useState<{
     width: number;
     height: number;
   } | null>(null);
 
+  const isTrainer = normalizeRole(accountRole).includes("trainer");
+  const roleTheme = getRoleTheme(accountRole);
+
   const half = Math.ceil(todaysActivityData.length / 2);
 
   const topRow = todaysActivityData.slice(0, half);
   const bottomRow = todaysActivityData.slice(half);
+
+  const loadAccountDetail = useCallback(async () => {
+    setProfileLoading(true);
+
+    const auth = await getAuth();
+    const accountCode =
+      auth?.accessPayload?.account_code ?? (auth?.accessPayload as any)?.accountCode;
+
+    if (auth?.accessPayload?.account_role) {
+      setAccountRole(auth.accessPayload.account_role);
+    }
+
+    let detail: any = null;
+    if (accountCode) {
+      const res = await fetchAccountDetailByCode(accountCode);
+      if (res.success && res.data) detail = res.data;
+    }
+
+    const resolvedName =
+      detail?.profile_name ??
+      detail?.profile?.profile_name ??
+      detail?.profile?.name ??
+      detail?.name ??
+      "";
+
+    if (resolvedName) {
+      setProfileName(resolvedName);
+      setProfileInitials(getInitials(resolvedName));
+    } else {
+      setProfileName("");
+      setProfileInitials("");
+    }
+
+    const resolvedRole = detail?.account_role ?? detail?.role;
+    if (typeof resolvedRole === "string" && resolvedRole.trim()) {
+      setAccountRole(resolvedRole);
+    }
+
+    setProfileLoading(false);
+  }, []);
 
   useEffect(() => {
     const guard = async () => {
@@ -239,11 +351,11 @@ export default function Home() {
       }
 
       setLoading(false);
-      // setProfileLoading(false);
+      await loadAccountDetail();
     };
 
     guard();
-  }, []);
+  }, [loadAccountDetail, router]);
   
   // useEffect(() => {
   //   const loadProfile = async () => {
@@ -549,7 +661,9 @@ type SpecialClass = (typeof specialClassData)[number];
         <View className="flex-row items-center justify-between w-full">
           <View className="flex flex-col">
             <Text className="mt-3 mx-4 font-bold text-2xl">Welcome Back,</Text>
-            <Text className="mt-1 mx-4 font-medium">{user.profile_name}</Text>
+            <Text className="mt-1 mx-4 font-medium">
+              {profileLoading ? "..." : profileName}
+            </Text>
           </View>
 
           <HeaderIcon onPress={() => router.push("/notification/notification")}>
@@ -580,9 +694,13 @@ type SpecialClass = (typeof specialClassData)[number];
               <View className="absolute -bottom-15 z-50">
                 <Pressable onPress={() => router.push("/profile/profile")}>
                   <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
-                    <Text className="text-[#0F6B7E] text-2xl font-semibold">
-                      {user.initials}
-                    </Text>
+                    {profileLoading ? (
+                      <ActivityIndicator size="small" />
+                    ) : (
+                      <Text className="text-[#0F6B7E] text-2xl font-semibold">
+                        {profileInitials || getInitials(profileName) || "?"}
+                      </Text>
+                    )}
                   </View>
                 </Pressable>
               </View>
@@ -598,17 +716,15 @@ type SpecialClass = (typeof specialClassData)[number];
                   <View className="absolute right-4 top-4 z-40">
                     <View
                       className={`px-5 py-2 rounded-xl border shadow-sm ${
-                        isTrainer
-                          ? "bg-[#F8E6FF] border-[#B44DFF]"
-                          : "bg-[#FFF7E6] border-[#D48B28]"
+                        roleTheme.container
                       }`}
                     >
                       <Text
                         className={`text-sm font-semibold ${
-                          isTrainer ? "text-[#7A20C9]" : "text-[#B45C17]"
+                          roleTheme.text
                         }`}
                       >
-                        {user.account_role}
+                        {accountRole}
                       </Text>
                     </View>
                   </View>

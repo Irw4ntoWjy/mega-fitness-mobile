@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
 
 
 type PersonalTrainer = {
@@ -39,6 +39,15 @@ export default function ProductDetail() {
   const [packageData, setPackageData] = useState<any>(null);
   const [personalTrainers, setPersonalTrainers] = useState<PersonalTrainer[]>([]);
   const { id } = useLocalSearchParams<{ id: string }>();
+
+  const openWhatsApp = async () => {
+    try {
+      const url = "https://wa.me/6282167661122";
+      await Linking.openURL(url);
+    } catch (err) {
+      console.log("WhatsApp open error:", err);
+    }
+  };
 
   useEffect(() => {
     fetchDetail();
@@ -150,6 +159,13 @@ export default function ProductDetail() {
       {/* <Pressable className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[80%] h-14 rounded-xl items-center justify-center bg-cyan-600 pb-2 pt-2">
         <Text className="text-white text-xl font-semibold">Buy Package</Text>
       </Pressable> */}
+
+      <Pressable
+        onPress={openWhatsApp}
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[80%] h-14 rounded-xl items-center justify-center bg-cyan-600 pb-2 pt-2"
+      >
+        <Text className="text-white text-xl font-semibold">Buy Package</Text>
+      </Pressable>
     </View>
   );
 }
