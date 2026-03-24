@@ -219,6 +219,10 @@ export default function Home() {
   const [openNotification, setOpenNotification] = useState(false);
   const [buyPackagesData, setBuyPackagesData] = useState<any[]>([]);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [bottomSectionLayout, setBottomSectionLayout] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
 
   const half = Math.ceil(todaysActivityData.length / 2);
 
@@ -632,8 +636,22 @@ type SpecialClass = (typeof specialClassData)[number];
           </View>
         </View>
 
-        <View className="pt-5 rounded-t-xl pb-30 overflow-hidden">
-          <BackgroundGlow showText={true} />
+        <View
+          className="pt-5 rounded-t-xl pb-30 overflow-hidden"
+          onLayout={(e) => {
+            const { width, height } = e.nativeEvent.layout;
+            setBottomSectionLayout((prev) =>
+              prev?.width === width && prev?.height === height
+                ? prev
+                : { width, height },
+            );
+          }}
+        >
+          <BackgroundGlow
+            showText={true}
+            width={bottomSectionLayout?.width}
+            height={bottomSectionLayout?.height}
+          />
 
           <View className="flex flex-row justify-between">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
