@@ -50,10 +50,6 @@ export default function RootLayout() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="history/history"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
             name="journal/journal"
             options={{ headerShown: false }}
           />

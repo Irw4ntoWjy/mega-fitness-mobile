@@ -1,7 +1,7 @@
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import {
   BookText,
-  Dumbbell,
+  Clock3,
   House,
   ScanQrCode,
   Wallet,
@@ -24,8 +24,8 @@ const BottomTabBar = ({
     switch (routeName) {
       case "classes":
         return <ScanQrCode color="#ffff" size={40} />;
-      case "workout":
-        return <Dumbbell color={color} size={size} />;
+      case "history":
+        return <Clock3 color={color} size={size} />;
       case "transaction":
         return <Wallet color={color} size={size} />;
       case "bookings":

@@ -1,11 +1,6 @@
 import { AssessmentPages } from "@/app/assessment/dummy_question";
 import { router } from "expo-router";
-import {
-  Bell,
-  ChevronLeft,
-  FileQuestionMark,
-  History,
-} from "lucide-react-native";
+import { Bell, ChevronLeft, FileQuestionMark } from "lucide-react-native";
 import { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -61,9 +56,9 @@ export default function HeaderNavBar({
 
       {!backOnly && !showSave ? (
         <View className="flex-row items-center ml-auto gap-3 mr-2">
-          <HeaderIcon onPress={() => router.push("/history/history")}>
+          {/* <HeaderIcon onPress={() => router.push("/history/history")}>
             <History size={18} color="black" />
-          </HeaderIcon>
+          </HeaderIcon> */}
           <HeaderIcon
             onPress={() =>
               router.push({

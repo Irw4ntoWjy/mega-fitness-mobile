@@ -28,8 +28,8 @@ export default function SignIn() {
   const router = useRouter();
   const { showToast } = useToast();
 
-  const [email, setEmail] = useState("seraganteng@gmail.com");
-  const [password, setPassword] = useState("Strong123!");
+  const [email, setEmail] = useState("tes@gmail.com");
+  const [password, setPassword] = useState("testestes");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 

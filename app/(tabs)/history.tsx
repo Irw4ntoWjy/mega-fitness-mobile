@@ -1,4 +1,5 @@
 import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
+import { useAuth } from "@/hooks/useAuth";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
 import { ChevronLeft, ChevronRight, Timer } from "lucide-react-native";
@@ -49,6 +50,7 @@ function EventCard({
   status,
   durationMinutes,
   onFirstLayout,
+  onPress,
 }: {
   title: string;
   coach: string;
@@ -57,9 +59,10 @@ function EventCard({
   status?: "completed" | "upcoming";
   durationMinutes?: number;
   onFirstLayout?: (height: number) => void;
+  onPress?: () => void;
 }) {
   return (
-    <Pressable onPress={() => router.push("/journal/journal")}>
+    <Pressable onPress={onPress}>
       <View className="flex-col">
         <View style={{ backgroundColor: bgColor, borderRadius: 16 }}>
           <View
@@ -119,7 +122,7 @@ function DayRow({
   eventsHeight,
   onEventsColumnLayout,
   onFirstCardHeight,
-  rowGap = 0,
+  onEventPress,
 }: {
   dayNumber: number;
   monthLabel: string;
@@ -134,7 +137,7 @@ function DayRow({
   eventsHeight: number | null;
   onEventsColumnLayout: (height: number) => void;
   onFirstCardHeight: (height: number) => void;
-  rowGap?: number;
+  onEventPress: () => void;
 }) {
   return (
     <View className="flex-row justify-between gap-6">
@@ -184,8 +187,8 @@ function DayRow({
 
       <View
         style={{
-          paddingBottom: rowGap,
-          gap: rowGap,
+          gap: 16,
+          paddingBottom: 16,
           flexShrink: 1,
         }}
         onLayout={(e) => {
@@ -204,6 +207,7 @@ function DayRow({
               status="completed"
               durationMinutes={60}
               onFirstLayout={idx === 0 ? onFirstCardHeight : undefined}
+              onPress={onEventPress}
             />
           );
         })}
@@ -213,6 +217,7 @@ function DayRow({
 }
 
 export default function Profile() {
+  const { auth } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -246,7 +251,7 @@ export default function Profile() {
       "Nov",
       "Dec",
     ],
-    []
+    [],
   );
 
   const handleMonthSelect = (monthIndex: number) => {
@@ -262,7 +267,7 @@ export default function Profile() {
       newDate.setFullYear(selectedDate.getFullYear() + delta);
       setSelectedDate(newDate);
     },
-    [selectedDate]
+    [selectedDate],
   );
 
   const response: Response[] = useMemo(
@@ -302,8 +307,22 @@ export default function Profile() {
         title: "test eventttttttttttttttttttttttttttttttttttttt",
         coach: "Test Coach",
       },
+      {
+        id: "e6",
+        start_at: "2026-1-08T09:00:00.000Z",
+        end_at: "2026-1-08T10:00:00.000Z",
+        title: "test eventttttttttttttttttttttttttttttttttttttt",
+        coach: "Test Coach",
+      },
+      {
+        id: "e7",
+        start_at: "2026-1-08T09:00:00.000Z",
+        end_at: "2026-1-08T10:00:00.000Z",
+        title: "test eventttttttttttttttttttttttttttttttttttttt",
+        coach: "Test Coach",
+      },
     ],
-    []
+    [],
   );
 
   const eventsInSelectedMonth = useMemo(() => {
@@ -332,14 +351,20 @@ export default function Profile() {
     return Object.keys(eventsByDay).sort((a, b) => +new Date(a) - +new Date(b));
   }, [eventsByDay]);
 
+  const handleEventPress = useCallback(() => {
+    if (auth?.accountDetail?.account_role === "Member") {
+      router.push("/journal/journal");
+    }
+  }, [auth?.accountDetail?.account_role]);
+
   return (
     <View className="flex-1">
       <BackgroundGlow />
       <HeaderNavBar backOnly title="History" />
 
-      <View className="my-2 gap-4">
+      <View className="mx-6 mt-2 mb-4">
         <Pressable
-          className="mx-6 bg-white shadow-neutral-400/50 shadow-sm rounded-2xl p-4"
+          className="bg-white shadow-neutral-400/50 shadow-sm rounded-2xl p-4"
           onPress={() => setPickerOpen(true)}
         >
           <View className="flex-row items-center justify-between">
@@ -413,8 +438,10 @@ export default function Profile() {
             </Pressable>
           </Pressable>
         </Modal>
+      </View>
 
-        <ScrollView showsVerticalScrollIndicator={false}>
+      <View className="flex-1 background-white">
+        <ScrollView showsVerticalScrollIndicator={false} className="mb-36">
           <View className="bg-white rounded-2xl px-8 py-6">
             <View className="flex-col">
               {dayKeysSorted.length === 0 ? (
@@ -437,8 +464,6 @@ export default function Profile() {
                 const firstEventHeight = firstEventHeightByDay[dayKey] ?? null;
                 const eventsHeight = eventsHeightByDay[dayKey] ?? null;
 
-                const isLast = idx === dayKeysSorted.length - 1;
-
                 return (
                   <DayRow
                     key={dayKey}
@@ -456,7 +481,7 @@ export default function Profile() {
                         return { ...prev, [dayKey]: h };
                       })
                     }
-                    rowGap={isLast ? 0 : 16}
+                    onEventPress={handleEventPress}
                   />
                 );
               })}

@@ -1,5 +1,6 @@
 import { WarningCard } from "@/components/Member/warning-card";
 import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
+import { TimeAvailabilityData } from "@/components/Profile/time-availability";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { CommisionProgressBar } from "@/components/Trainer/commision-progress-bar";
@@ -11,6 +12,7 @@ import { ArrowRight, Bell, LogOut } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Dimensions,
   Image,
   Pressable,
   ScrollView,
@@ -86,15 +88,6 @@ const timeAvailabilityData: TimeAvailabilityData = {
 
 const HERO_H = 76;
 
-function getInitials(name: string) {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-}
-
 const todaysActivityData = [
   {
     id: 1,
@@ -167,16 +160,15 @@ const buyPackagesData = [
   { id: 3, title: "Campfire", image: require("../../assets/png/Campfire.png") },
   { id: 4, title: "Campfire", image: require("../../assets/png/Campfire.png") },
 ];
+
+const { width } = Dimensions.get("window");
 export default function Home() {
   const { auth, loading: loadingAuth } = useAuth();
 
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [profileName, setProfileName] = useState(user.profile_name);
-  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(
-    null,
-  );
+  const [openNotification, setOpenNotification] = useState(false);
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -192,13 +184,6 @@ export default function Home() {
         return;
       }
 
-      await syncAccountDetailFromAuth(true);
-      const detail = await getStoredAccountDetail();
-      if (detail?.profile_name) {
-        setProfileName(detail.profile_name);
-      }
-      setProfilePictureUrl(detail?.picture_url ?? null);
-
       setLoading(false);
     };
 
@@ -206,7 +191,6 @@ export default function Home() {
   }, []);
 
   const navigating = useRef(false);
-  const profileInitials = getInitials(profileName) || user.initials;
 
   useFocusEffect(
     useCallback(() => {
