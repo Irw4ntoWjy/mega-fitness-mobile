@@ -261,7 +261,7 @@ export default function ClassesDetailScreen() {
 
                       {activity.status === "Ongoing" && (
                         <Pressable
-                          onPress={() => console.log("Open journal for", m.id)}
+                          onPress={() => router.push("journal/journal")}
                           hitSlop={10}
                         >
                           <Text className="text-[14px] text-zinc-500 underline">

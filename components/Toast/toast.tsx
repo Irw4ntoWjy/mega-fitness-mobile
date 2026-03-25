@@ -50,7 +50,7 @@ export default function Toast({
     if (visible) {
       Animated.timing(progress, {
         toValue: 1,
-        duration: 220,
+        duration: 180,
         useNativeDriver: true,
       }).start();
 
@@ -114,7 +114,9 @@ export default function Toast({
         >
           <View className="flex-row items-start gap-2">
             <View>{icon ?? defaultIcon}</View>
-            <Text className={`text-lg font-semibold ${colors.textClass} flex-1`}>
+            <Text
+              className={`text-lg font-semibold ${colors.textClass} flex-1`}
+            >
               {message}
             </Text>
           </View>

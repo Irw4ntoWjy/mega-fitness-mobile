@@ -35,7 +35,9 @@ export function CommisionProgressBar({}: CommisionProgressBarProps) {
             <View className="flex-row items-center mb-2">
               <View className="rounded-full bg-[#0891B2] px-3 py-3 mr-2"></View>
 
-              <Text className="text-gray-700 text-sm">GTW INI APA</Text>
+              <Text className="text-gray-700 text-sm">
+                Commision Progress Description
+              </Text>
             </View>
           </View>
         </View>

@@ -1,11 +1,12 @@
 import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
+import { useAuth } from "@/hooks/useAuth";
 import { BackgroundGlow } from "@components/Theme/background";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronDown } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -16,20 +17,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const mockAccount = {
-  role: "Trainer",
-  profile_name: "Trainer",
-  contact_number: "",
-  address: "Jl. Lychee, Cemara Asri",
-  birth_date: "2000-11-11T00:00:00Z",
-  gender: "Male",
-  weight: "72",
-  height: "175",
-  certification: "NASM CPT",
-  experience: "5 Years",
-  availability: "Mon - Fri",
-};
+import { profileDetail, updateProfile } from "../api/profile";
 
 function formatDate(date: Date) {
   return date.toLocaleDateString("en-GB");
@@ -62,89 +50,120 @@ function InputBox({ children }: { children: React.ReactNode }) {
 
 export default function EditProfile() {
   const insets = useSafeAreaInsets();
-  const { role, accountId, account } = useLocalSearchParams<{
+
+  const { role, accountId } = useLocalSearchParams<{
     role?: string;
     accountId?: string;
-    account?: string;
   }>();
-  const parsedAccount = useMemo(() => {
-    if (typeof account !== "string") {
-      return null;
-    }
-    try {
-      return JSON.parse(account);
-    } catch {
-      try {
-        return JSON.parse(decodeURIComponent(account));
-      } catch {
-        return null;
-      }
-    }
-  }, [account]);
-  const baseAccount = useMemo(
-    () => ({ ...mockAccount, ...(parsedAccount ?? {}) }),
-    [parsedAccount]
-  );
-  const accountRole =
-    typeof role === "string"
-      ? role
-      : typeof baseAccount.role === "string"
-      ? baseAccount.role
-      : mockAccount.role;
-  const isTrainer = accountRole === "Trainer";
 
-  const initialBirthDate = useMemo(
-    () => resolveDate(baseAccount.birth_date, new Date(mockAccount.birth_date)),
-    [baseAccount.birth_date]
-  );
+  const [loading, setLoading] = useState(false);
   const [openGender, setOpenGender] = useState(false);
-
   const [openDate, setOpenDate] = useState(false);
 
   const [form, setForm] = useState({
-    fullName: baseAccount.profile_name,
-    contactNumber: baseAccount.contact_number,
-    address: baseAccount.address,
-    birthDate: initialBirthDate,
-    gender: baseAccount.gender,
-    weight: baseAccount.weight,
-    height: baseAccount.height,
-    certification: baseAccount.certification,
-    experience: baseAccount.experience,
-    availability: baseAccount.availability,
+    account_id: accountId,
+    member_name: "",
+    contact_number: "",
+    address: "",
+    birth_date: new Date(),
+    gender: "",
   });
+  const { auth, loading: loadingAuth } = useAuth();
+
+  const accountRole = typeof role === "string" ? role : "Member";
+  const isTrainer = accountRole === "Trainer";
 
   const resolvedAccountId =
-    typeof accountId === "string"
-      ? accountId
-      : typeof baseAccount.account_id === "string"
-      ? baseAccount.account_id
-      : undefined;
+    typeof accountId === "string" ? accountId : undefined;
 
-  const handleSave = () => {
-    console.log("SAVE:", { accountId: resolvedAccountId, form });
-    router.back();
+  useEffect(() => {
+    if (!resolvedAccountId) return;
+
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+
+        const res = await profileDetail({
+          account_id: resolvedAccountId,
+        });
+
+        if (!res.success || !res.data) {
+          console.error(res.message);
+          return;
+        }
+
+        const data = res.data;
+        if (!data) return;
+
+        setForm({
+          account_id: accountId,
+          member_name: data.profile_name ?? "",
+          contact_number: data.contact_number ?? "",
+          address: data.address ?? "",
+          birth_date: resolveDate(data.birth_date, new Date()),
+          gender: data.gender ?? "",
+        });
+      } catch (err) {
+        console.error("Failed to fetch profile:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [resolvedAccountId]);
+
+  const handleSave = async () => {
+    try {
+      if (!resolvedAccountId) return;
+      console.log(auth.accountDetail);
+      const payload = {
+        ...form,
+        account_id: resolvedAccountId,
+        email: auth.accountDetail.account_email,
+        birth_date: form.birth_date.toISOString(),
+      };
+
+      const res = await updateProfile(payload);
+
+      if (!res.success) {
+        console.error("Update failed:", res.message);
+        return;
+      }
+
+      console.log("Update success:", res.data);
+
+      router.push("/profile/profile");
+    } catch (err) {
+      console.error("Update error:", err);
+    }
   };
 
-  const handleBirthDateChange = (
+  const handlebirth_dateChange = (
     event: DateTimePickerEvent,
-    selectedDate?: Date
+    selectedDate?: Date,
   ) => {
     if (Platform.OS === "android") {
       setOpenDate(false);
     }
-    if (event.type === "dismissed") {
-      return;
-    }
+    if (event.type === "dismissed") return;
+
     if (selectedDate) {
-      setForm({ ...form, birthDate: selectedDate });
+      setForm({ ...form, birth_date: selectedDate });
     }
   };
+  if (loadingAuth) return null;
 
   return (
     <View className="flex-1 bg-[#F3F3F3]">
       <BackgroundGlow />
       <HeaderNavBar title="Edit Info" backOnly />
+
+      {loading && (
+        <Text className="text-center mt-4 text-gray-500">
+          Loading profile...
+        </Text>
+      )}
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -155,54 +174,51 @@ export default function EditProfile() {
           contentContainerStyle={{ paddingBottom: insets.bottom }}
           showsVerticalScrollIndicator={false}
         >
-          <View className="mb-4 ">
+          {/* Full Name */}
+          <View className="mb-4">
             <Label>Full Name</Label>
             <InputBox>
-              <View className="flex-row justify-between items-center">
-                <TextInput
-                  value={form.fullName}
-                  onChangeText={(v) => setForm({ ...form, fullName: v })}
-                  className=" text-gray-900 w-full py-3"
-                />
-              </View>
+              <TextInput
+                value={form.member_name}
+                onChangeText={(v) => setForm({ ...form, member_name: v })}
+                className="text-gray-900 w-full py-3"
+              />
             </InputBox>
           </View>
 
+          {/* Contact */}
           <View className="mb-4">
             <Label>Contact Number</Label>
             <InputBox>
-              <View className="flex-row justify-between items-center">
-                <TextInput
-                  value={form.contactNumber}
-                  placeholder="(+62) xxxxxxxxx"
-                  onChangeText={(v) => setForm({ ...form, contactNumber: v })}
-                  className=" text-gray-900 w-full py-3"
-                />
-              </View>
+              <TextInput
+                value={form.contact_number}
+                placeholder="(+62) xxxxxxxxx"
+                onChangeText={(v) => setForm({ ...form, contact_number: v })}
+                className="text-gray-900 w-full py-3"
+              />
             </InputBox>
           </View>
 
+          {/* Address */}
           <View className="mb-4">
             <Label>Address</Label>
             <InputBox>
-              <View className="flex-row justify-between items-center">
-                <TextInput
-                  value={form.address}
-                  onChangeText={(v) => setForm({ ...form, address: v })}
-                  className=" text-gray-900 w-full py-3"
-                />
-              </View>
+              <TextInput
+                value={form.address}
+                onChangeText={(v) => setForm({ ...form, address: v })}
+                className="text-gray-900 w-full py-3"
+              />
             </InputBox>
           </View>
 
+          {/* Birth Date */}
           <View className="mb-4">
             <Label>Birth Date</Label>
-
             <Pressable onPress={() => setOpenDate(!openDate)}>
               <InputBox>
                 <View className="flex-row justify-between items-center">
-                  <Text className=" text-gray-900 py-3 px-1">
-                    {formatDate(form.birthDate)}
+                  <Text className="text-gray-900 py-3 px-1">
+                    {formatDate(form.birth_date)}
                   </Text>
                   <ChevronDown size={16} color="#9CA3AF" />
                 </View>
@@ -210,32 +226,23 @@ export default function EditProfile() {
             </Pressable>
 
             {openDate && (
-              <View>
-                <DateTimePicker
-                  value={form.birthDate}
-                  mode="date"
-                  display={Platform.OS === "ios" ? "spinner" : "default"}
-                  onChange={handleBirthDateChange}
-                  textColor="#000"
-                />
-                {/* {Platform.OS === "ios" && (
-                  <Pressable onPress={() => setOpenDate(false)}>
-                    <Text className="text-base font-semibold text-gray-700">
-                      Done
-                    </Text>
-                  </Pressable>
-                )} */}
-              </View>
+              <DateTimePicker
+                value={form.birth_date}
+                mode="date"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                onChange={handlebirth_dateChange}
+              />
             )}
           </View>
 
+          {/* Gender */}
           <View className="mb-4">
             <Label>Gender</Label>
 
             <Pressable onPress={() => setOpenGender(!openGender)}>
               <InputBox>
-                <View className="flex-row items-center justify-between">
-                  <Text className=" text-gray-900 py-3 px-1">
+                <View className="flex-row justify-between items-center">
+                  <Text className="text-gray-900 py-3 px-1">
                     {form.gender || "Select gender"}
                   </Text>
                   <ChevronDown size={16} color="#9CA3AF" />
@@ -244,7 +251,7 @@ export default function EditProfile() {
             </Pressable>
 
             {openGender && (
-              <View className="mt-2 bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <View className="mt-2 bg-white border rounded-lg">
                 {["Male", "Female"].map((g) => (
                   <Pressable
                     key={g}
@@ -252,104 +259,22 @@ export default function EditProfile() {
                       setForm({ ...form, gender: g });
                       setOpenGender(false);
                     }}
-                    className="px-4 py-3 border-b last:border-b-0 border-gray-200"
+                    className="px-4 py-3 border-b last:border-b-0"
                   >
-                    <Text className=" text-gray-900">{g}</Text>
+                    <Text>{g}</Text>
                   </Pressable>
                 ))}
               </View>
             )}
           </View>
-
-          {isTrainer && (
-            <>
-              <Text className="text-xl font-semibold text-gray-800 mt-6 mb-3">
-                Trainer Info
-              </Text>
-              <View className="mb-4">
-                <Label>Certification</Label>
-                <InputBox>
-                  <View className="flex-row justify-between items-center">
-                    <TextInput
-                      value={form.certification}
-                      onChangeText={(v) =>
-                        setForm({ ...form, certification: v })
-                      }
-                      className=" text-gray-900 w-full py-3"
-                    />
-                  </View>
-                </InputBox>
-              </View>
-
-              <View className="mb-4">
-                <Label>Experience</Label>
-                <InputBox>
-                  <View className="flex-row justify-between items-center">
-                    <TextInput
-                      value={form.experience}
-                      onChangeText={(v) => setForm({ ...form, experience: v })}
-                      className=" text-gray-900 w-full py-3"
-                    />
-                  </View>
-                </InputBox>
-              </View>
-
-              <View className="mb-4">
-                <Label>Availability</Label>
-                <InputBox>
-                  <View className="flex-row justify-between items-center">
-                    <TextInput
-                      value={form.availability}
-                      onChangeText={(v) =>
-                        setForm({ ...form, availability: v })
-                      }
-                      className=" text-gray-900 w-full py-3"
-                    />
-                  </View>
-                </InputBox>
-              </View>
-            </>
-          )}
-
-          <Text className="text-xl font-semibold text-gray-800 mt-6 mb-3">
-            Body Info
-          </Text>
-          <View className="mb-4">
-            <Label>Weight</Label>
-            <InputBox>
-              <View className="flex-row justify-between items-center">
-                <TextInput
-                  value={form.weight}
-                  onChangeText={(v) => setForm({ ...form, weight: v })}
-                  keyboardType="numeric"
-                  className=" text-gray-900 w-7/8 py-3"
-                />
-                <Text className=" text-gray-400">kg</Text>
-              </View>
-            </InputBox>
-          </View>
-
-          <View className="mb-4">
-            <Label>Height</Label>
-            <InputBox>
-              <View className="flex-row justify-between items-center">
-                <TextInput
-                  value={form.height}
-                  onChangeText={(v) => setForm({ ...form, height: v })}
-                  keyboardType="numeric"
-                  className=" text-gray-900 w-7/8 py-3"
-                />
-                <Text className=" text-gray-400">cm</Text>
-              </View>
-            </InputBox>
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Save Button */}
       <View
         style={{
           paddingBottom: insets.bottom + 30,
-          paddingRight: insets.right + 20,
-          paddingLeft: insets.left + 20,
+          paddingHorizontal: 20,
         }}
       >
         <Pressable

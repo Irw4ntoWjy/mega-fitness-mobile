@@ -3,9 +3,9 @@ import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-
 import { BackgroundGlow } from "@/components/Theme/background";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { CommisionProgressBar } from "@/components/Trainer/commision-progress-bar";
-import { checkSession, syncAccountDetailFromAuth } from "@/lib/auth-session";
-import { getStoredAccountDetail, logout } from "@/lib/auth-storage";
-import { Image as ExpoImage } from "expo-image";
+import { useAuth } from "@/hooks/useAuth";
+import { checkSession } from "@/lib/auth-session";
+import { logout } from "@/lib/auth-storage";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ArrowRight, Bell, LogOut } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -18,11 +18,12 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getInitials } from "../profile/profile";
 
 const user = {
   account_id: "9ffd1d6f-e85c-433b-9d68-ddfc09d7a4af",
   account_code: "MFC-191125-PT-25004",
-  account_role: "Member",
+  account_role: "Trainer",
   profile_name: "Kilto Aznah",
   initials: "KA",
   total_activity: 1,
@@ -57,7 +58,32 @@ const activePackagesData = {
   ],
 };
 
-const isTrainer = user.account_role === "Trainer";
+const timeAvailabilityData: TimeAvailabilityData = {
+  days: [
+    { key: "Sun", label: "Sun" },
+    { key: "Mon", label: "Mon" },
+    { key: "Tue", label: "Tue" },
+    { key: "Wed", label: "Wed" },
+    { key: "Thu", label: "Thu" },
+    { key: "Fri", label: "Fri" },
+    { key: "Sat", label: "Sat" },
+  ],
+  slotsByDay: {
+    Sun: [
+      { id: "sun-1", label: "12.00 PM - 04.00 PM" },
+      { id: "sun-2", label: "12.00 PM - 04.00 PM" },
+      { id: "sun-3", label: "12.00 PM - 04.00 PM" },
+      { id: "sun-4", label: "12.00 PM - 04.00 PM" },
+    ],
+    Mon: [],
+    Tue: [],
+    Wed: [],
+    Thu: [],
+    Fri: [],
+    Sat: [],
+  },
+};
+
 const HERO_H = 76;
 
 function getInitials(name: string) {
@@ -142,6 +168,8 @@ const buyPackagesData = [
   { id: 4, title: "Campfire", image: require("../../assets/png/Campfire.png") },
 ];
 export default function Home() {
+  const { auth, loading: loadingAuth } = useAuth();
+
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -185,6 +213,16 @@ export default function Home() {
       navigating.current = false;
     }, []),
   );
+
+  if (loadingAuth || !auth?.accountDetail) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  const isTrainer = auth.accountDetail.account_role === "Trainer";
 
   if (loading) {
     return (
@@ -332,8 +370,12 @@ export default function Home() {
       >
         <View className="flex-row items-center justify-between w-full">
           <View className="flex flex-col">
-            <Text className="mt-3 mx-4 font-bold text-2xl">Welcome Back,</Text>
-            <Text className="mt-1 mx-4 font-medium">{profileName}</Text>
+            <Text className="mt-3 mx-4 font-bold text-2xl">
+              Mega Fitness Center,
+            </Text>
+            <Text className="mt-1 mx-4 font-medium">
+              {auth.accountDetail.profile_name}
+            </Text>
           </View>
 
           <View className="ml-auto flex-row gap-2">
@@ -355,39 +397,13 @@ export default function Home() {
             <View className="relative">
               <View style={{ height: HERO_H }} />
 
-              <View className="absolute right-0 bottom-4 items-end">
-                <View className="px-[4vw] rounded-full flex flex-row justify-end items-center gap-1">
-                  <View className="rounded-full bg-[rgba(0,0,0,0.25)] w-5 h-5 flex items-center justify-center overflow-hidden">
-                    <Text className="text-center text-[10px] text-white font-medium">
-                      2
-                    </Text>
-                  </View>
-                  <Text className="text-center text-[12px] text-black font-medium">
-                    Activity
-                  </Text>
-                </View>
-              </View>
-
               <View className="absolute -bottom-15 z-50">
                 <Pressable onPress={() => router.push("/profile/profile")}>
-                  {profilePictureUrl ? (
-                    <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] overflow-hidden">
-                      <ExpoImage
-                        source={{ uri: profilePictureUrl }}
-                        style={{ width: "100%", height: "100%" }}
-                        contentFit="cover"
-                        onError={() => {
-                          setProfilePictureUrl(null);
-                        }}
-                      />
-                    </View>
-                  ) : (
-                    <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
-                      <Text className="text-[#0F6B7E] text-2xl font-semibold">
-                        {profileInitials}
-                      </Text>
-                    </View>
-                  )}
+                  <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
+                    <Text className="text-[#0F6B7E] text-2xl font-semibold">
+                      {getInitials(auth.accountDetail.profile_name)}
+                    </Text>
+                  </View>
                 </Pressable>
               </View>
             </View>
@@ -406,7 +422,7 @@ export default function Home() {
                       isTrainer ? "text-[#7A20C9]" : "text-[#B45C17]"
                     }`}
                   >
-                    {user.account_role}
+                    {auth.accountDetail.account_role}
                   </Text>
                 </View>
               </View>

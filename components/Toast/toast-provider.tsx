@@ -1,5 +1,5 @@
-import React, { createContext, useCallback, useContext, useState } from "react";
 import Toast from "@/components/Toast/toast";
+import React, { createContext, useCallback, useContext, useState } from "react";
 
 export type ToastVariant = "success" | "error" | "warning";
 
@@ -33,7 +33,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     visible: false,
     message: "",
     variant: "success",
-    duration: 2500,
+    duration: 1000,
   });
 
   const showToast = useCallback((options: ToastOptions) => {
@@ -41,7 +41,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       visible: true,
       message: options.message,
       variant: options.variant ?? "success",
-      duration: options.duration ?? 2500,
+      duration: options.duration ?? 1000,
       icon: options.icon,
     });
   }, []);
@@ -53,15 +53,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast, hideToast }}>
       <>
-      {children}
-      <Toast
-        visible={toast.visible}
-        message={toast.message}
-        variant={toast.variant}
-        duration={toast.duration}
-        icon={toast.icon}
-        onHide={hideToast}
-      />
+        {children}
+        <Toast
+          visible={toast.visible}
+          message={toast.message}
+          variant={toast.variant}
+          duration={toast.duration}
+          icon={toast.icon}
+          onHide={hideToast}
+        />
       </>
     </ToastContext.Provider>
   );

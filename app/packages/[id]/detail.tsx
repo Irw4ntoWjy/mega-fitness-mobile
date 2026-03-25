@@ -100,7 +100,7 @@ export default function ProductDetail() {
         </View>
       </ScrollView>
 
-      <Pressable className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[80%] h-14 rounded-xl items-center justify-center bg-cyan-600 pb-2 pt-2">
+      <Pressable className="absolute bottom-10 left-1/2 -translate-x-1/2 w-[80%] h-14 rounded-xl items-center justify-center bg-cyan-600 pb-2 pt-2">
         <Text className="text-white text-xl font-semibold">Buy Package</Text>
       </Pressable>
     </View>

@@ -5,24 +5,16 @@ import {
   TimeAvailabilitySection,
 } from "@/components/Profile/time-availability";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
-import { getStoredAccountDetail } from "@/lib/auth-storage";
-import { syncAccountDetailFromAuth } from "@/lib/auth-session";
-import { AccountDetail } from "@/type/detail-account";
+import { useAuth } from "@/hooks/useAuth";
+import { AccountSchema } from "@/type/profile";
+import { formatDate } from "@/utils/datetimeFormat";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
 import { Pencil } from "lucide-react-native";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const fallbackUser = {
-  account_id: "9ffd1d6f-e85c-433b-9d68-ddfc09d7a4af",
-  account_code: "MFC-191125-PT-25004",
-  account_role: "Member",
-  profile_name: "Kilto Aznah",
-  initials: "KA",
-  completedPercent: 10,
-};
+import { profileDetail } from "../api/profile";
 
 const activePackagesData = {
   activePackagesSummary: {
@@ -98,92 +90,89 @@ const BODY_INFO_FIELDS: ProfileFieldConfig[] = [
   { key: "height", label: "Height" },
 ];
 
-const TRAINER_EXTRA_FIELDS: ProfileFieldConfig[] = [
-  { key: "certification", label: "Certification" },
-  { key: "experience_year", label: "Experience" },
+const ACCOUNT_INFO_FIELDS: ProfileFieldConfig[] = [
+  { key: "email", label: "Email" },
 ];
 
-function getInitials(name: string) {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-}
+const TRAINER_EXTRA_FIELDS: ProfileFieldConfig[] = [
+  { key: "certification", label: "Certification" },
+  { key: "experience", label: "Experience" },
+  { key: "availability", label: "Availability" },
+];
 
-function formatBirthDate(value?: string) {
-  if (!value) return "";
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleDateString("en-GB");
+export function getInitials(name: string): string {
+  if (!name) return "";
+
+  const words = name.trim().split(" ");
+
+  if (words.length === 1) {
+    return words[0][0].toUpperCase();
+  }
+
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
 }
 
 export default function Profile() {
   const insets = useSafeAreaInsets();
-  const [accountDetail, setAccountDetail] = useState<AccountDetail | null>(
-    null,
-  );
+  const { auth, loading: loadingAuth } = useAuth();
+
+  const [profile, setProfile] = useState<AccountSchema | null>(null);
+
+  const isTrainer = auth?.accountDetail?.account_role === "Trainer";
+
+  const fetchProfile = async () => {
+    try {
+      const res = await profileDetail({
+        account_id: auth.accountDetail.account_id,
+      });
+
+      if (!res.success || !res.data) {
+        console.error(res.message);
+        return;
+      }
+
+      const data = res.data as AccountSchema;
+
+      console.log("DATA:", data);
+
+      setProfile(data);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    }
+  };
 
   useEffect(() => {
-    let isMounted = true;
+    if (!auth?.accountDetail?.account_id) return;
+    fetchProfile();
+  }, [auth?.accountDetail?.account_id]);
 
-    const loadAccount = async () => {
-      const cached = await getStoredAccountDetail();
-      if (!isMounted) return;
-      if (cached) {
-        setAccountDetail(cached);
-      }
+  const profileValues: Record<string, string> = {
+    name: profile?.profile_name ?? "-",
+    phone: profile?.contact_number ?? "-",
+    address: profile?.address ?? "-",
+    birth: formatDate(profile?.birth_date) ?? "-",
+    gender: profile?.gender ?? "-",
+    weight: "-",
+    height: "-",
+    email: profile?.account_email ?? "-",
+    certification: "-",
+    experience: "-",
+    availability: "-",
+  };
 
-      const synced = await syncAccountDetailFromAuth();
-      if (!isMounted || !synced) return;
+  if (loadingAuth) return;
 
-      const latest = await getStoredAccountDetail();
-      if (latest) {
-        setAccountDetail(latest);
-      }
-    };
+  const user = {
+    account_id: auth.accountDetail.account_id,
+    account_code: auth.accountDetail.account_code,
+    account_role: auth.accountDetail.account_role,
+    profile_name: auth.accountDetail.profile_name,
+    completedPercent: 10,
+  };
 
-    loadAccount();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const resolvedUser = useMemo(() => {
-    const profileName =
-      accountDetail?.profile_name ?? fallbackUser.profile_name;
-    const initials = getInitials(profileName) || fallbackUser.initials;
-    return {
-      account_id: accountDetail?.account_id ?? fallbackUser.account_id,
-      account_code: accountDetail?.account_code ?? fallbackUser.account_code,
-      account_role: accountDetail?.account_role ?? fallbackUser.account_role,
-      profile_name: profileName,
-      initials,
-      completedPercent: fallbackUser.completedPercent,
-    };
-  }, [accountDetail]);
-
-  const isTrainer = resolvedUser.account_role === "Trainer";
   const profileFields = isTrainer
     ? [...BASE_PROFILE_FIELDS, ...TRAINER_EXTRA_FIELDS]
     : BASE_PROFILE_FIELDS;
-
-  const profileValues: Record<string, string> = {
-    name: resolvedUser.profile_name,
-    phone: accountDetail?.contact_number ?? "-",
-    address: "-",
-    birth: formatBirthDate(accountDetail?.birth_date) || "-",
-    gender: accountDetail?.gender ?? "-",
-    weight: accountDetail?.trainer_detail?.weight?.toString() ?? "-",
-    height: accountDetail?.trainer_detail?.height?.toString() ?? "-",
-
-    certification: accountDetail?.trainer_detail?.certifications ?? "-",
-    experience_year:
-      accountDetail?.trainer_detail?.experience_year != null
-        ? `${accountDetail.trainer_detail.experience_year}`
-        : "-",
-  };
 
   return (
     <View className="flex-1">
@@ -198,13 +187,13 @@ export default function Profile() {
             <Text className="text-black text-xl font-extrabold">
               {resolvedUser.profile_name}
             </Text>
-            <Text className="text-black/60">@{resolvedUser.account_code}</Text>
+            <Text className="text-black/60">{user.account_code}</Text>
           </View>
 
           <View className="absolute -bottom-15 z-50">
             <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
               <Text className="text-[#0F6B7E] text-2xl font-semibold">
-                {resolvedUser.initials}
+                {getInitials(user.profile_name)}
               </Text>
             </View>
           </View>
@@ -225,7 +214,7 @@ export default function Profile() {
                   isTrainer ? "text-[#7A20C9]" : "text-[#B45C17]"
                 }`}
               >
-                {resolvedUser.account_role}
+                {auth.accountDetail.account_role}
               </Text>
             </View>
           </View>
@@ -251,9 +240,16 @@ export default function Profile() {
             fields={profileFields}
             values={profileValues}
           />
+          {isTrainer ? (
+            <ProfileInfoSection
+              title="Body Info"
+              fields={BODY_INFO_FIELDS}
+              values={profileValues}
+            />
+          ) : null}
           <ProfileInfoSection
-            title="Body Info"
-            fields={BODY_INFO_FIELDS}
+            title="Account Info"
+            fields={ACCOUNT_INFO_FIELDS}
             values={profileValues}
           />
         </View>
@@ -274,15 +270,17 @@ export default function Profile() {
           bottom: insets.bottom + 20,
         }}
       >
-        <View
-          className={`
+        {!isTrainer && (
+          <View
+            className={`
         w-16 h-16 rounded-full
         items-center justify-center
         shadow-lg bg-[#0891B2]
       `}
-        >
-          <Pencil size={24} color="#FFFFFF" />
-        </View>
+          >
+            <Pencil size={24} color="#FFFFFF" />
+          </View>
+        )}
       </Pressable>
     </View>
   );
