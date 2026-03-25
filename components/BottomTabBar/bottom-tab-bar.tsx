@@ -1,8 +1,11 @@
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { useAuth } from "@/hooks/useAuth";
 import {
   BookText,
   Clock3,
+  FileQuestionMark,
   House,
+  NotepadText,
   ScanQrCode,
   Wallet,
 } from "lucide-react-native";
@@ -16,6 +19,8 @@ const BottomTabBar = ({
   navigation,
 }: BottomTabBarProps) => {
   const insets = useSafeAreaInsets();
+  const { auth } = useAuth();
+  const isTrainer = auth?.accountDetail?.account_role === "Trainer";
 
   const getIcon = (routeName: string, isFocused: boolean) => {
     const color = isFocused ? "#ffff" : "#797496";
@@ -27,12 +32,29 @@ const BottomTabBar = ({
       case "history":
         return <Clock3 color={color} size={size} />;
       case "transaction":
-        return <Wallet color={color} size={size} />;
+        return isTrainer ? (
+          <NotepadText color={color} size={size} />
+        ) : (
+          <Wallet color={color} size={size} />
+        );
       case "bookings":
-        return <BookText color={color} size={size} />;
+        return isTrainer ? (
+          <FileQuestionMark color={color} size={size} />
+        ) : (
+          <BookText color={color} size={size} />
+        );
       default:
         return <House color={color} size={size} />;
     }
+  };
+
+  const getDisplayLabel = (routeName: string) => {
+    if (isTrainer) {
+      if (routeName === "transaction") return "Journal";
+      if (routeName === "bookings") return "Assessment";
+    }
+
+    return routeName.charAt(0).toUpperCase() + routeName.slice(1);
   };
 
   return (
@@ -107,7 +129,9 @@ const BottomTabBar = ({
             });
           } else {
             let displayLabel =
-              labelOption.charAt(0).toUpperCase() + labelOption.slice(1);
+              typeof labelOption === "string"
+                ? getDisplayLabel(labelOption)
+                : getDisplayLabel(route.name);
 
             label = (
               <Text

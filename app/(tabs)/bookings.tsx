@@ -1,4 +1,7 @@
 import { BackgroundGlow } from "@/components/Theme/background";
+import MemberActionList from "@/components/Trainer/member-action-list";
+import { AssessmentPages } from "@/app/assessment/dummy_question";
+import { useAuth } from "@/hooks/useAuth";
 import { router } from "expo-router";
 import { Clock, Contact, UserIcon, X } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
@@ -215,6 +218,7 @@ function CancelModal({
 }
 
 export default function Bookings() {
+  const { auth, loading: loadingAuth } = useAuth();
   const [tab, setTab] = useState<TabKey>("Upcoming");
   const [list, setList] = useState<Booking[]>(bookings);
   const data = useMemo(() => list.filter((b) => b.status === tab), [list, tab]);
@@ -241,6 +245,28 @@ export default function Bookings() {
     setOpen(false);
     setSelectedBooking(null);
   };
+
+  if (loadingAuth) return null;
+
+  if (auth?.accountDetail?.account_role === "Trainer") {
+    return (
+      <MemberActionList
+        title="ASSESSMENT"
+        subtitle="Pilih member untuk membuka assessment dan melanjutkan evaluasi."
+        emptyLabel="Belum ada member untuk di-assess."
+        onSelectMember={(memberItem) =>
+          router.push({
+            pathname: "/assessment/[section]/[id]/detail",
+            params: {
+              section: AssessmentPages.PHYSICAL_ACTIVITY_READINESS,
+              id: memberItem.id,
+              memberName: memberItem.name,
+            },
+          })
+        }
+      />
+    );
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

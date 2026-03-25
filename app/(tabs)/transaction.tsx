@@ -1,7 +1,9 @@
 // Bookings.tsx
 import { BackgroundGlow } from "@/components/Theme/background";
+import MemberActionList from "@/components/Trainer/member-action-list";
 import { useAuth } from "@/hooks/useAuth";
 import { PurchaseItemSchema } from "@/type/purchase";
+import { router } from "expo-router";
 import { CheckCircle, Clock, XCircle } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { FlatList, Image, Pressable, Text, View } from "react-native";
@@ -165,6 +167,25 @@ export default function Transactions() {
       : data.filter((item) => item.purchase_status_id === tabToStatus[tab]);
 
   if (loadingAuth) return;
+
+  if (auth?.accountDetail?.account_role === "Trainer") {
+    return (
+      <MemberActionList
+        title="JOURNAL"
+        subtitle="Pilih member yang pernah kamu ajar untuk membuka journal mereka."
+        emptyLabel="Belum ada member yang tersedia."
+        onSelectMember={(memberItem) =>
+          router.push({
+            pathname: "/journal/journal",
+            params: {
+              memberId: memberItem.id,
+              memberName: memberItem.name,
+            },
+          })
+        }
+      />
+    );
+  }
 
   return (
     <View className="flex-1 mb-20">
