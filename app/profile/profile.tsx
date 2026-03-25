@@ -185,7 +185,7 @@ export default function Profile() {
 
           <View className="absolute right-0 bottom-4 items-end">
             <Text className="text-black text-xl font-extrabold">
-              {resolvedUser.profile_name}
+              {user.profile_name}
             </Text>
             <Text className="text-black/60">{user.account_code}</Text>
           </View>
@@ -259,8 +259,8 @@ export default function Profile() {
           router.push({
             pathname: "/profile/edit-profile",
             params: {
-              role: resolvedUser.account_role,
-              accountId: resolvedUser.account_id,
+              role: user.account_role,
+              accountId: user.account_id,
             },
           })
         }
