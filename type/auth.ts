@@ -36,10 +36,6 @@ export const signUpSchema = z.object({
   name: z.string().min(1, "Nama wajib diisi"),
   birth_date: z.string().min(1, "Tanggal lahir wajib diisi"),
   gender: z.string().min(1, "Gender wajib diisi"),
-  identity_no: z
-    .string()
-    .min(1, "Nomor induk kependudukan wajib diisi")
-    .length(16, "Nomor induk kependudukan harus 16 digit"),
   contact_number: z.string().optional(),
 });
 export type SignUpPayload = z.infer<typeof signUpSchema>;

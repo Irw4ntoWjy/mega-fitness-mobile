@@ -97,13 +97,15 @@ function TransactionCard({ item }: { item: PurchaseItemSchema }) {
     <View className="rounded-2xl bg-white p-3 shadow-sm mb-4">
       <View className="flex-row items-center justify-between">
         <Text className="text-lg text-slate-500">{item.requested_at}</Text>
-        {/* <Text className="text-lg text-slate-400">{item.orderNo}</Text> */}
+        <Text className="text-lg text-slate-400">{item.invoice_number}</Text>
       </View>
 
       <View className="mt-2 flex-row">
-        {item.image ? (
+        {item.package_cover_image ? (
           <Image
-            source={{ uri: item.image }}
+            source={{
+              uri: `${process.env.EXPO_PUBLIC_URL}${item.package_cover_image}`,
+            }}
             className="h-24 w-24 rounded-xl"
             resizeMode="cover"
           />

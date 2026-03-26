@@ -50,7 +50,6 @@ export default function SignUp() {
 
   const [gender, setGender] = useState<Gender>(Gender.Male);
   const [birthDate, setBirthDate] = useState(new Date());
-  const [identityNo, setIdentityNo] = useState("");
   const [contactNumber, setContactNumber] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
@@ -63,7 +62,6 @@ export default function SignUp() {
         | "password"
         | "birth_date"
         | "gender"
-        | "identity_no"
         | "contact_number",
         string
       >
@@ -281,28 +279,6 @@ export default function SignUp() {
               )}
             </FormField>
 
-            {/* Identity Number */}
-            <FormField
-              label="Nomor Induk Kependudukan"
-              name="identity_no"
-              schema={signUpSchema}
-              error={fieldErrors.identity_no}
-            >
-              <View
-                className={`bg-gray-50 border rounded-lg px-3 py-3 ${
-                  fieldErrors.identity_no ? "border-red-400" : "border-gray-300"
-                }`}
-              >
-                <TextInput
-                  placeholder="3201xxxxxxxxxxxx"
-                  value={identityNo}
-                  onChangeText={setIdentityNo}
-                  keyboardType="numeric"
-                  className="text-gray-900"
-                />
-              </View>
-            </FormField>
-
             {/* Contact Number */}
             <FormField
               label="Nomor Telepon"
@@ -340,7 +316,6 @@ export default function SignUp() {
                   name: name.trim(),
                   birth_date: birthDate.toISOString(),
                   gender,
-                  identity_no: identityNo.trim(),
                   contact_number: contactNumber.trim() || undefined,
                 });
 
@@ -353,7 +328,6 @@ export default function SignUp() {
                     password: flattened.password?.[0],
                     birth_date: flattened.birth_date?.[0],
                     gender: flattened.gender?.[0],
-                    identity_no: flattened.identity_no?.[0],
                     contact_number: flattened.contact_number?.[0],
                   });
                   return;
@@ -382,7 +356,6 @@ export default function SignUp() {
                   password: flattened.password?.[0],
                   birth_date: flattened.birth_date?.[0],
                   gender: flattened.gender?.[0],
-                  identity_no: flattened.identity_no?.[0],
                   contact_number: flattened.contact_number?.[0],
                 });
 
@@ -397,7 +370,6 @@ export default function SignUp() {
                   NAME: "name",
                   BIRTH_DATE: "birth_date",
                   GENDER: "gender",
-                  IDENTITY_NO: "identity_no",
                   CONTACT_NUMBER: "contact_number",
                 });
                 if (Object.keys(backendFieldErrors).length > 0) {
