@@ -432,7 +432,7 @@ export default function Home() {
     return (
       <Pressable key={item.id} className="w-[44vw] mb-4 mr-5">
         <View className="bg-white rounded-2xl shadow-md relative">
-          <View className="w-full h-44 rounded-t-2xl overflow-hidden">
+          <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
             <Image
               source={
                require("../../assets/png/Campfire.png")
@@ -484,7 +484,7 @@ export default function Home() {
     return (
       <Pressable key={item.id} className="w-[44vw] mb-4 mr-5">
         <View className="bg-white rounded-2xl shadow-md relative">
-          <View className="w-full h-44 rounded-t-2xl overflow-hidden">
+          <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
             <Image
               source={
                require("../../assets/png/Campfire.png")
@@ -538,7 +538,7 @@ type SpecialClass = (typeof specialClassData)[number];
     return (
       <Pressable key={item.id} className="w-[44vw] mb-4 mr-5">
         <View className="bg-white rounded-2xl shadow-md relative">
-          <View className="w-full h-44 rounded-t-2xl overflow-hidden">
+          <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
             <Image
               source={
                require("../../assets/png/Campfire.png")
@@ -624,7 +624,7 @@ type SpecialClass = (typeof specialClassData)[number];
         onPress={handlePress}
       >
         <View className="bg-white rounded-2xl shadow-md relative">
-          <View className="w-full h-44 rounded-t-2xl overflow-hidden">
+          <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
             <Image
               source={
                   { uri: String(item.image) }

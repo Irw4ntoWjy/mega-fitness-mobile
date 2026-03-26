@@ -58,7 +58,7 @@ function PackageCard({ item }: { item: Package }) {
       onPress={handlePress}
     >
       <View className="bg-white rounded-2xl shadow-md relative">
-        <View className="w-full h-44 rounded-t-2xl overflow-hidden">
+        <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
           <Image
             source={{ uri: item.image }}
             className="w-full h-full"

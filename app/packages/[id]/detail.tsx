@@ -114,7 +114,7 @@ export default function ProductDetail() {
       </View>
 
       <ScrollView className="flex-1 mx-6" showsVerticalScrollIndicator={false}>
-        <View className="h-[210px] rounded-[18px] overflow-hidden bg-zinc-300 mt-1">
+        <View className="h-[210px] rounded-[18px] overflow-hidden bg-black mt-1">
           <Image
             source={{ uri: packageData.package_cover_image }}
             className="h-full w-full"
