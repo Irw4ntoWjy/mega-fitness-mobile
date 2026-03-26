@@ -13,12 +13,11 @@ import { ArrowRight, Bell } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Dimensions,
   Image,
   Pressable,
   ScrollView,
   Text,
-  View,
+  View
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -137,72 +136,7 @@ const todaysActivityData = [
   },
 ];
 
-const promotionsData = [
-  {
-    id: 1,
-    title: "Campfire",
-    discount: "20% Off",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 2,
-    title: "Campfire",
-    discount: "20% Off",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 3,
-    title: "Campfire",
-    discount: "20% Off",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 4,
-    title: "Campfire",
-    discount: "20% Off",
-    image: require("../../assets/png/Campfire.png"),
-  },
-];
 
-const specialClassData = [
-  {
-    id: 1,
-    title: "Campfire",
-    occasion: "Independence Day",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 2,
-    title: "Campfire",
-    occasion: "Independence Day",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 3,
-    title: "Campfire",
-    occasion: "Independence Day",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 4,
-    title: "Campfire",
-    occasion: "Independence Day",
-    image: require("../../assets/png/Campfire.png"),
-  },
-];
-
-// const buyPackagesData = [
-//   {
-//     id: 1,
-//     title: "Campfire",
-//     image: require("../../assets/png/Campfire.png"),
-//   },
-//   { id: 2, title: "Campfire", image: require("../../assets/png/Campfire.png") },
-//   { id: 3, title: "Campfire", image: require("../../assets/png/Campfire.png") },
-//   { id: 4, title: "Campfire", image: require("../../assets/png/Campfire.png") },
-// ];
-
-const { width } = Dimensions.get("window");
 
 function getInitials(value: string) {
   const parts = value
@@ -284,6 +218,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [openNotification, setOpenNotification] = useState(false);
   const [buyPackagesData, setBuyPackagesData] = useState<any[]>([]);
+  const [promotionsData, setPromotionsData] = useState<any[]>([]);
+  const [specialClassData, setSpecialClassData] = useState<any[]>([]);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileName, setProfileName] = useState("");
   const [profileInitials, setProfileInitials] = useState("");
@@ -389,7 +325,7 @@ export default function Home() {
           },
           body: JSON.stringify({
             page: 1,
-            limit: 4,
+            limit: 100,
           }),
         }
       );
@@ -402,9 +338,42 @@ export default function Home() {
           packageName: item.package_name,
           description: item.package_description,
           image: item.package_cover_image,
+          packageTag: item.package_tag,
         }));
 
-        setBuyPackagesData(formatted);
+        const packageListItems = formatted.filter((item: any) => {
+          if (typeof item.packageTag !== "string") return true;
+          const tag = item.packageTag.toLowerCase();
+          return !(
+            tag.includes("addon") ||
+            tag.includes("add on") ||
+            tag.includes("%") ||
+            tag.includes("special")
+          );
+        });
+        setBuyPackagesData(packageListItems.slice(0, 4));
+
+        const promotions = formatted
+          .filter((item: any) => typeof item.packageTag === "string" && item.packageTag.includes("%"))
+          .map((item: any) => ({
+            id: item.id,
+            title: item.packageName,
+            discount: item.packageTag,
+            image: item.image,
+            description: item.description,
+          }));
+        setPromotionsData(promotions);
+
+        const specialClasses = formatted
+          .filter((item: any) => typeof item.packageTag === "string" && item.packageTag.toLowerCase().includes("special"))
+          .map((item: any) => ({
+            id: item.id,
+            title: item.packageName,
+            occasion: item.packageTag,
+            image: item.image,
+            description: item.description,
+          }));
+        setSpecialClassData(specialClasses);
       }
     } catch (error) {
       console.log("Error fetching buy packages:", error);
@@ -434,9 +403,7 @@ export default function Home() {
         <View className="bg-white rounded-2xl shadow-md relative">
           <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
             <Image
-              source={
-               require("../../assets/png/Campfire.png")
-              }
+              source={item.image}
               className="w-full h-full"
               resizeMode="cover"
             />
@@ -479,19 +446,44 @@ export default function Home() {
     );
   }
 
-  type PromotionActivity = (typeof promotionsData)[number];
+  type PromotionActivity = {
+    id: string | number;
+    title: string;
+    discount: string;
+    image?: string | null;
+  };
   function PromotionCard({ item }: { item: PromotionActivity }) {
+    const router = useRouter();
+    const [isNavigating, setIsNavigating] = useState(false);
+
+    const handlePress = () => {
+      if (isNavigating) return;
+      setIsNavigating(true);
+
+      router.push({
+        pathname: "/packages/[id]/detail",
+        params: { id: String(item.id) },
+      });
+      setTimeout(() => setIsNavigating(false), 1000);
+    };
+
     return (
-      <Pressable key={item.id} className="w-[44vw] mb-4 mr-5">
+      <Pressable
+        key={item.id}
+        className="w-[44vw] mb-4 mr-5"
+        onPress={handlePress}
+      >
         <View className="bg-white rounded-2xl shadow-md relative">
           <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
-            <Image
-              source={
-               require("../../assets/png/Campfire.png")
-              }
-              className="w-full h-full"
-              resizeMode="cover"
-            />
+            {item.image && item.image !== "null" && item.image !== "" ? (
+              <Image
+                source={{ uri: String(item.image) }}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
+            ) : (
+              <View className="w-full h-full bg-black" />
+            )}
           </View>
 
           <View
@@ -533,19 +525,44 @@ export default function Home() {
 
 
 
-type SpecialClass = (typeof specialClassData)[number];
+  type SpecialClass = {
+    id: string | number;
+    title: string;
+    occasion: string;
+    image?: string | null;
+  };
   function SpecialClassCard({ item }: { item: SpecialClass }) {
+    const router = useRouter();
+    const [isNavigating, setIsNavigating] = useState(false);
+
+    const handlePress = () => {
+      if (isNavigating) return;
+      setIsNavigating(true);
+
+      router.push({
+        pathname: "/packages/[id]/detail",
+        params: { id: String(item.id) },
+      });
+      setTimeout(() => setIsNavigating(false), 1000);
+    };
+
     return (
-      <Pressable key={item.id} className="w-[44vw] mb-4 mr-5">
+      <Pressable
+        key={item.id}
+        className="w-[44vw] mb-4 mr-5"
+        onPress={handlePress}
+      >
         <View className="bg-white rounded-2xl shadow-md relative">
           <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
-            <Image
-              source={
-               require("../../assets/png/Campfire.png")
-              }
-              className="w-full h-full"
-              resizeMode="cover"
-            />
+            {item.image && item.image !== "null" && item.image !== "" ? (
+              <Image
+                source={{ uri: String(item.image) }}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
+            ) : (
+              <View className="w-full h-full bg-black" />
+            )}
           </View>
 
           <View
@@ -594,6 +611,7 @@ type SpecialClass = (typeof specialClassData)[number];
     packageName: string;
     description?: string;
     image?: string;
+    packageTag?: string | null;
   };
   function PackageCard({ item }: { item: PackagesActivity }) {
 
@@ -625,14 +643,45 @@ type SpecialClass = (typeof specialClassData)[number];
       >
         <View className="bg-white rounded-2xl shadow-md relative">
           <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
-            <Image
-              source={
-                  { uri: String(item.image) }
-              }
-              className="w-full h-full"
-              resizeMode="cover"
-            />
+            {item.image && item.image !== "null" && item.image !== "" ? (
+              <Image
+                source={{ uri: String(item.image) }}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
+            ) : (
+              <View className="w-full h-full bg-black" />
+            )}
           </View>
+
+          {typeof item.packageTag === "string" &&
+          item.packageTag.toLowerCase().includes("bundle") ? (
+            <View
+              style={{
+                position: "absolute",
+                top: -10,
+                left: -5,
+                backgroundColor: "#06B6D4",
+                paddingHorizontal: 12,
+                paddingVertical: 7,
+                borderRadius: 8,
+                zIndex: 1000,
+                elevation: 30,
+              }}
+            >
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 10,
+                  fontWeight: "700",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.8,
+                }}
+              >
+                {item.packageTag}
+              </Text>
+            </View>
+          ) : null}
 
           <View className="flex-row items-center justify-between px-4 py-4">
             <View>
@@ -783,20 +832,19 @@ type SpecialClass = (typeof specialClassData)[number];
             showsHorizontalScrollIndicator={false}
             className="p-5"
           >
-            {topRow.map((item) => (
-              <TodayCard key={item.id} item={item} />
-            ))}
-          </ScrollView>
-
-          {/* Bottom row */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="p-5 mt-1"
-          >
-            {bottomRow.map((item) => (
-              <TodayCard key={item.id} item={item} />
-            ))}
+            <View className="flex-col gap-4">
+              <View className="flex-row">
+                {topRow.map((item) => (
+                  <TodayCard key={item.id} item={item} />
+                ))}
+              </View>
+              {/* Bottom row */}
+              <View className="flex-row">
+                {bottomRow.map((item) => (
+                  <TodayCard key={item.id} item={item} />
+                ))}
+              </View>
+            </View>
           </ScrollView>
 
           {/* <ScrollView
@@ -846,9 +894,9 @@ type SpecialClass = (typeof specialClassData)[number];
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
               Promotions
             </Text>
-            <Pressable className="bg-cyan-600 w-8 h-8 rounded-full mx-5 items-center justify-center">
+            {/* <Pressable className="bg-cyan-600 w-8 h-8 rounded-full mx-5 items-center justify-center">
               <ArrowRight size={20} color="white" />
-            </Pressable>
+            </Pressable> */}
           </View>
 
           <ScrollView

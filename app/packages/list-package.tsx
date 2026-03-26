@@ -20,11 +20,12 @@ import {
 } from "react-native";
 
 type Package = {
-  id: number;
+  id: string;
   packageType: string;
   packageName: string;
-  image: string;
+  image: string | null;
   description: string;
+  packageTag: string | null;
 };
 
 
@@ -59,38 +60,45 @@ function PackageCard({ item }: { item: Package }) {
     >
       <View className="bg-white rounded-2xl shadow-md relative">
         <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
-          <Image
-            source={{ uri: item.image }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
+          {item.image && item.image !== "null" && item.image !== "" ? (
+            <Image
+              source={{ uri: String(item.image) }}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="w-full h-full bg-black" />
+          )}
         </View>
 
-        {/* <View
-          style={{
-            position: "absolute",
-            top: -10,
-            left: -5,
-            backgroundColor: item.tagColor,
-            paddingHorizontal: 12,
-            paddingVertical: 7,
-            borderRadius: 8,
-            zIndex: 1000,
-            elevation: 30,
-          }}
-        >
-          <Text
+        {typeof item.packageTag === "string" &&
+        item.packageTag.toLowerCase().includes("bundle") ? (
+          <View
             style={{
-              color: "white",
-              fontSize: 10,
-              fontWeight: "700",
-              textTransform: "uppercase",
-              letterSpacing: 0.8,
+              position: "absolute",
+              top: -10,
+              left: -5,
+              backgroundColor: "#06B6D4",
+              paddingHorizontal: 12,
+              paddingVertical: 7,
+              borderRadius: 8,
+              zIndex: 1000,
+              elevation: 30,
             }}
           >
-            {item.status}
-          </Text>
-        </View> */}
+            <Text
+              style={{
+                color: "white",
+                fontSize: 10,
+                fontWeight: "700",
+                textTransform: "uppercase",
+                letterSpacing: 0.8,
+              }}
+            >
+              {item.packageTag}
+            </Text>
+          </View>
+        ) : null}
 
         <View className="flex-row items-center justify-between px-4 py-4">
           <View>
@@ -107,6 +115,7 @@ function PackageCard({ item }: { item: Package }) {
 export default function listPackages({ navigation, route }: Props) {
   const [packages, setPackages] = useState<Package[]>([]);
   const [filteredData, setFilteredData] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const [showFilter, setShowFilter] = useState(false);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -116,6 +125,16 @@ export default function listPackages({ navigation, route }: Props) {
     "All",
     ...Array.from(new Set(packages.map((p) => p.packageType))),
   ];
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const visiblePackages = packages.filter((item) => {
+    const matchesType =
+      filteredData === "All" ? true : item.packageType === filteredData;
+    if (!matchesType) return false;
+
+    if (!normalizedQuery) return true;
+    return item.packageName.toLowerCase().includes(normalizedQuery);
+  });
 
   useEffect(() => {
     fetchPackages(1);
@@ -154,12 +173,24 @@ export default function listPackages({ navigation, route }: Props) {
           packageType: item.product_type_name,
           image: item.package_cover_image,
           description: item.package_description,
+          packageTag: item.package_tag,
         }));
 
+        const listItems = formatted.filter((item: any) => {
+          if (typeof item.packageTag !== "string") return true;
+          const tag = item.packageTag.toLowerCase();
+          return !(
+            tag.includes("addon") ||
+            tag.includes("add on") ||
+            tag.includes("%") ||
+            tag.includes("special")
+          );
+        });
+
         if (pageNumber === 1) {
-          setPackages(formatted);
+          setPackages(listItems);
         } else {
-          setPackages((prev) => [...prev, ...formatted]);
+          setPackages((prev) => [...prev, ...listItems]);
         }
 
         setHasMore(pageNumber < json.data.total_page);
@@ -191,6 +222,8 @@ export default function listPackages({ navigation, route }: Props) {
             placeholder="Search ..."
             placeholderTextColor="#9ca3af"
             className="ml-2 flex-1 text-base text-gray-700"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
           />
         </View>
         <Pressable
@@ -237,11 +270,7 @@ export default function listPackages({ navigation, route }: Props) {
         </View>
         <View className="my-2"></View>
         <FlatList
-          data={
-            filteredData === "All"
-              ? packages
-              : packages.filter((item) => item.packageType === filteredData)
-          }
+          data={visiblePackages}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => <PackageCard item={item} />}
           numColumns={2}
