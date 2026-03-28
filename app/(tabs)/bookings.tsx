@@ -257,6 +257,7 @@ export default function Bookings() {
       setLoading(true);
       const res = await getBookingList({
         member_profile_id: profileId,
+        is_not_expired: true,
       });
       const data = res.data;
       if (data) setData(data.data ?? []);

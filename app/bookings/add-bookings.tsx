@@ -2,32 +2,30 @@ import Combobox from "@/components/Combobox/combobox";
 import { ComboboxItem } from "@/type/combobox";
 import { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { getTrainerPackageCombobox } from "../api/combobox/package";
 import { getPurchaseCombobox } from "../api/combobox/purchase";
+import { getTrainerScheduleCombobox } from "../api/combobox/schedule";
 
 type AddBookingModalProps = {
   visible: boolean;
   onClose: () => void;
 };
 
-const packages = ["Basic Package", "Premium Package", "VIP Package"];
-const trainers = ["John", "Michael", "Sarah"];
-const schedules = ["08:00 - 09:00", "10:00 - 11:00", "16:00 - 17:00"];
-
 export default function AddBookingModal({
   visible,
   onClose,
 }: AddBookingModalProps) {
+  const [isPrivate, setIsPrivate] = useState<boolean>(false);
+
   const [packages, setPackages] = useState<string[]>([]);
   const [packageMap, setPackageMap] = useState<Record<string, ComboboxItem>>(
     {},
   );
-  const [loadingPackages, setLoadingPackages] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState("");
-
   const fetchPackages = async () => {
     const res = await getPurchaseCombobox({
       page: 1,
-      limit: 10,
+      limit: -1,
     });
 
     const map: Record<string, ComboboxItem> = {};
@@ -44,7 +42,60 @@ export default function AddBookingModal({
     setPackages(res.data.map((item) => item.label));
   };
 
+  const [trainers, setTrainer] = useState<string[]>([]);
+  const [trainerMap, setTrainerMap] = useState<Record<string, ComboboxItem>>(
+    {},
+  );
   const [selectedTrainer, setSelectedTrainer] = useState("");
+
+  const fetchTrainer = async () => {
+    const res = await getTrainerPackageCombobox({
+      package_detail_id: (packageMap[selectedPackage].data as any)
+        .package_detail_id,
+    });
+
+    const map: Record<string, ComboboxItem> = {};
+
+    res.data.forEach((item) => {
+      map[item.label] = {
+        label: item.label,
+        value: item.value,
+        data: item.data,
+      };
+    });
+
+    setTrainerMap(map);
+    setTrainer(res.data.map((item) => item.label));
+  };
+
+  const [trainerSchedules, setTrainerSchedule] = useState<string[]>([]);
+  const [trainerScheduleMap, setTrainerScheduleMap] = useState<
+    Record<string, ComboboxItem>
+  >({});
+  const [selectedTrainerSchedule, setSelectedTrainerSchedule] = useState<
+    string | null
+  >(null);
+
+  const fetchTrainerSchedule = async () => {
+    const res = await getTrainerScheduleCombobox({
+      trainer_id: (trainerMap[selectedTrainer].data as any).trainer_profile_id,
+      is_booked: false,
+    });
+    const map: Record<string, ComboboxItem> = {};
+
+    res.data.forEach((item) => {
+      map[item.label] = {
+        label: item.label,
+        value: item.value,
+        data: item.data,
+      };
+    });
+
+    setTrainerScheduleMap(map);
+    setTrainerSchedule(res.data.map((item) => item.label));
+    console.log("schedule", trainerSchedules);
+  };
+
   const [selectedSchedule, setSelectedSchedule] = useState<string | null>(null);
 
   const [openPicker, setOpenPicker] = useState<string | null>(null);
@@ -98,14 +149,22 @@ export default function AddBookingModal({
                   }}
                   onSelect={(label) => {
                     setSelectedPackage(label);
-                    console.log(packageMap[selectedPackage].data);
                     setOpenPicker(null);
+                    const selected = packageMap[label];
+                    if (
+                      selected &&
+                      (selected.data as any)?.product_type_name === "Private"
+                    ) {
+                      setIsPrivate(true);
+                    } else {
+                      setIsPrivate(false);
+                    }
                   }}
                 />
               </View>
             </View>
 
-            {selectedPackage && (
+            {selectedPackage && isPrivate && (
               <>
                 {/* TRAINER */}
                 <View className="mb-5">
@@ -119,11 +178,14 @@ export default function AddBookingModal({
                       placeholder="Select trainer"
                       options={trainers}
                       open={openPicker === "trainer"}
-                      onOpenChange={(nextOpen) =>
-                        setOpenPicker(nextOpen ? "trainer" : null)
-                      }
+                      onOpenChange={(nextOpen) => {
+                        setOpenPicker(nextOpen ? "trainer" : null);
+
+                        if (nextOpen) fetchTrainer();
+                      }}
                       onSelect={(value) => {
                         setSelectedTrainer(value);
+                        fetchTrainerSchedule();
                         setOpenPicker(null);
                       }}
                     />
@@ -137,17 +199,44 @@ export default function AddBookingModal({
                   </Text>
 
                   <View className="flex-row flex-wrap gap-2">
-                    {schedules.map((schedule) => (
+                    {trainerSchedules.map((item) => (
                       <Pressable
-                        key={schedule}
-                        onPress={() => setSelectedSchedule(schedule)}
+                        key={item}
+                        onPress={() => setSelectedTrainerSchedule(item)}
                         className={`rounded-full border px-4 py-2 ${
-                          selectedSchedule === schedule
+                          selectedTrainerSchedule === item
                             ? "border-[#0891B2] bg-[#0891B2]/10"
                             : "border-slate-300"
                         }`}
                       >
-                        <Text className="text-slate-800">{schedule}</Text>
+                        <Text className="text-slate-800">{item}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              </>
+            )}
+
+            {selectedPackage && !isPrivate && (
+              <>
+                {/* SCHEDULE */}
+                <View className="mb-6">
+                  <Text className="mb-3 font-semibold text-slate-700">
+                    Schedule
+                  </Text>
+
+                  <View className="flex-row flex-wrap gap-2">
+                    {trainerSchedules.map((item) => (
+                      <Pressable
+                        key={item}
+                        onPress={() => setSelectedTrainerSchedule(item)}
+                        className={`rounded-full border px-4 py-2 ${
+                          selectedTrainerSchedule === item
+                            ? "border-[#0891B2] bg-[#0891B2]/10"
+                            : "border-slate-300"
+                        }`}
+                      >
+                        <Text className="text-slate-800">{item}</Text>
                       </Pressable>
                     ))}
                   </View>
