@@ -302,13 +302,12 @@ export default function Bookings() {
       const res = await cancelBooking({
         booking_id: selectedBooking.booking_id,
       });
-      if (res.error) {
-        showToast({
-          message: res.error,
-          variant: "warning",
-          duration: 2500,
-        });
-      }
+      showToast({
+        message: res.message,
+        variant: res.success === true ? "success" : "error",
+        duration: 2500,
+      });
+
       await fetchBookings();
 
       setOpen(false);
