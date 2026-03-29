@@ -386,6 +386,7 @@ export default function Bookings() {
         <AddBookingModal
           visible={openAddBooking}
           onClose={() => setOpenAddBooking(false)}
+          onSuccess={() => fetchBookings()}
         />
       </View>
     </GestureHandlerRootView>

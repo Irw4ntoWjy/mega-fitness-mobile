@@ -40,6 +40,7 @@ export function bookClassSchedule(payload?: {
   schedule_id: string;
   member_profile_id: string;
   purchase_id: string;
+  schedule_type: string;
 }) {
   return fetcher("/booking/book", {
     body: buildListPayload(payload),

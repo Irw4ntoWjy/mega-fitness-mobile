@@ -2,6 +2,7 @@ import Combobox from "@/components/Combobox/combobox";
 import { useToast } from "@/components/Toast/toast-provider";
 import { useAuth } from "@/hooks/useAuth";
 import { ComboboxItem } from "@/type/combobox";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { getTrainerPackageCombobox } from "../api/combobox/package";
@@ -15,11 +16,13 @@ import { bookClassSchedule } from "../api/schedule";
 type AddBookingModalProps = {
   visible: boolean;
   onClose: () => void;
+  onSuccess: () => void;
 };
 
 export default function AddBookingModal({
   visible,
   onClose,
+  onSuccess,
 }: AddBookingModalProps) {
   const handleClose = () => {
     // reset flags
@@ -50,6 +53,8 @@ export default function AddBookingModal({
 
     // finally close modal
     onClose();
+
+    router.replace("/(tabs)/bookings");
   };
   const { auth, loading: loadingAuth } = useAuth();
   const { showToast } = useToast();
@@ -198,21 +203,16 @@ export default function AddBookingModal({
       schedule_id: isPrivate
         ? String((selectedPrivateSchedule.data as any).id)
         : String((selectedClassSchedule.data as any).id),
-      purchase_id: String((selectedPurchase.data as any).purchase_id),
-      member_profile_id: auth.accountDetail.profile_id,
-    });
-    console.log(res, {
-      schedule_id: isPrivate
-        ? String((selectedPrivateSchedule.data as any).id)
-        : String((selectedClassSchedule.data as any).id),
       purchase_id: String((selectedPurchase.data as any).id),
       member_profile_id: auth.accountDetail.profile_id,
-      schedule_type: isPrivate ? "private" : "class",
+      schedule_type: isPrivate ? "trainer" : "class",
     });
+
     showToast({
       message: res.message,
       variant: res.success === true ? "success" : "error",
     });
+    onSuccess();
     handleClose();
   };
 
