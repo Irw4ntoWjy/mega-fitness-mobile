@@ -7,6 +7,7 @@ export function getBookingList(payload?: {
   page?: number;
   limit?: number;
   member_profile_id?: string;
+  is_not_expired: boolean;
 }) {
   return fetcher<BookingPagination>("/booking/list", {
     body: buildListPayload(payload),

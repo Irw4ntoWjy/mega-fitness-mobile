@@ -257,6 +257,7 @@ export default function Bookings() {
       setLoading(true);
       const res = await getBookingList({
         member_profile_id: profileId,
+        is_not_expired: true,
       });
       const data = res.data;
       if (data) setData(data.data ?? []);
@@ -301,13 +302,12 @@ export default function Bookings() {
       const res = await cancelBooking({
         booking_id: selectedBooking.booking_id,
       });
-      if (res.error) {
-        showToast({
-          message: res.error,
-          variant: "warning",
-          duration: 2500,
-        });
-      }
+      showToast({
+        message: res.message,
+        variant: res.success === true ? "success" : "error",
+        duration: 2500,
+      });
+
       await fetchBookings();
 
       setOpen(false);
@@ -385,6 +385,7 @@ export default function Bookings() {
         <AddBookingModal
           visible={openAddBooking}
           onClose={() => setOpenAddBooking(false)}
+          onSuccess={() => fetchBookings()}
         />
       </View>
     </GestureHandlerRootView>
