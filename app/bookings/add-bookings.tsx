@@ -317,9 +317,9 @@ export default function AddBookingModal({
                   </Text>
 
                   <View className="flex-row flex-wrap gap-2">
-                    {trainerSchedules.map((item) => (
+                    {trainerSchedules.map((item, index) => (
                       <Pressable
-                        key={item}
+                        key={`${item} ${index}`}
                         onPress={() => setSelectedTrainerSchedule(item)}
                         className={`rounded-full border px-4 py-2 ${
                           selectedTrainerSchedule === item
@@ -344,9 +344,9 @@ export default function AddBookingModal({
                   </Text>
 
                   <View className="flex-row flex-wrap gap-2">
-                    {schedules.map((item) => (
+                    {schedules.map((item, index) => (
                       <Pressable
-                        key={item}
+                        key={`${item} ${index}`}
                         onPress={() => setSelectedSchedule(item)}
                         className={`rounded-full border px-4 py-2 ${
                           selectedSchedule === item
