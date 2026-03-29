@@ -10,7 +10,7 @@ export const scheduleClassSchema = z.object({
 
   time_start: z.string().optional(),
   time_end: z.string().optional(),
-  scheduleClass_date: z.string().optional(),
+  schedule_date: z.string().optional(),
 
   capacity: z.number().optional(),
 

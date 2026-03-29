@@ -6,7 +6,6 @@ export async function getTrainerPackageCombobox(payload?: {
 }): Promise<{ data: ComboboxItem[] }> {
   const res = await getPackageTrainerList(payload);
   const data = res.data;
-  console.log(res);
   return {
     data: (data ?? []).map((item) => ({
       label: item.trainer_profile_name,
