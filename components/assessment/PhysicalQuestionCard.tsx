@@ -20,22 +20,35 @@ export default function PhysicalQuestionCard({
 }: Props) {
   const isDisabled = !!disabled;
 
-  // ✅ SINGLE SOURCE OF TRUTH
-  const type = value?.type ?? q.value.type;
+  const currentValue: AnswerValue =
+    value ??
+    (() => {
+      switch (q.value.type) {
+        case "BOOL":
+          return { type: "BOOL", value: false };
+        case "BOOL_TEXT":
+          return { type: "BOOL_TEXT", value: false, desc: "" };
+        case "TEXT":
+          return { type: "TEXT", desc: "" };
+        default:
+          throw new Error("Unknown question type");
+      }
+    })();
+  const type = currentValue.type;
 
   const booleanValue =
     type === "BOOL" || type === "BOOL_TEXT"
-      ? (value as Extract<AnswerValue, { value?: boolean }>)?.value
+      ? (currentValue as Extract<AnswerValue, { value?: boolean }>)?.value
       : undefined;
 
   const detailsValue =
     type === "BOOL_TEXT"
-      ? ((value as Extract<AnswerValue, { desc?: string }>)?.desc ?? "")
+      ? ((currentValue as Extract<AnswerValue, { desc?: string }>)?.desc ?? "")
       : "";
 
   const textValue =
     type === "TEXT"
-      ? ((value as Extract<AnswerValue, { desc?: string }>)?.desc ?? "")
+      ? ((currentValue as Extract<AnswerValue, { desc?: string }>)?.desc ?? "")
       : "";
 
   const key = questionKey;
@@ -98,7 +111,7 @@ export default function PhysicalQuestionCard({
                   value={true}
                   selected={booleanValue === true}
                   onPress={updateBoolean}
-                  editable={!isDisabled}
+                  editable={isDisabled}
                 />
 
                 <BooleanOption
@@ -106,7 +119,7 @@ export default function PhysicalQuestionCard({
                   value={false}
                   selected={booleanValue === false}
                   onPress={updateBoolean}
-                  editable={!isDisabled}
+                  editable={isDisabled}
                 />
               </View>
 

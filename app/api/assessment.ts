@@ -1,5 +1,8 @@
 import { fetcher } from "@/lib/fetcher";
-import { AssessmentPagination } from "@/type/assessment";
+import {
+  AssessmentPagination,
+  CheckAssessmentResponse,
+} from "@/type/assessment";
 import { buildListPayload } from "@/type/pagination";
 
 export function getAssessmentList(payload?: {
@@ -23,6 +26,13 @@ export function createAssessment(payload?: {
       profile_id: payload?.profile_id,
       answer_json: payload?.answer_json,
     },
+    auth: true,
+  });
+}
+
+export function checkAssessment(payload?: { profile_id: string }) {
+  return fetcher<CheckAssessmentResponse>("/assessment/check", {
+    body: payload,
     auth: true,
   });
 }

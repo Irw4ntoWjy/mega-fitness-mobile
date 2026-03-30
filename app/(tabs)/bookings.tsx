@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import { checkAssessment } from "../api/assessment";
 import { cancelBooking, getBookingList } from "../api/booking";
 import AddBookingModal from "../bookings/add-bookings";
 import { bookings } from "../bookings/dummy_data";
@@ -286,6 +287,35 @@ export default function Bookings() {
 
   const [openAddBooking, setOpenAddBooking] = useState(false);
 
+  const handleAddBooking = async () => {
+    const profileId = auth?.accountDetail?.profile_id;
+    if (!profileId) return;
+
+    try {
+      const checkAssessmentRes = await checkAssessment({
+        profile_id: profileId,
+      });
+
+      if (!checkAssessmentRes.data?.done_assessment) {
+        router.push("/assessment/detail");
+        showToast({
+          message: "Assessment section 1 & 2 required before booking",
+          variant: "error",
+          duration: 2500,
+        });
+        return;
+      }
+
+      setOpenAddBooking(true);
+    } catch (err) {
+      console.error(err);
+      showToast({
+        message: "Failed to check assessment",
+        variant: "error",
+        duration: 2500,
+      });
+    }
+  };
   const handleOpenCancel = (booking: BookingSchema) => {
     setSelectedBooking(booking);
     setOpen(true);
@@ -330,7 +360,7 @@ export default function Bookings() {
               BOOKINGS
             </Text>
 
-            <Pressable onPress={() => setOpenAddBooking(true)}>
+            <Pressable onPress={handleAddBooking}>
               <Text className="underline">ADD BOOKINGS</Text>
             </Pressable>
           </View>

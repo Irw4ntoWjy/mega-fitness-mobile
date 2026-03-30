@@ -39,7 +39,13 @@ export default function AssessmentDetail() {
         });
 
         const resData = res.data;
-        const answerJson = (resData as any)?.data?.[0]?.answer_json;
+        const rawAnswerJson = (resData as any)?.data?.[0]?.answer_json;
+
+        const isEditMode = !rawAnswerJson;
+
+        const answerJson = rawAnswerJson ?? QUESTION_META;
+
+        setIsEditMode(isEditMode);
 
         setData(answerJson);
 
@@ -77,8 +83,6 @@ export default function AssessmentDetail() {
         });
 
         setAnswers(initialAnswers);
-
-        console.log("mapped answers", initialAnswers);
       } catch (err) {
         console.error(err);
       } finally {
@@ -91,7 +95,6 @@ export default function AssessmentDetail() {
 
   const isCurrentStepValid = () => {
     return currentSection?.data?.every((q: any) => {
-      console.log(q);
       const key = `${currentSection.section}-${q.key.en}`;
       const answer = answers[key];
 
@@ -146,34 +149,110 @@ export default function AssessmentDetail() {
     return { type: metaType };
   };
 
-  const handleSubmit = () => {
-    const result = QUESTION_META.map((section) => ({
-      section: section.section,
-      subtitle: section.subtitle,
-      data: section.data.map((q) => {
-        const answerEntry = Object.entries(answers).find(([key]) => {
-          return cleanKey(key) === q.key.en;
-        });
+  const handleSubmit = async () => {
+    if (!auth.accountDetail.profile_id) {
+      showToast({
+        message: "Profile ID not found.",
+        variant: "error",
+        duration: 2500,
+      });
+      return;
+    }
 
+    const isAnswerValid = (type: string, value: any) => {
+      if (!value) return false;
+
+      switch (type) {
+        case "BOOL":
+          return typeof value.value === "boolean";
+        case "BOOL_TEXT":
+          return typeof value.value === "boolean";
+        case "TEXT":
+          return typeof value.value === "string" && value.value.trim() !== "";
+        default:
+          return true;
+      }
+    };
+
+    const result = [];
+
+    for (const section of QUESTION_META) {
+      const data = section.data.map((q) => {
+        const answerEntry = Object.entries(answers).find(
+          ([key]) => cleanKey(key) === q.key.en,
+        );
         const answer = answerEntry?.[1];
-
         return {
           key: q.key,
           value: mapValue(q.value.type, answer),
+          rawAnswer: answer,
         };
-      }),
-    }));
+      });
 
-    const res = createAssessment({
-      profile_id: auth.accountDetail.profile_id,
-      answer_json: result,
-    });
+      if (section.section === 1 || section.section === 2) {
+        for (const q of data) {
+          const answer = q.rawAnswer;
 
-    showToast({
-      message: res.message,
-      variant: res.success === true ? "success" : "error",
-      duration: 2500,
-    });
+          let isValid = true;
+
+          if (!answer) {
+            isValid = false;
+          } else {
+            switch (answer.type) {
+              case "BOOL":
+                isValid = typeof answer.value === "boolean";
+                break;
+              case "BOOL_TEXT":
+                isValid = typeof answer.value === "boolean";
+                break;
+              case "TEXT":
+                isValid =
+                  typeof answer.desc === "string" && answer.desc.trim() !== "";
+                break;
+              default:
+                isValid = false;
+            }
+          }
+
+          if (!isValid) {
+            showToast({
+              message: `Question missing required answer in section ${section.section}: "${q.key.en}"`,
+              variant: "warning",
+              duration: 3500,
+            });
+            return;
+          }
+        }
+      }
+
+      result.push({
+        section: section.section,
+        subtitle: section.subtitle,
+        data: data.map(({ key, value }) => ({ key, value })),
+      });
+    }
+
+    try {
+      const res = await createAssessment({
+        profile_id: auth.accountDetail.profile_id,
+        answer_json: result,
+      });
+
+      showToast({
+        message: res.message,
+        variant: res.success === true ? "success" : "error",
+        duration: 2500,
+      });
+
+      setIsEditMode(false);
+    } catch (err) {
+      console.error(err);
+      showToast({
+        message: "Failed to submit assessment.",
+        variant: "error",
+        duration: 2500,
+      });
+    }
   };
 
   return (
@@ -189,7 +268,13 @@ export default function AssessmentDetail() {
         </Pressable>
 
         <Pressable
-          onPress={() => setIsEditMode((prev) => !prev)}
+          onPress={() => {
+            if (isEditMode) {
+              handleSubmit();
+            } else {
+              setIsEditMode(true);
+            }
+          }}
           className="px-3 h-10 items-center justify-center"
         >
           <Text className="text-[#0E8BAA] text-xl underline">

@@ -60,3 +60,9 @@ export type AnswerValue =
   | { type: "BOOL"; value: boolean }
   | { type: "BOOL_TEXT"; value?: boolean; desc?: string }
   | { type: "TEXT"; desc?: string };
+
+export const checkAssessmentResponse = z.object({
+  done_assessment: z.boolean(),
+});
+
+export type CheckAssessmentResponse = z.infer<typeof checkAssessmentResponse>;
