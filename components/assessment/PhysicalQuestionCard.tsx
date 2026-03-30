@@ -8,60 +8,69 @@ type Props = {
   value?: AnswerValue;
   setAnswer: (key: string, value: AnswerValue) => void;
   disabled?: boolean;
+  questionKey: string;
 };
 
 export default function PhysicalQuestionCard({
   q,
-  index,
   value,
   setAnswer,
   disabled,
+  questionKey,
 }: Props) {
   const isDisabled = !!disabled;
 
-  const booleanValue =
-    value?.type === "BOOL" || value?.type === "BOOL_TEXT"
-      ? value.value
-      : undefined;
-  const detailsValue = value?.type === "BOOL_TEXT" ? value.desc : undefined;
-  const textValue = value?.type === "TEXT" ? value.desc : undefined;
+  // ✅ SINGLE SOURCE OF TRUTH
+  const type = value?.type ?? q.value.type;
 
-  const key = q.key.en;
+  const booleanValue =
+    type === "BOOL" || type === "BOOL_TEXT"
+      ? (value as Extract<AnswerValue, { value?: boolean }>)?.value
+      : undefined;
+
+  const detailsValue =
+    type === "BOOL_TEXT"
+      ? ((value as Extract<AnswerValue, { desc?: string }>)?.desc ?? "")
+      : "";
+
+  const textValue =
+    type === "TEXT"
+      ? ((value as Extract<AnswerValue, { desc?: string }>)?.desc ?? "")
+      : "";
+
+  const key = questionKey;
 
   const updateBoolean = (v: boolean) => {
-    if (q.value?.type === "BOOL") {
+    if (type === "BOOL") {
       setAnswer(key, {
         type: "BOOL",
         value: v,
       });
     }
 
-    if (q.value?.type === "BOOL_TEXT") {
+    if (type === "BOOL_TEXT") {
       setAnswer(key, {
         type: "BOOL_TEXT",
         value: v,
-        desc: v ? detailsValue : undefined, // clear if false
+        desc: v ? detailsValue : undefined,
       });
     }
   };
 
   const updateDetail = (text: string) => {
-    if (q.value?.type === "BOOL_TEXT") {
-      setAnswer(key, {
-        type: "BOOL_TEXT",
-        value: true,
-        desc: text,
-      });
-    }
+    setAnswer(key, {
+      type: "BOOL_TEXT",
+      value: true,
+      desc: text,
+    });
   };
 
+  // ✅ TEXT UPDATE
   const updateText = (text: string) => {
-    if (q.value?.type === "TEXT") {
-      setAnswer(key, {
-        type: "TEXT",
-        desc: text,
-      });
-    }
+    setAnswer(key, {
+      type: "TEXT",
+      desc: text,
+    });
   };
 
   return (
@@ -80,8 +89,8 @@ export default function PhysicalQuestionCard({
             </Text>
           )}
 
-          {/* ===== BOOLEAN TYPES ===== */}
-          {(q.value?.type === "BOOL" || q.value?.type === "BOOL_TEXT") && (
+          {/* ===== BOOLEAN ===== */}
+          {(type === "BOOL" || type === "BOOL_TEXT") && (
             <>
               <View className="flex-row gap-6 mb-3">
                 <BooleanOption
@@ -102,11 +111,11 @@ export default function PhysicalQuestionCard({
               </View>
 
               {/* DETAIL INPUT */}
-              {q.value?.type === "BOOL_TEXT" && booleanValue === true && (
+              {type === "BOOL_TEXT" && booleanValue === true && (
                 <TextInput
                   value={detailsValue}
                   onChangeText={updateDetail}
-                  placeholder="Jelaskan lebih desc..."
+                  placeholder="Jelaskan lebih lanjut..."
                   placeholderTextColor="#6b7280"
                   className="border-b border-gray-300 text-md py-1"
                   textAlignVertical="top"
@@ -118,7 +127,7 @@ export default function PhysicalQuestionCard({
           )}
 
           {/* ===== TEXT ===== */}
-          {q.value?.type === "TEXT" && (
+          {type === "TEXT" && (
             <TextInput
               value={textValue}
               onChangeText={updateText}

@@ -1,18 +1,20 @@
-import { getAssessmentList } from "@/app/api/assessment";
+import { createAssessment, getAssessmentList } from "@/app/api/assessment";
 import AssessmentHeader from "@/components/assessment/AssessmentHeader";
 import BottomNavbar from "@/components/assessment/BottomNavbar";
 import PhysicalQuestionCard from "@/components/assessment/PhysicalQuestionCard";
 import { BackgroundGlow } from "@/components/Theme/background";
+import { useToast } from "@/components/Toast/toast-provider";
 import { useAuth } from "@/hooks/useAuth";
 import { AnswerValue, SectionSchema } from "@/type/assessment";
 import { router } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
+import { QUESTION_META } from "./dummy_question";
 
 export default function AssessmentDetail() {
   const { auth, loading: loadingAuth } = useAuth();
-
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<SectionSchema[]>([]);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
@@ -21,7 +23,6 @@ export default function AssessmentDetail() {
 
   const currentSection = data[currentStep];
 
-  // ================= FETCH + MAP =================
   useEffect(() => {
     if (loadingAuth) return;
 
@@ -42,7 +43,6 @@ export default function AssessmentDetail() {
 
         setData(answerJson);
 
-        // 🔥 MAP API → UI STATE
         const initialAnswers: Record<string, AnswerValue> = {};
 
         answerJson?.forEach((section: any) => {
@@ -89,7 +89,6 @@ export default function AssessmentDetail() {
     fetchData();
   }, [loadingAuth, auth]);
 
-  // ================= VALIDATION =================
   const isCurrentStepValid = () => {
     return currentSection?.data?.every((q: any) => {
       console.log(q);
@@ -117,18 +116,70 @@ export default function AssessmentDetail() {
     });
   };
 
-  // ================= SUBMIT =================
-  const handleSubmit = () => {
-    console.log("FINAL ANSWERS:", answers);
+  const cleanKey = (key: string) => key.replace(/^\d+-/, "");
 
-    // 🔥 (Next step: map back to API format)
+  const mapValue = (metaType: string, answer?: any) => {
+    if (!answer) return { type: metaType };
+
+    if (metaType === "BOOL") {
+      return {
+        type: "BOOL",
+        value: answer.value ?? false,
+      };
+    }
+
+    if (metaType === "BOOL_TEXT") {
+      return {
+        type: "BOOL_TEXT",
+        value: answer.value ?? false,
+        ...(answer.desc ? { desc: answer.desc } : {}),
+      };
+    }
+
+    if (metaType === "TEXT") {
+      return {
+        type: "TEXT",
+        value: answer.desc ?? "",
+      };
+    }
+
+    return { type: metaType };
+  };
+
+  const handleSubmit = () => {
+    const result = QUESTION_META.map((section) => ({
+      section: section.section,
+      subtitle: section.subtitle,
+      data: section.data.map((q) => {
+        const answerEntry = Object.entries(answers).find(([key]) => {
+          return cleanKey(key) === q.key.en;
+        });
+
+        const answer = answerEntry?.[1];
+
+        return {
+          key: q.key,
+          value: mapValue(q.value.type, answer),
+        };
+      }),
+    }));
+
+    const res = createAssessment({
+      profile_id: auth.accountDetail.profile_id,
+      answer_json: result,
+    });
+
+    showToast({
+      message: res.message,
+      variant: res.success === true ? "success" : "error",
+      duration: 2500,
+    });
   };
 
   return (
     <View className="flex-1">
       <BackgroundGlow showText />
 
-      {/* HEADER */}
       <View className="mt-20 h-14 px-4 flex-row items-center justify-between">
         <Pressable
           onPress={() => router.back()}
@@ -147,7 +198,6 @@ export default function AssessmentDetail() {
         </Pressable>
       </View>
 
-      {/* SECTION HEADER */}
       {currentSection && (
         <AssessmentHeader
           currentStep={currentStep + 1}
@@ -157,7 +207,6 @@ export default function AssessmentDetail() {
         />
       )}
 
-      {/* QUESTIONS */}
       <ScrollView className="flex-1 mb-30" showsVerticalScrollIndicator={false}>
         <View className="px-6 mt-6">
           {currentSection?.data?.map((q: any, index: number) => {
@@ -166,6 +215,7 @@ export default function AssessmentDetail() {
             return (
               <PhysicalQuestionCard
                 key={key}
+                questionKey={key}
                 q={q}
                 index={index}
                 value={answers[key]}
@@ -182,7 +232,6 @@ export default function AssessmentDetail() {
         </View>
       </ScrollView>
 
-      {/* NAVBAR */}
       <BottomNavbar
         onNext={() => {
           if (currentStep === data.length - 1) {

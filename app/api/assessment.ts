@@ -13,3 +13,16 @@ export function getAssessmentList(payload?: {
     auth: true,
   });
 }
+
+export function createAssessment(payload?: {
+  profile_id: string;
+  answer_json: any;
+}) {
+  return fetcher("/assessment/create", {
+    body: {
+      profile_id: payload?.profile_id,
+      answer_json: payload?.answer_json,
+    },
+    auth: true,
+  });
+}
