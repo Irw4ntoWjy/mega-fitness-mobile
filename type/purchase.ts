@@ -3,6 +3,7 @@ import { paginationSchema } from "./pagination";
 
 export const purchaseItemSchema = z.object({
   id: z.string(),
+  invoice_number: z.string(),
   member_profile_id: z.string(),
   member_profile_name: z.string(),
   package_detail_id: z.string(),
@@ -12,6 +13,7 @@ export const purchaseItemSchema = z.object({
   product_name: z.string(),
   package_trainer_id: z.string().optional(),
   package_trainer_name: z.string().optional(),
+  package_cover_image: z.string().optional(),
   purchase_status_id: z.string(),
   purchase_status_name: z.string(),
   requested_at: z.string(),

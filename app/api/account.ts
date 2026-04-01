@@ -1,14 +1,15 @@
 import { fetcher } from "@/lib/fetcher";
-import { AccountDetail } from "@/type/detail-account";
+import { AccountPagination } from "@/type/account";
+import { buildListPayload } from "@/type/pagination";
 
-export type AccountDetailPayload = {
-  account_code: string;
-};
-
-export function getAccountDetailByCode(payload: AccountDetailPayload) {
-  return fetcher<AccountDetail>("/account/detail/code", {
-    method: "POST",
-    body: payload,
+export function getTrainerList(payload?: {
+  q?: string | null;
+  page?: number;
+  limit?: number;
+  role: "trainer";
+}) {
+  return fetcher<AccountPagination>("/account/list", {
+    body: buildListPayload(payload),
     auth: true,
   });
 }
