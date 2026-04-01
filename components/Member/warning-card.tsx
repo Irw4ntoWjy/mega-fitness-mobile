@@ -7,7 +7,7 @@ export function WarningCard({}: WarningCardProps) {
   return (
     <View className="w-full my-3">
       <Pressable onPress={() => console.log("clicked")}>
-        <View className="bg-yellow-50 rounded-3xl border border-yellow-200 p-4 overflow-hidden shadow-sm flex-col gap-4">
+        <View className="h-full flex-[1.6] bg-yellow-50 rounded-3xl border border-yellow-200 p-4 overflow-hidden shadow-sm flex-col gap-4">
           <View className="flex-row items-center justify-between">
             <Text className="text-xl font-bold text-yellow-900">
               Warning !!

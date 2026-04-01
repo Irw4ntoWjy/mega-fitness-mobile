@@ -1,65 +1,17 @@
 import { BackgroundGlow } from "@/components/Theme/background";
-import { getAuth } from "@/lib/auth-storage";
-import { fetcher } from "@/lib/fetcher";
+import { useAuth } from "@/hooks/useAuth";
 import { router } from "expo-router";
 import { User } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { bookings } from "../bookings/dummy_data";
 import { activities, profile } from "../classes/dummy_data";
 
 const ongoingActivities = activities.filter(
-  (activity) => activity.status === "Ongoing" || activity.status === "Now",
+  (activity) => activity.status === "Ongoing",
 );
 
 type OngoingActivity = (typeof ongoingActivities)[number];
-
-function normalizeRole(role: string) {
-  return role.trim().toLowerCase();
-}
-
-function getRoleTheme(role: string) {
-  const r = normalizeRole(role);
-
-  if (r.includes("trainer")) {
-    return {
-      container: "border-purple-400 bg-purple-50",
-      text: "text-purple-700",
-      iconColor: "#7C3AED",
-    };
-  }
-
-  if (r.includes("member")) {
-    return {
-      container: "border-amber-400 bg-amber-50",
-      text: "text-amber-700",
-      iconColor: "#B45309",
-    };
-  }
-
-  if (r.includes("admin")) {
-    return {
-      container: "border-blue-400 bg-blue-50",
-      text: "text-blue-700",
-      iconColor: "#1D4ED8",
-    };
-  }
-
-  if (r.includes("staff") || r.includes("employee")) {
-    return {
-      container: "border-teal-400 bg-teal-50",
-      text: "text-teal-700",
-      iconColor: "#0F766E",
-    };
-  }
-
-  return {
-    container: "border-slate-300 bg-slate-50",
-    text: "text-slate-700",
-    iconColor: "#334155",
-  };
-}
 
 function OngoingCard({ item }: { item: OngoingActivity }) {
   return (
@@ -118,11 +70,13 @@ function OngoingCard({ item }: { item: OngoingActivity }) {
   );
 }
 
-const upcomingActivities = bookings.filter((booking) => booking.status === "Upcoming");
+const todaysActivities = activities.filter(
+  (activity) => activity.status !== "Ongoing",
+);
 
-type UpcomingActivity = (typeof upcomingActivities)[number];
+type TodaysActivities = (typeof todaysActivities)[number];
 
-function UpcomingCard({ item }: { item: UpcomingActivity }) {
+function TodaysCard({ item }: { item: TodaysActivities }) {
   return (
     <Pressable
       className="w-[48%] mb-4 mt-2"
@@ -147,7 +101,7 @@ function UpcomingCard({ item }: { item: UpcomingActivity }) {
             position: "absolute",
             top: -10,
             left: -5,
-            backgroundColor: "#22C55E",
+            backgroundColor: item.tagColor,
             paddingHorizontal: 12,
             paddingVertical: 7,
             borderRadius: 8,
@@ -179,93 +133,50 @@ function UpcomingCard({ item }: { item: UpcomingActivity }) {
   );
 }
 
-async function fetchAccountDetailByCode(accountCode: string) {
-  const endpoint = "/account/detail/code";
-  const body = { account_code: accountCode };
-
-  const postRes = await fetcher<any>(endpoint, {
-    method: "POST",
-    auth: true,
-    body,
-  });
-
-  if (postRes.success && postRes.data) return postRes;
-
-  return fetcher<any>(
-    `${endpoint}?account_code=${encodeURIComponent(accountCode)}`,
-    { method: "GET", auth: true },
-  );
-}
-
 const Home = () => {
-  useSafeAreaInsets();
-  const [profileName, setProfileName] = useState("");
-  const [accountEmail, setAccountEmail] = useState("");
-  const [accountRole, setAccountRole] = useState(profile.role ?? "Member");
-  const [totalActivity, setTotalActivity] = useState<number>(
-    typeof profile.total_activity === "number" ? profile.total_activity : 0,
-  );
-  const roleTheme = getRoleTheme(accountRole);
+  const insets = useSafeAreaInsets();
+  const userProfile = profile;
+  const { auth, loading: loadingAuth } = useAuth();
 
-  useEffect(() => {
-    const load = async () => {
-      const auth = await getAuth();
-      const accountCode =
-        auth?.accessPayload?.account_code ?? (auth?.accessPayload as any)?.accountCode;
-
-      if (!accountCode) return;
-
-      const res = await fetchAccountDetailByCode(accountCode);
-      if (!res.success || !res.data) return;
-
-      const detail = res.data;
-
-      if (typeof detail.profile_name === "string") {
-        setProfileName(detail.profile_name);
-      }
-
-      if (typeof detail.account_email === "string") {
-        setAccountEmail(detail.account_email);
-      }
-
-      if (typeof detail.account_role === "string") {
-        setAccountRole(detail.account_role);
-      }
-
-      if (typeof detail.total_activity === "number") {
-        setTotalActivity(detail.total_activity);
-      }
-    };
-
-    load();
-  }, []);
-
+  if (loadingAuth) return null;
   return (
     <View className="flex-1 mb-28">
       <ScrollView>
         {/* <View className="px-5 pt-4"> */}
         <BackgroundGlow showText={true} />
-        <View className="flex flex-row justify-between items-center mb-4 mt-20 mx-5">
-          <View>
-            <Text className="text-3xl font-semibold text-slate-900">
-              {profileName || profile.username}
+        <View className="flex flex-row justify-between gap-4 items-center mb-4 mt-20 mx-5">
+          <View className="flex-1">
+            <Text className="text-3xl font-semibold text-slate-900 flex-wrap">
+              {auth.accountDetail.profile_name}
             </Text>
+
             <Text className="text-base text-slate-500">
-              {accountEmail || profile.userId}
+              {auth.accessPayload.account_code}
             </Text>
 
             <View
               className={`flex flex-row mt-3 self-start rounded-full items-center text-center border gap-2 px-4 py-1 ${
-                roleTheme.container
+                auth.accountDetail.account_role === "Trainer"
+                  ? "border-purple-400 bg-purple-50"
+                  : "border-amber-400 bg-amber-50"
               }`}
             >
-              <User size={14} color={roleTheme.iconColor} />
+              <User
+                size={14}
+                color={
+                  auth.accountDetail.account_role === "Trainer"
+                    ? "#7C3AED"
+                    : "#B45309"
+                }
+              />
               <Text
                 className={`text-xs font-semibold ${
-                  roleTheme.text
+                  auth.accountDetail.account_role === "Trainer"
+                    ? "text-purple-700"
+                    : "text-amber-700"
                 }`}
               >
-                {accountRole}
+                {auth.accountDetail.account_role}
               </Text>
             </View>
           </View>
@@ -274,7 +185,7 @@ const Home = () => {
             <Text className="text-lg font-medium mb-2">Active Packages</Text>
             <View className="w-20 h-20 rounded-full bg-cyan-600 items-center justify-center">
               <Text className="text-3xl font-semibold text-white">
-                {totalActivity}
+                {profile.total_activity}
               </Text>
             </View>
           </View>
@@ -290,11 +201,11 @@ const Home = () => {
         </View>
 
         <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
-          Upcoming Activity
+          Today’s Activity
         </Text>
         <View className="flex flex-row flex-wrap justify-between mx-5">
-          {upcomingActivities.map((item) => (
-            <UpcomingCard key={item.id} item={item} />
+          {todaysActivities.map((item) => (
+            <TodaysCard key={item.id} item={item} />
           ))}
         </View>
         {/* </View> */}

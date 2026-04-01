@@ -1,10 +1,10 @@
+import { AssessmentPages } from "@/app/assessment/dummy_question";
 import { router } from "expo-router";
 import {
   Bell,
   ChevronLeft,
   FileQuestionMark,
   History,
-  Settings,
 } from "lucide-react-native";
 import { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -37,11 +37,12 @@ export default function HeaderNavBar({
         paddingTop: insets.top + 8,
         paddingRight: insets.right + 8,
         paddingLeft: insets.left + 8,
+        paddingBottom: 8,
         alignItems: "center",
       }}
     >
       <Pressable
-        onPress={onBack ?? (() => router.back())}
+        onPress={onBack ?? (() => router.push("/(tabs)"))}
         className="w-10 h-10 items-center justify-center"
       >
         <ChevronLeft size={22} color="#000" />
@@ -63,15 +64,26 @@ export default function HeaderNavBar({
           <HeaderIcon onPress={() => router.push("/history/history")}>
             <History size={18} color="black" />
           </HeaderIcon>
-          <HeaderIcon>
+          <HeaderIcon
+            onPress={() =>
+              router.push({
+                pathname: "/assessment/[section]/[id]/detail",
+                params: {
+                  section: AssessmentPages.PHYSICAL_ACTIVITY_READINESS,
+                  // TODO update use userId
+                  id: "1",
+                },
+              })
+            }
+          >
             <FileQuestionMark size={18} color="black" />
           </HeaderIcon>
           <HeaderIcon>
             <Bell size={18} color="black" />
           </HeaderIcon>
-          <HeaderIcon onPress={() => router.push("/profile/settings-list")}>
+          {/* <HeaderIcon onPress={() => router.push("/profile/settings-list")}>
             <Settings size={18} color="black" />
-          </HeaderIcon>
+          </HeaderIcon> */}
         </View>
       ) : null}
     </View>

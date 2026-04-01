@@ -1,7 +1,10 @@
+import { requestOtp, verifyAccount } from "@/app/api/auth";
 import { BackgroundGlow } from "@/components/Theme/background";
-import { useRouter } from "expo-router";
+import { useToast } from "@/components/Toast/toast-provider";
+import { otpRequestSchema, verifyAccountSchema } from "@/type/auth";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -15,9 +18,50 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function OtpVerification() {
   const router = useRouter();
+  const { showToast } = useToast();
+  const { email } = useLocalSearchParams<{ email?: string }>();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
-  const inputRefs = Array.from({ length: 6 }, () => useRef<TextInput>(null));
+  const inputRefs = useRef<(TextInput | null)[]>([]);
+
+  const requestOtpOnce = useCallback(async () => {
+    const payload = { email: email ?? "" };
+    const parsed = otpRequestSchema.safeParse(payload);
+    if (!parsed.success) {
+      showToast({
+        message: parsed.error.issues[0]?.message || "Invalid email",
+        variant: "error",
+        duration: 2500,
+      });
+      return false;
+    }
+
+    const res = await requestOtp(parsed.data);
+    if (!res.success || !res.data) {
+      showToast({
+        message: res.message || "Failed to request OTP",
+        variant: "error",
+        duration: 2500,
+      });
+      return false;
+    }
+    setCooldownSeconds(60);
+    return true;
+  }, [email, showToast]);
+
+  useEffect(() => {
+    requestOtpOnce();
+  }, [requestOtpOnce]);
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return undefined;
+    const timer = setInterval(() => {
+      setCooldownSeconds((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldownSeconds]);
 
   const handleChange = (text: string, index: number) => {
     if (text.length > 1) return;
@@ -28,28 +72,24 @@ export default function OtpVerification() {
 
     // Move to next input automatically
     if (text && index < 5) {
-      inputRefs[index + 1].current?.focus();
+      inputRefs.current[index + 1]?.focus();
     }
 
     // If deleting, move back
     if (!text && index > 0) {
-      inputRefs[index - 1].current?.focus();
+      inputRefs.current[index - 1]?.focus();
     }
   };
 
   const handleVerify = () => {
     const code = otp.join("");
-    console.log("Entered OTP:", code);
-    // TODO: OTP verification logic here
+    return { email: email ?? "", otp: code };
   };
 
   return (
     <KeyboardAvoidingView className="flex-1" behavior={"padding"}>
       <SafeAreaView style={{ flex: 1 }}>
-        {/* Background glow same as login */}
         <BackgroundGlow showText={true} />
-
-        {/* Back Button */}
         <TouchableOpacity className="mx-4" onPress={() => router.back()}>
           <Pressable
             className="w-10 h-10 items-center justify-center"
@@ -82,7 +122,9 @@ export default function OtpVerification() {
             {otp.map((digit, index) => (
               <TextInput
                 key={index}
-                ref={inputRefs[index]}
+                ref={(ref) => {
+                  inputRefs.current[index] = ref;
+                }}
                 className="bg-[#EFEEEF] text-black rounded-xl size-14 text-[22px] flex"
                 style={{
                   textAlign: "center",
@@ -101,9 +143,50 @@ export default function OtpVerification() {
           </View>
 
           {/* Verify Button */}
-          <TouchableOpacity className="bg-[#259AAA] w-full py-4 rounded-xl items-center">
+          <TouchableOpacity
+            className="bg-[#259AAA] w-full py-4 rounded-xl items-center"
+            disabled={isSubmitting}
+            onPress={async () => {
+              const payload = handleVerify();
+              const parsed = verifyAccountSchema.safeParse(payload);
+              if (!parsed.success) {
+                showToast({
+                  message: parsed.error.issues[0]?.message || "Invalid OTP",
+                  variant: "error",
+                  duration: 2500,
+                });
+                return;
+              }
+
+              setIsSubmitting(true);
+              const res = await verifyAccount(parsed.data);
+              setIsSubmitting(false);
+              if (!res.success) {
+                showToast({
+                  message: res.message || "Verification failed",
+                  variant: "error",
+                  duration: 2500,
+                });
+                return;
+              }
+
+              router.replace("/(auth)/sign-in");
+            }}
+          >
             <Text className="text-white text-lg font-semibold">Verify OTP</Text>
           </TouchableOpacity>
+
+          <Pressable
+            className="mt-4"
+            disabled={cooldownSeconds > 0}
+            onPress={requestOtpOnce}
+          >
+            <Text className="text-center text-base text-[#259AAA]">
+              {cooldownSeconds > 0
+                ? `Resend in ${cooldownSeconds}s`
+                : "Resend verification code"}
+            </Text>
+          </Pressable>
         </View>
       </SafeAreaView>
     </KeyboardAvoidingView>

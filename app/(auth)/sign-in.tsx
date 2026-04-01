@@ -1,6 +1,6 @@
 import { BackgroundGlow } from "@/components/Theme/background";
+import { useToast } from "@/components/Toast/toast-provider";
 import { signInSchema } from "@/type/auth";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { Eye, EyeOff } from "lucide-react-native";
 import { useState } from "react";
@@ -26,19 +26,20 @@ function InputBox({ children }: { children: React.ReactNode }) {
 
 export default function SignIn() {
   const router = useRouter();
+  const { showToast } = useToast();
 
   const [email, setEmail] = useState("alexjs@gmail.com");
   const [password, setPassword] = useState("Aa123456");
-  const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    setError(null);
-
     const parsed = signInSchema.safeParse({ email, password });
     if (!parsed.success) {
-      setError("Error");
+      showToast({
+        message: "Email dan password wajib diisi",
+        variant: "error",
+      });
       return;
     }
 
@@ -47,16 +48,31 @@ export default function SignIn() {
 
       const res = await login(parsed.data);
 
-      if (!res.success || !res.data) {
-        setError(res.message);
+      if (!res.success) {
+        showToast({
+          message: res.message || "Login gagal",
+          variant: "error",
+        });
+
+        if (res.message === "Akun tidak aktif") {
+          router.replace({
+            pathname: "/(auth)/otp",
+            params: { email: parsed.data.email },
+          });
+        }
         return;
       }
 
-      await AsyncStorage.setItem("token", res.data.access_token);
-
+      showToast({
+        message: "Sign in berhasil",
+        variant: "success",
+      });
       router.replace("/");
     } catch (err) {
-      setError("An unexpected error occurred");
+      showToast({
+        message: "Terjadi kesalahan yang tidak terduga",
+        variant: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -78,14 +94,14 @@ export default function SignIn() {
 
           <View className="bg-white rounded-[30px] p-6 m-4">
             <Text className="text-black text-2xl font-bold mb-4">
-              Welcome Back!
+              Selamat datang!
             </Text>
 
             <View className="mb-3 gap-2">
               <Text className="text-black text-lg font-medium">Email</Text>
               <InputBox>
                 <TextInput
-                  placeholder="Enter Email"
+                  placeholder="Masukkan Email"
                   placeholderTextColor="#212121"
                   value={email}
                   onChangeText={setEmail}
@@ -101,7 +117,7 @@ export default function SignIn() {
               <InputBox>
                 <View className="flex flex-row items-center">
                   <TextInput
-                    placeholder="Enter Password"
+                    placeholder="Masukkan Password"
                     placeholderTextColor="#212121"
                     secureTextEntry={!showPassword}
                     value={password}
@@ -120,27 +136,23 @@ export default function SignIn() {
               </InputBox>
             </View>
 
-            {error && (
-              <Text className="text-[#ff6b6b] mb-2 text-center">{error}</Text>
-            )}
-
             <TouchableOpacity
               disabled={loading}
               className="bg-[#259AAA] w-full py-3.5 rounded-xl items-center mt-1 opacity-100"
               onPress={handleLogin}
             >
               <Text className="text-white text-base font-medium">
-                {loading ? "Signing In..." : "Sign In"}
+                {loading ? "Sedang masuk..." : "Masuk"}
               </Text>
             </TouchableOpacity>
 
             <Text className="text-black mt-2 text-base text-center">
-              Don't have an account yet?{" "}
+              Belum punya akun?{" "}
               <Text
                 className="font-semibold underline"
                 onPress={() => router.push("/sign-up")}
               >
-                Register
+                Daftar di sini
               </Text>
             </Text>
           </View>

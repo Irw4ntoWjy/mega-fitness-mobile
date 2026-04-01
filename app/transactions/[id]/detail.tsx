@@ -79,7 +79,7 @@ function ReadonlyField({
 export default function Transaction({ navigation, route }: Props) {
   const tx = useMemo(() => {
     const { id } = useLocalSearchParams<{ id?: string }>();
-
+    console.log(id);
     if (typeof id === "number") return transactions.find((t) => t.id === id);
 
     return transactions[0];

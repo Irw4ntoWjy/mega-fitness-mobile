@@ -1,7 +1,10 @@
 import { BackgroundGlow } from "@/components/Theme/background";
+import { useToast } from "@/components/Toast/toast-provider";
+import { useAuth } from "@/hooks/useAuth";
+import { BookingSchema } from "@/type/bookings";
 import { router } from "expo-router";
 import { Clock, Contact, UserIcon, X } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Animated,
   FlatList,
@@ -9,15 +12,24 @@ import {
   Modal,
   Pressable,
   Text,
+  TextInput,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import { cancelBooking, getBookingList } from "../api/booking";
+import AddBookingModal from "../bookings/add-bookings";
 import { bookings } from "../bookings/dummy_data";
 
 type TabKey = "Upcoming" | "Completed" | "Cancelled";
 const TABS: TabKey[] = ["Upcoming", "Completed", "Cancelled"];
+
+const TAB_STATUS_MAP: Record<TabKey, string> = {
+  Upcoming: "1",
+  Completed: "0",
+  Cancelled: "-1",
+};
 
 type Booking = (typeof bookings)[number];
 
@@ -79,33 +91,42 @@ function BookingCard({ item, onCancel, showCancel }: any) {
         <Animated.View pointerEvents="box-none">
           <View className="mb-4 rounded-2xl bg-white p-3 shadow-md">
             <View className="flex-row justify-between px-2">
-              <Text className="text-slate-500 text-lg">{item.date}</Text>
+              <Text className="text-slate-500 text-lg">
+                {item.schedule_date}
+              </Text>
               <Text className="text-slate-400 text-lg">{item.location}</Text>
             </View>
 
             <View className="mt-2 flex-row">
-              <Image
-                source={{ uri: item.image }}
-                className="w-24 h-24 rounded-lg"
-              />
+              {item.package_cover_image ? (
+                <Image
+                  source={{
+                    uri: `${process.env.EXPO_PUBLIC_URL}${item.package_cover_image}`,
+                  }}
+                  className="h-24 w-24 rounded-xl"
+                  resizeMode="cover"
+                />
+              ) : (
+                <View className="h-24 w-24 rounded-xl bg-black" />
+              )}
 
               <View className="ml-3 flex-1">
                 <Text className="text-lg font-bold text-slate-900">
-                  {item.title}
+                  {item.product_name}
                 </Text>
 
                 <View className="mt-7 space-y-1">
                   <View className="flex-row items-center">
                     <Clock size={12} color="#111827" />
                     <Text className="ml-1.5 font-semibold text-slate-900">
-                      {item.time}
+                      {item.time_start} - {item.time_end}
                     </Text>
                   </View>
 
                   <View className="flex-row items-center">
                     <UserIcon size={12} color="#111827" />
                     <Text className="ml-1.5 font-semibold text-slate-900">
-                      {item.instructor}
+                      {item.trainer_name ?? "-"}
                     </Text>
                   </View>
                 </View>
@@ -125,7 +146,7 @@ function CancelModal({
   onConfirm,
 }: {
   visible: boolean;
-  booking: Booking | null;
+  booking: BookingSchema | null;
   onClose: () => void;
   onConfirm: () => void;
 }) {
@@ -162,26 +183,35 @@ function CancelModal({
                 </Pressable>
               </View>
 
-              <View className="mt-8">
+              <View className="mt-4">
                 <Text className="font-bold text-xl text-gray-900">
-                  {booking.title}
+                  {booking.product_name}
                 </Text>
 
                 <Text className="font-bold text-xl text-gray-900">
-                  {booking.date}
+                  {booking.schedule_date}
                 </Text>
 
                 <View className="mt-2 flex-row items-center gap-3">
                   <Clock size={22} color="#111" />
-                  <Text className="text-xl text-gray-900">{booking.time}</Text>
+                  <Text className="text-xl text-gray-900">
+                    {booking.time_start} - {booking.time_end}
+                  </Text>
                 </View>
 
                 <View className="mt-1 flex-row items-center gap-3">
                   <Contact size={22} color="#111" />
                   <Text className="text-xl text-gray-900">
-                    {booking.instructor}
+                    {booking.trainer_name ?? "-"}
                   </Text>
                 </View>
+
+                <TextInput
+                  placeholder="Masukkan Alasan Batal"
+                  placeholderTextColor="#6b7280"
+                  className="mt-4 border border-gray-300 rounded-xl p-3 text-gray-900"
+                  textAlignVertical="top"
+                />
               </View>
 
               <Text className="mt-8 text-md font-bold text-red-600 text-center">
@@ -215,28 +245,78 @@ function CancelModal({
 
 export default function Bookings() {
   const [tab, setTab] = useState<TabKey>("Upcoming");
-  const [list, setList] = useState<Booking[]>(bookings);
-  const data = useMemo(() => list.filter((b) => b.status === tab), [list, tab]);
+  const { auth, loading: loadingAuth } = useAuth();
+  const [data, setData] = useState<BookingSchema[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchBookings = async () => {
+    const profileId = auth?.accountDetail?.profile_id;
+    if (!profileId) return;
+
+    try {
+      setLoading(true);
+      const res = await getBookingList({
+        member_profile_id: profileId,
+        is_not_expired: true,
+      });
+      const data = res.data;
+      if (data) setData(data.data ?? []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (loadingAuth) return;
+    fetchBookings();
+  }, [loadingAuth, auth]);
+
+  const filteredData = useMemo(() => {
+    return data.filter(
+      (item) => item.booking_status_id === TAB_STATUS_MAP[tab],
+    );
+  }, [data, tab]);
 
   const [open, setOpen] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<BookingSchema | null>(
+    null,
+  );
 
-  const handleOpenCancel = (booking: Booking) => {
+  const [openAddBooking, setOpenAddBooking] = useState(false);
+
+  const handleOpenCancel = (booking: BookingSchema) => {
     setSelectedBooking(booking);
     setOpen(true);
   };
 
-  const handleConfirmCancel = () => {
+  const [loadingCancel, setLoadingCancel] = useState(false);
+  const { showToast } = useToast();
+  const handleConfirmCancel = async () => {
     if (!selectedBooking) return;
 
-    setList((prev) =>
-      prev.map((b) =>
-        b.id === selectedBooking.id ? { ...b, status: "Cancelled" } : b,
-      ),
-    );
+    try {
+      setLoadingCancel(true);
 
-    setOpen(false);
-    setSelectedBooking(null);
+      const res = await cancelBooking({
+        booking_id: selectedBooking.booking_id,
+      });
+      showToast({
+        message: res.message,
+        variant: res.success === true ? "success" : "error",
+        duration: 2500,
+      });
+
+      await fetchBookings();
+
+      setOpen(false);
+      setSelectedBooking(null);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingCancel(false);
+    }
   };
 
   return (
@@ -245,9 +325,15 @@ export default function Bookings() {
         <BackgroundGlow showText={true} />
 
         <View className="mx-3 mt-20">
-          <Text className="mt-4 text-3xl font-extrabold tracking-wide text-slate-900">
-            BOOKINGS
-          </Text>
+          <View className="mt-4 flex-row items-center justify-between">
+            <Text className="text-3xl font-extrabold tracking-wide text-slate-900">
+              BOOKINGS
+            </Text>
+
+            <Pressable onPress={() => setOpenAddBooking(true)}>
+              <Text className="underline">ADD BOOKINGS</Text>
+            </Pressable>
+          </View>
 
           {/* Tabs */}
           <View className="mt-4 flex-row rounded-2xl bg-white px-1 py-1">
@@ -265,8 +351,8 @@ export default function Bookings() {
         <View className="flex-1 px-4 pt-3">
           <FlatList
             key={tab}
-            data={data}
-            keyExtractor={(i) => String(i.id)}
+            data={filteredData}
+            keyExtractor={(i) => String(i.booking_id)}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 24 }}
             renderItem={({ item }) => (
@@ -294,6 +380,12 @@ export default function Bookings() {
             setSelectedBooking(null);
           }}
           onConfirm={handleConfirmCancel}
+        />
+
+        <AddBookingModal
+          visible={openAddBooking}
+          onClose={() => setOpenAddBooking(false)}
+          onSuccess={() => fetchBookings()}
         />
       </View>
     </GestureHandlerRootView>
