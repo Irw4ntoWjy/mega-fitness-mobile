@@ -1,12 +1,12 @@
+import { getPackageList } from "@/app/api/package";
 import { BackgroundGlow } from "@/components/Theme/background";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useRouter } from "expo-router";
 import {
   ChevronLeft,
   LucideSlidersHorizontal,
   Search,
 } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   FlatList,
   Image,
@@ -26,7 +26,48 @@ type Package = {
   image: string | null;
   description: string;
   packageTag: string | null;
+  createdAt: string | null;
 };
+
+const NEW_WINDOW_DAYS = 7;
+
+function parseBackendDate(value?: string | null) {
+  if (!value) return null;
+
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const [datePart, timePart] = trimmed.split(" ");
+  const [year, month, day] = datePart.split("-").map((n) => Number(n));
+
+  if (!year || !month || !day) return null;
+
+  let hours = 0;
+  let minutes = 0;
+  let seconds = 0;
+  if (timePart) {
+    const [h, m, s] = timePart.split(":").map((n) => Number(n));
+    hours = h ?? 0;
+    minutes = m ?? 0;
+    seconds = s ?? 0;
+  }
+
+  const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+  if (Number.isNaN(dt.getTime())) return null;
+  return dt;
+}
+
+function isNewPackage(createdAt?: string | null) {
+  const created = parseBackendDate(createdAt);
+  if (!created) return false;
+
+  const today = new Date();
+  const diffMs = today.getTime() - created.getTime();
+  if (diffMs < 0) return false;
+
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+  return diffDays <= NEW_WINDOW_DAYS;
+}
 
 
 
@@ -47,7 +88,8 @@ function PackageCard({ item }: { item: Package }) {
     router.push({
       pathname: "/packages/[id]/detail",
       params: {
-        id: item.id
+        id: item.id,
+        from: "list-package",
       },
     });
     setTimeout(() => setIsNavigating(false), 1000); 
@@ -71,8 +113,38 @@ function PackageCard({ item }: { item: Package }) {
           )}
         </View>
 
+        {isNewPackage(item.createdAt) ? (
+          <View
+            style={{
+              position: "absolute",
+              top: 10,
+              right: 10,
+              backgroundColor: "#22C55E",
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              borderRadius: 10,
+              zIndex: 1000,
+              elevation: 30,
+            }}
+          >
+            <Text
+              style={{
+                color: "white",
+                fontSize: 10,
+                fontWeight: "800",
+                textTransform: "uppercase",
+                letterSpacing: 0.8,
+              }}
+            >
+              New
+            </Text>
+          </View>
+        ) : null}
+
         {typeof item.packageTag === "string" &&
-        item.packageTag.toLowerCase().includes("bundle") ? (
+        (item.packageTag.toLowerCase().includes("bundle") ||
+          item.packageTag.toLowerCase().includes("special") ||
+          item.packageTag.includes("%")) ? (
           <View
             style={{
               position: "absolute",
@@ -112,7 +184,7 @@ function PackageCard({ item }: { item: Package }) {
   );
 }
 
-export default function listPackages({ navigation, route }: Props) {
+export default function ListPackages({ navigation, route }: Props) {
   const [packages, setPackages] = useState<Package[]>([]);
   const [filteredData, setFilteredData] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -136,64 +208,32 @@ export default function listPackages({ navigation, route }: Props) {
     return item.packageName.toLowerCase().includes(normalizedQuery);
   });
 
-  useEffect(() => {
-    fetchPackages(1);
-  }, []);
-
-  const fetchPackages = async (pageNumber = 1) => {
+  const fetchPackages = useCallback(async (pageNumber = 1) => {
     try {
       if (!hasMore && pageNumber !== 1) return;
 
       setLoading(true);
 
-      const token = await AsyncStorage.getItem("token");
+      const res = await getPackageList({ page: pageNumber, limit: 10 });
 
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_BACKEND_URL}/package/list`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            page: pageNumber,
-            limit: 10,
-          }),
-        }
-      );
-
-      const json = await response.json();
-      console.log("JSON:", json);
-
-      if (json.success) {
-        const formatted = json.data.data.map((item: any) => ({
+      if (res.success && res.data) {
+        const formatted = res.data.data.map((item: any) => ({
           id: item.package_id,
           packageName: item.package_name,
-          packageType: item.product_type_name,
-          image: item.package_cover_image,
-          description: item.package_description,
-          packageTag: item.package_tag,
+          packageType: item.product_type_name ?? "Unknown",
+          image: item.package_cover_image ?? null,
+          description: item.package_description ?? "",
+          packageTag: item.package_tag ?? null,
+          createdAt: item.created_at ?? null,
         }));
 
-        const listItems = formatted.filter((item: any) => {
-          if (typeof item.packageTag !== "string") return true;
-          const tag = item.packageTag.toLowerCase();
-          return !(
-            tag.includes("addon") ||
-            tag.includes("add on") ||
-            tag.includes("%") ||
-            tag.includes("special")
-          );
-        });
-
         if (pageNumber === 1) {
-          setPackages(listItems);
+          setPackages(formatted);
         } else {
-          setPackages((prev) => [...prev, ...listItems]);
+          setPackages((prev) => [...prev, ...formatted]);
         }
 
-        setHasMore(pageNumber < json.data.total_page);
+        setHasMore(pageNumber < res.data.total_page);
         setPage(pageNumber);
       }
     } catch (error) {
@@ -201,14 +241,23 @@ export default function listPackages({ navigation, route }: Props) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [hasMore]);
+
+  useEffect(() => {
+    fetchPackages(1);
+  }, [fetchPackages]);
 
   return (
     <View style={{ flex: 1 }}>
       <BackgroundGlow />
       <View className="mt-20 h-14 px-4 justify-center">
         <Pressable
-          onPress={() => router.back()}
+          onPress={() =>
+            router.replace({
+              pathname: "/",
+              params: { refresh: Date.now().toString() },
+            })
+          }
           className="w-10 h-10 items-center justify-center"
         >
           <ChevronLeft size={22} color="#000" />

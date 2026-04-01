@@ -1,8 +1,9 @@
+import { getPackageDetail } from "@/app/api/package";
 import { BackgroundGlow } from "@/components/Theme/background";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Package } from "@/type/package";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
 
 
@@ -36,9 +37,9 @@ export const TrainerCard = ({ item }: { item: PersonalTrainer }) => {
 };
 
 export default function ProductDetail() {
-  const [packageData, setPackageData] = useState<any>(null);
+  const [packageData, setPackageData] = useState<Package | null>(null);
   const [personalTrainers, setPersonalTrainers] = useState<PersonalTrainer[]>([]);
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, from } = useLocalSearchParams<{ id: string; from?: string }>();
 
   const openWhatsApp = async () => {
     try {
@@ -49,48 +50,22 @@ export default function ProductDetail() {
     }
   };
 
-  useEffect(() => {
-    fetchDetail();
-  }, []);
-
-  const fetchDetail = async () => {
+  const fetchDetail = useCallback(async () => {
     try {
-      const token = await AsyncStorage.getItem("token");
+      if (!id) return;
+      const res = await getPackageDetail({ package_id: id });
 
-      const res = await fetch(
-        `${process.env.EXPO_PUBLIC_BACKEND_URL}/package/detail`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            package_id: id,
-          }),
-        }
-      );
-
-      const json = await res.json();
-
-      if (json.success) {
-        setPackageData(json.data);
-
-        const details = json.data.package_details || [];
-
-        const trainers = details.flatMap((detail: any) =>
-          (detail.package_detail_trainers || []).map((t: any) => ({
-            id: t.package_trainer_id,
-            name: t.trainer_profile_name,
-          }))
-        );
-
-        setPersonalTrainers(trainers);
+      if (res.success && res.data) {
+        setPackageData(res.data);
       }
     } catch (err) {
       console.log("Detail error:", err);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchDetail();
+  }, [fetchDetail]);
 
   if (!packageData) {
   return (
@@ -106,7 +81,20 @@ export default function ProductDetail() {
 
       <View className="mt-20 h-14 px-4 justify-center">
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => {
+            if (from === "list-package") {
+              router.replace({
+                pathname: "/packages/list-package",
+                params: { refresh: Date.now().toString() },
+              });
+              return;
+            }
+
+            router.replace({
+              pathname: "/",
+              params: { refresh: Date.now().toString() },
+            });
+          }}
           className="w-10 h-10 items-center justify-center"
         >
           <ChevronLeft size={22} color="#000" />

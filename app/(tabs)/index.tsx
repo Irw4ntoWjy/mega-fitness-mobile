@@ -1,3 +1,4 @@
+import { getPackageList } from "@/app/api/package";
 import { WarningCard } from "@/components/Member/warning-card";
 import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
 import { TimeAvailabilityData } from "@/components/Profile/time-availability";
@@ -7,7 +8,6 @@ import { CommisionProgressBar } from "@/components/Trainer/commision-progress-ba
 import { checkSession } from "@/lib/auth-session";
 import { getAuth } from "@/lib/auth-storage";
 import { fetcher } from "@/lib/fetcher";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ArrowRight, Bell } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -194,6 +194,46 @@ function getRoleTheme(role: string) {
   };
 }
 
+const NEW_WINDOW_DAYS = 7;
+
+function parseBackendDate(value?: string | null) {
+  if (!value) return null;
+
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const [datePart, timePart] = trimmed.split(" ");
+  const [year, month, day] = datePart.split("-").map((n) => Number(n));
+
+  if (!year || !month || !day) return null;
+
+  let hours = 0;
+  let minutes = 0;
+  let seconds = 0;
+  if (timePart) {
+    const [h, m, s] = timePart.split(":").map((n) => Number(n));
+    hours = h ?? 0;
+    minutes = m ?? 0;
+    seconds = s ?? 0;
+  }
+
+  const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+  if (Number.isNaN(dt.getTime())) return null;
+  return dt;
+}
+
+function isNewPackage(createdAt?: string | null) {
+  const created = parseBackendDate(createdAt);
+  if (!created) return false;
+
+  const today = new Date();
+  const diffMs = today.getTime() - created.getTime();
+  if (diffMs < 0) return false;
+
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+  return diffDays <= NEW_WINDOW_DAYS;
+}
+
 async function fetchAccountDetailByCode(accountCode: string) {
   const endpoint = "/account/detail/code";
   const body = { account_code: accountCode };
@@ -306,39 +346,18 @@ export default function Home() {
   //   loadProfile();
   // }, []);
 
-
-  useEffect(() => {
-    fetchBuyPackages();
-  }, []);
-
-  const fetchBuyPackages = async () => {
+  const fetchBuyPackages = useCallback(async () => {
     try {
-      const token = await AsyncStorage.getItem("token");
+      const res = await getPackageList({ page: 1, limit: 100 });
 
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_BACKEND_URL}/package/list`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            page: 1,
-            limit: 100,
-          }),
-        }
-      );
-
-      const json = await response.json();
-
-      if (json.success) {
-        const formatted = json.data.data.map((item: any) => ({
+      if (res.success && res.data) {
+        const formatted = res.data.data.map((item: any) => ({
           id: item.package_id,
           packageName: item.package_name,
           description: item.package_description,
           image: item.package_cover_image,
           packageTag: item.package_tag,
+          createdAt: item.created_at ?? null,
         }));
 
         const packageListItems = formatted.filter((item: any) => {
@@ -361,6 +380,7 @@ export default function Home() {
             discount: item.packageTag,
             image: item.image,
             description: item.description,
+            createdAt: item.createdAt ?? null,
           }));
         setPromotionsData(promotions);
 
@@ -372,13 +392,18 @@ export default function Home() {
             occasion: item.packageTag,
             image: item.image,
             description: item.description,
+            createdAt: item.createdAt ?? null,
           }));
         setSpecialClassData(specialClasses);
       }
     } catch (error) {
       console.log("Error fetching buy packages:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchBuyPackages();
+  }, [fetchBuyPackages]);
 
   const navigating = useRef(false);
 
@@ -451,6 +476,7 @@ export default function Home() {
     title: string;
     discount: string;
     image?: string | null;
+    createdAt?: string | null;
   };
   function PromotionCard({ item }: { item: PromotionActivity }) {
     const router = useRouter();
@@ -485,6 +511,34 @@ export default function Home() {
               <View className="w-full h-full bg-black" />
             )}
           </View>
+
+          {isNewPackage(item.createdAt) ? (
+            <View
+              style={{
+                position: "absolute",
+                top: 10,
+                right: 10,
+                backgroundColor: "#22C55E",
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderRadius: 10,
+                zIndex: 1000,
+                elevation: 30,
+              }}
+            >
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 10,
+                  fontWeight: "800",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.8,
+                }}
+              >
+                New
+              </Text>
+            </View>
+          ) : null}
 
           <View
             style={{
@@ -530,6 +584,7 @@ export default function Home() {
     title: string;
     occasion: string;
     image?: string | null;
+    createdAt?: string | null;
   };
   function SpecialClassCard({ item }: { item: SpecialClass }) {
     const router = useRouter();
@@ -564,6 +619,34 @@ export default function Home() {
               <View className="w-full h-full bg-black" />
             )}
           </View>
+
+          {isNewPackage(item.createdAt) ? (
+            <View
+              style={{
+                position: "absolute",
+                top: 10,
+                right: 10,
+                backgroundColor: "#22C55E",
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderRadius: 10,
+                zIndex: 1000,
+                elevation: 30,
+              }}
+            >
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 10,
+                  fontWeight: "800",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.8,
+                }}
+              >
+                New
+              </Text>
+            </View>
+          ) : null}
 
           <View
             style={{
@@ -612,6 +695,7 @@ export default function Home() {
     description?: string;
     image?: string;
     packageTag?: string | null;
+    createdAt?: string | null;
   };
   function PackageCard({ item }: { item: PackagesActivity }) {
 
@@ -653,6 +737,34 @@ export default function Home() {
               <View className="w-full h-full bg-black" />
             )}
           </View>
+
+          {isNewPackage(item.createdAt) ? (
+            <View
+              style={{
+                position: "absolute",
+                top: 10,
+                right: 10,
+                backgroundColor: "#22C55E",
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderRadius: 10,
+                zIndex: 1000,
+                elevation: 30,
+              }}
+            >
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 10,
+                  fontWeight: "800",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.8,
+                }}
+              >
+                New
+              </Text>
+            </View>
+          ) : null}
 
           {typeof item.packageTag === "string" &&
           item.packageTag.toLowerCase().includes("bundle") ? (
@@ -802,7 +914,7 @@ export default function Home() {
         </View>
 
         <View
-          className="pt-5 rounded-t-xl pb-30 overflow-hidden"
+          className="pt-5 rounded-t-xl pb-30 overflow-visible"
           onLayout={(e) => {
             const { width, height } = e.nativeEvent.layout;
             setBottomSectionLayout((prev) =>
@@ -814,6 +926,7 @@ export default function Home() {
         >
           <BackgroundGlow
             showText={true}
+            variant="section"
             width={bottomSectionLayout?.width}
             height={bottomSectionLayout?.height}
           />

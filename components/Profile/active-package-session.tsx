@@ -31,7 +31,7 @@ export function ActivePackagesSessionsCard({
 
   return (
     <View className="w-full my-3">
-      <View className="h-fit flex-row">
+      <View className="flex-row">
         <View className="flex-1 bg-white rounded-3xl border border-[#F1E6F4] mr-4 shadow-sm justify-between">
           <View className="flex-[0.95] flex-col items-center justify-center">
             <Text className="text-gray-800 text-base text-center font-medium">
@@ -44,8 +44,11 @@ export function ActivePackagesSessionsCard({
             </View>
           </View>
         </View>
-        <Pressable onPress={() => console.log("clicked")}>
-          <View className="h-full flex-[1.6] bg-white rounded-3xl border border-[#F1E6F4] p-4 overflow-hidden shadow-sm">
+        <Pressable
+          className="flex-[1.6]"
+          onPress={() => console.log("clicked")}
+        >
+          <View className="bg-white rounded-3xl border border-[#F1E6F4] p-4 overflow-hidden shadow-sm">
             <View className="flex-row items-center justify-between">
               <Text className="text-sm text-gray-500">
                 {completedSessions}/{totalSessions} Active Sessions Done

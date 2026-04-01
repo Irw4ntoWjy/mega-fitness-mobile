@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { paginationSchema } from "./pagination";
+import { BaseListParams, paginationSchema } from "./pagination";
 
 export const bookingSchema = z.object({
   booking_id: z.string(),
@@ -13,6 +13,13 @@ export const bookingSchema = z.object({
 
   schedule_date: z.string(),
 
+  trainer_id: z.string().nullable().optional(),
+  trainer_name: z.string().nullable().optional(),
+
+  product_name: z.string(),
+  location: z.string().nullable().optional(),
+  package_cover_image: z.string().nullable().optional(),
+
   member_profile_id: z.string(),
   member_name: z.string(),
 
@@ -22,15 +29,84 @@ export const bookingSchema = z.object({
   created_at: z.string(),
   created_by: z.string(),
 
-  trainer_id: z.string(),
-  trainer_name: z.string(),
-
-  product_name: z.string(),
-
-  updated_at: z.string().optional(),
-  updated_by: z.string().optional(),
+  updated_at: z.string().nullable().optional(),
+  updated_by: z.string().nullable().optional(),
 });
 export type BookingSchema = z.infer<typeof bookingSchema>;
 
+export const bookingDetailSchema = z.object({
+  booking_id: z.string(),
+  booking_name: z.string(),
+  schedule_type: z.string(),
+
+  class_schedule_detail: z
+    .object({
+      id: z.string(),
+      product_id: z.string(),
+      product_name: z.string(),
+      location: z.string(),
+      day_of_week: z.number(),
+      time_start: z.string(),
+      time_end: z.string(),
+      schedule_date: z.string(),
+      capacity: z.number(),
+      created_at: z.string(),
+      created_by: z.string(),
+      updated_at: z.string().nullable(),
+      updated_by: z.string().nullable(),
+      deleted_at: z.string().nullable(),
+      deleted_by: z.string().nullable(),
+    })
+    .nullable()
+    .optional(),
+
+  trainer_schedule_detail: z
+    .object({
+      id: z.string(),
+      trainer_id: z.string(),
+      trainer_name: z.string(),
+      day_of_week: z.number(),
+      time_start: z.string(),
+      time_end: z.string(),
+      schedule_date: z.string(),
+      created_at: z.string(),
+      created_by: z.string(),
+      updated_at: z.string().nullable(),
+      updated_by: z.string().nullable(),
+      deleted_at: z.string().nullable(),
+      deleted_by: z.string().nullable(),
+    })
+    .nullable()
+    .optional(),
+
+  member_profile_id: z.string(),
+  member_name: z.string(),
+  member_gender: z.string(),
+  member_picture_url: z.string().nullable(),
+  purchase_id: z.string(),
+  purchase_invoice_number: z.string(),
+  booking_status_id: z.string(),
+  booking_status_name: z.string(),
+  cancel_reason: z.string().nullable(),
+  created_at: z.string(),
+  created_by: z.string(),
+  updated_at: z.string().nullable(),
+  updated_by: z.string().nullable(),
+  deleted_at: z.string().nullable(),
+  deleted_by: z.string().nullable(),
+});
+export type BookingDetail = z.infer<typeof bookingDetailSchema>;
+
 export const bookingPaginationSchema = paginationSchema(bookingSchema);
 export type BookingPagination = z.infer<typeof bookingPaginationSchema>;
+
+export type BookingListParams = BaseListParams & {
+  is_not_expired: boolean;
+  member_profile_id?: string;
+  booking_status_id?: string;
+  schedule_type?: string;
+};
+
+export type BookingDetailParams = {
+  booking_id: string;
+};

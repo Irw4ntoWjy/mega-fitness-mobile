@@ -1,36 +1,54 @@
+import { getBookingList } from "@/app/api/booking";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { useAuth } from "@/hooks/useAuth";
+import { BookingSchema } from "@/type/bookings";
 import { router } from "expo-router";
 import { User } from "lucide-react-native";
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { activities, profile } from "../classes/dummy_data";
+import { profile } from "../classes/dummy_data";
 
-const ongoingActivities = activities.filter(
-  (activity) => activity.status === "Ongoing",
-);
 
-type OngoingActivity = (typeof ongoingActivities)[number];
+function timeToMinutes(time: string) {
+  const parts = time.split(":");
+  const hours = Number(parts[0] ?? 0);
+  const minutes = Number(parts[1] ?? 0);
+  return hours * 60 + minutes;
+}
 
-function OngoingCard({ item }: { item: OngoingActivity }) {
+function BookingCard({ item }: { item: BookingSchema }) {
+  const statusBg =
+    item.booking_status_id === "1"
+      ? "#16A34A"
+      : item.booking_status_id === "-1"
+        ? "#DC2626"
+        : "#64748B";
   return (
     <Pressable
       onPress={() =>
         router.push({
-          pathname: "/classes/[id]/detail",
-          params: { id: item.id },
+          pathname: "/classes/[id]/barcode",
+          params: {
+            id: item.booking_id,
+            trainer: "false",
+          },
         })
       }
       className="w-[48%] mb-4"
     >
       <View className="bg-white rounded-2xl shadow-md relative">
         <View className="w-full h-44 rounded-t-2xl overflow-hidden">
-          <Image
-            source={{ uri: item.image }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
+          {item.package_cover_image ? (
+            <Image
+              source={{
+                uri: `${process.env.EXPO_PUBLIC_URL}${item.package_cover_image}`,
+              }}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="w-full h-full bg-black" />
+          )}
         </View>
 
         <View
@@ -38,7 +56,7 @@ function OngoingCard({ item }: { item: OngoingActivity }) {
             position: "absolute",
             top: -10,
             left: -5,
-            backgroundColor: item.tagColor,
+            backgroundColor: statusBg,
             paddingHorizontal: 12,
             paddingVertical: 7,
             borderRadius: 8,
@@ -55,77 +73,21 @@ function OngoingCard({ item }: { item: OngoingActivity }) {
               letterSpacing: 0.8,
             }}
           >
-            {item.status}
+            {item.booking_status_name}
           </Text>
         </View>
 
         <View className="flex-row items-center justify-between px-4 py-4">
           <View>
-            <Text className="text-black font-bold text-lg">{item.title}</Text>
-            <Text className="text-black text-xs mt-1">{item.time}</Text>
-          </View>
-        </View>
-      </View>
-    </Pressable>
-  );
-}
-
-const todaysActivities = activities.filter(
-  (activity) => activity.status !== "Ongoing",
-);
-
-type TodaysActivities = (typeof todaysActivities)[number];
-
-function TodaysCard({ item }: { item: TodaysActivities }) {
-  return (
-    <Pressable
-      className="w-[48%] mb-4 mt-2"
-      onPress={() =>
-        router.push({
-          pathname: "/classes/[id]/detail",
-          params: { id: item.id },
-        })
-      }
-    >
-      <View className="bg-white rounded-2xl shadow-md relative">
-        <View className="w-full h-44 rounded-t-2xl overflow-hidden">
-          <Image
-            source={{ uri: item.image }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
-        </View>
-
-        <View
-          style={{
-            position: "absolute",
-            top: -10,
-            left: -5,
-            backgroundColor: item.tagColor,
-            paddingHorizontal: 12,
-            paddingVertical: 7,
-            borderRadius: 8,
-            zIndex: 1000,
-            elevation: 30,
-          }}
-        >
-          <Text
-            style={{
-              color: "white",
-              fontSize: 10,
-              fontWeight: "700",
-              textTransform: "uppercase",
-              letterSpacing: 0.8,
-            }}
-          >
-            {item.status}
-          </Text>
-        </View>
-
-        <View className="flex-row items-center justify-between px-4 py-4">
-          <View>
-            <Text className="text-black font-bold text-lg">{item.title}</Text>
-            <Text className="text-black text-xs mt-1">{item.time}</Text>
+            <Text className="text-black font-bold text-lg">
+              {item.product_name}
+            </Text>
+            <Text className="text-black text-xs mt-1">
+              {item.schedule_date} • {item.time_start} - {item.time_end}
+            </Text>
+            <Text className="text-black text-xs mt-1">
+              {item.trainer_name ?? "-"}
+            </Text>
           </View>
         </View>
       </View>
@@ -134,11 +96,78 @@ function TodaysCard({ item }: { item: TodaysActivities }) {
 }
 
 const Home = () => {
-  const insets = useSafeAreaInsets();
-  const userProfile = profile;
   const { auth, loading: loadingAuth } = useAuth();
+  const [bookings, setBookings] = useState<BookingSchema[]>([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
+
+  const memberProfileId = auth?.accountDetail?.profile_id;
+
+  useEffect(() => {
+    if (!memberProfileId) return;
+
+    let cancelled = false;
+    setLoadingBookings(true);
+
+    getBookingList({
+      member_profile_id: memberProfileId,
+      is_not_expired: true,
+      booking_status_id: "1",
+    })
+      .then((res) => {
+        if (cancelled) return;
+        if (!res.success || !res.data) {
+          setBookings([]);
+          return;
+        }
+        setBookings(res.data.data ?? []);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoadingBookings(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [memberProfileId]);
+
+  const classBookings = useMemo(
+    () => bookings.filter((b) => b.schedule_type === "class"),
+    [bookings],
+  );
 
   if (loadingAuth) return null;
+
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
+    2,
+    "0",
+  )}-${String(now.getDate()).padStart(2, "0")}`;
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const ongoingBookings = classBookings.filter((b) => {
+    if (b.schedule_date !== today) return false;
+    const start = timeToMinutes(b.time_start);
+    const end = timeToMinutes(b.time_end);
+    return nowMinutes >= start && nowMinutes < end;
+  });
+
+  const upcomingBookings = classBookings
+    .filter((b) => {
+      if (b.schedule_date > today) return true;
+      if (b.schedule_date < today) return false;
+      const end = timeToMinutes(b.time_end);
+      if (end <= nowMinutes) return false;
+      const start = timeToMinutes(b.time_start);
+      return !(nowMinutes >= start && nowMinutes < end);
+    })
+    .sort((a, b) => {
+      if (a.schedule_date !== b.schedule_date) {
+        return a.schedule_date.localeCompare(b.schedule_date);
+      }
+      return a.time_start.localeCompare(b.time_start);
+    });
+
   return (
     <View className="flex-1 mb-28">
       <ScrollView>
@@ -195,18 +224,24 @@ const Home = () => {
           Ongoing Activity
         </Text>
         <View className="flex flex-row flex-wrap justify-between mx-5">
-          {ongoingActivities.map((item) => (
-            <OngoingCard key={item.id} item={item} />
+          {ongoingBookings.map((item) => (
+            <BookingCard key={item.booking_id} item={item} />
           ))}
         </View>
 
         <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
-          Today’s Activity
+          Upcoming Classes
         </Text>
         <View className="flex flex-row flex-wrap justify-between mx-5">
-          {todaysActivities.map((item) => (
-            <TodaysCard key={item.id} item={item} />
-          ))}
+          {loadingBookings ? (
+            <Text className="text-base text-slate-500">Loading...</Text>
+          ) : upcomingBookings.length > 0 ? (
+            upcomingBookings.map((item) => (
+              <BookingCard key={item.booking_id} item={item} />
+            ))
+          ) : (
+            <Text className="text-base text-slate-500">No upcoming classes</Text>
+          )}
         </View>
         {/* </View> */}
       </ScrollView>
