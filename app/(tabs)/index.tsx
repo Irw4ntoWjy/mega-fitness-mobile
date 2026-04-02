@@ -17,7 +17,7 @@ import {
   Pressable,
   ScrollView,
   Text,
-  View
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -136,13 +136,8 @@ const todaysActivityData = [
   },
 ];
 
-
-
 function getInitials(value: string) {
-  const parts = value
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
+  const parts = value.trim().split(/\s+/).filter(Boolean);
 
   if (parts.length === 0) return "";
 
@@ -282,7 +277,8 @@ export default function Home() {
 
     const auth = await getAuth();
     const accountCode =
-      auth?.accessPayload?.account_code ?? (auth?.accessPayload as any)?.accountCode;
+      auth?.accessPayload?.account_code ??
+      (auth?.accessPayload as any)?.accountCode;
 
     if (auth?.accessPayload?.account_role) {
       setAccountRole(auth.accessPayload.account_role);
@@ -332,7 +328,7 @@ export default function Home() {
 
     guard();
   }, [loadAccountDetail, router]);
-  
+
   // useEffect(() => {
   //   const loadProfile = async () => {
   //     setProfileLoading(true);
@@ -373,7 +369,11 @@ export default function Home() {
         setBuyPackagesData(packageListItems.slice(0, 4));
 
         const promotions = formatted
-          .filter((item: any) => typeof item.packageTag === "string" && item.packageTag.includes("%"))
+          .filter(
+            (item: any) =>
+              typeof item.packageTag === "string" &&
+              item.packageTag.includes("%"),
+          )
           .map((item: any) => ({
             id: item.id,
             title: item.packageName,
@@ -385,7 +385,11 @@ export default function Home() {
         setPromotionsData(promotions);
 
         const specialClasses = formatted
-          .filter((item: any) => typeof item.packageTag === "string" && item.packageTag.toLowerCase().includes("special"))
+          .filter(
+            (item: any) =>
+              typeof item.packageTag === "string" &&
+              item.packageTag.toLowerCase().includes("special"),
+          )
           .map((item: any) => ({
             id: item.id,
             title: item.packageName,
@@ -577,8 +581,6 @@ export default function Home() {
     );
   }
 
-
-
   type SpecialClass = {
     id: string | number;
     title: string;
@@ -685,10 +687,6 @@ export default function Home() {
     );
   }
 
-
-
-
-
   type PackagesActivity = {
     id: string;
     packageName: string;
@@ -698,7 +696,6 @@ export default function Home() {
     createdAt?: string | null;
   };
   function PackageCard({ item }: { item: PackagesActivity }) {
-
     // supaya g double routing
 
     const router = useRouter();
@@ -717,12 +714,13 @@ export default function Home() {
           image: item.image ?? "",
         },
       });
-      setTimeout(() => setIsNavigating(false), 1000); 
+      setTimeout(() => setIsNavigating(false), 1000);
     };
 
-
     return (
-      <Pressable key={item.id} className="w-[44vw] mb-4 mr-5"
+      <Pressable
+        key={item.id}
+        className="w-[44vw] mb-4 mr-5"
         onPress={handlePress}
       >
         <View className="bg-white rounded-2xl shadow-md relative">
@@ -797,7 +795,9 @@ export default function Home() {
 
           <View className="flex-row items-center justify-between px-4 py-4">
             <View>
-              <Text className="text-black font-bold text-lg">{item.packageName}</Text>
+              <Text className="text-black font-bold text-lg">
+                {item.packageName}
+              </Text>
             </View>
           </View>
         </View>
@@ -807,7 +807,7 @@ export default function Home() {
 
   return (
     <View className="flex-1">
-      <BackgroundGlow />
+      <BackgroundGlow showText={true} />
       <View
         style={{
           flexDirection: "row",
@@ -872,43 +872,39 @@ export default function Home() {
                   <Text className="text-gray-500 text-base">Loading profile...</Text>
                 </View>
               ) : ( */}
-                <>
-                  <InnerShadowOverlay height={25} />
-                  <View className="absolute right-4 top-4 z-40">
-                    <View
-                      className={`px-5 py-2 rounded-xl border shadow-sm ${
-                        roleTheme.container
-                      }`}
-                    >
-                      <Text
-                        className={`text-sm font-semibold ${
-                          roleTheme.text
-                        }`}
-                      >
-                        {accountRole}
-                      </Text>
-                    </View>
+              <>
+                <InnerShadowOverlay height={25} />
+                <View className="absolute right-4 top-4 z-40">
+                  <View
+                    className={`px-5 py-2 rounded-xl border shadow-sm ${
+                      roleTheme.container
+                    }`}
+                  >
+                    <Text className={`text-sm font-semibold ${roleTheme.text}`}>
+                      {accountRole}
+                    </Text>
                   </View>
+                </View>
 
-                  {isTrainer ? (
-                    <View>
-                      <ActivePackagesSessionsCard
-                        summary={activePackagesData.activePackagesSummary}
-                        packages={activePackagesData.packages}
-                      />
-                      <CommisionProgressBar />
-                    </View>
-                  ) : (
-                    <View>
-                      <ActivePackagesSessionsCard
-                        summary={activePackagesData.activePackagesSummary}
-                        packages={activePackagesData.packages}
-                      />
-                      <WarningCard />
-                    </View>
-                  )}
-                </>
-                {/* )} */}
+                {isTrainer ? (
+                  <View>
+                    <ActivePackagesSessionsCard
+                      summary={activePackagesData.activePackagesSummary}
+                      packages={activePackagesData.packages}
+                    />
+                    <CommisionProgressBar />
+                  </View>
+                ) : (
+                  <View>
+                    <ActivePackagesSessionsCard
+                      summary={activePackagesData.activePackagesSummary}
+                      packages={activePackagesData.packages}
+                    />
+                    <WarningCard />
+                  </View>
+                )}
+              </>
+              {/* )} */}
             </View>
           </View>
         </View>
@@ -924,13 +920,6 @@ export default function Home() {
             );
           }}
         >
-          <BackgroundGlow
-            showText={true}
-            variant="section"
-            width={bottomSectionLayout?.width}
-            height={bottomSectionLayout?.height}
-          />
-
           <View className="flex flex-row justify-between">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
               Schedule Activities
@@ -1023,9 +1012,6 @@ export default function Home() {
             ))}
           </ScrollView>
 
-
-
-
           <View className="flex flex-row justify-between">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
               Special Classes
@@ -1045,8 +1031,6 @@ export default function Home() {
               <SpecialClassCard key={item.id} item={item} />
             ))}
           </ScrollView>
-
-
 
           <View className="flex flex-row justify-between">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
