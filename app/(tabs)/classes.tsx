@@ -8,7 +8,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { profile } from "../classes/dummy_data";
 
-
 function timeToMinutes(time: string) {
   const parts = time.split(":");
   const hours = Number(parts[0] ?? 0);
@@ -16,7 +15,13 @@ function timeToMinutes(time: string) {
   return hours * 60 + minutes;
 }
 
-function BookingCard({ item }: { item: BookingSchema }) {
+function BookingCard({
+  item,
+  showOngoingTag,
+}: {
+  item: BookingSchema;
+  showOngoingTag?: boolean;
+}) {
   const statusBg =
     item.booking_status_id === "1"
       ? "#16A34A"
@@ -56,7 +61,7 @@ function BookingCard({ item }: { item: BookingSchema }) {
             position: "absolute",
             top: -10,
             left: -5,
-            backgroundColor: statusBg,
+            backgroundColor: showOngoingTag ? "#06B6D4" : statusBg,
             paddingHorizontal: 12,
             paddingVertical: 7,
             borderRadius: 8,
@@ -73,7 +78,7 @@ function BookingCard({ item }: { item: BookingSchema }) {
               letterSpacing: 0.8,
             }}
           >
-            {item.booking_status_name}
+            {showOngoingTag ? "Ongoing" : item.booking_status_name}
           </Text>
         </View>
 
@@ -224,12 +229,22 @@ const Home = () => {
           Ongoing Activity
         </Text>
         <View className="flex flex-row flex-wrap justify-between mx-5">
-          {ongoingBookings.map((item) => (
-            <BookingCard key={item.booking_id} item={item} />
-          ))}
+          {loadingBookings ? (
+            <Text className="text-base text-slate-500">Loading...</Text>
+          ) : ongoingBookings.length > 0 ? (
+            ongoingBookings.map((item) => (
+              <BookingCard
+                key={item.booking_id}
+                item={item}
+                showOngoingTag={true}
+              />
+            ))
+          ) : (
+            <Text className="text-base text-slate-500">No Ongoing Class</Text>
+          )}
         </View>
 
-        <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
+        <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5 mt-6">
           Upcoming Classes
         </Text>
         <View className="flex flex-row flex-wrap justify-between mx-5">

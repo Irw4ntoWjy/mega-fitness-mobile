@@ -190,8 +190,6 @@ export default function ListPackages({ navigation, route }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilter, setShowFilter] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
 
   const packageTypes = [
     "All",
@@ -208,43 +206,72 @@ export default function ListPackages({ navigation, route }: Props) {
     return item.packageName.toLowerCase().includes(normalizedQuery);
   });
 
-  const fetchPackages = useCallback(async (pageNumber = 1) => {
+  const fetchPackages = useCallback(async () => {
     try {
-      if (!hasMore && pageNumber !== 1) return;
-
       setLoading(true);
 
-      const res = await getPackageList({ page: pageNumber, limit: 10 });
+      const map = new Map<string, Package>();
 
-      if (res.success && res.data) {
-        const formatted = res.data.data.map((item: any) => ({
-          id: item.package_id,
-          packageName: item.package_name,
-          packageType: item.product_type_name ?? "Unknown",
-          image: item.package_cover_image ?? null,
-          description: item.package_description ?? "",
-          packageTag: item.package_tag ?? null,
-          createdAt: item.created_at ?? null,
-        }));
+      const tryAll = await getPackageList({ page: 1, limit: -1 });
+      if (tryAll.success && tryAll.data && tryAll.data.total_page === 1) {
+        tryAll.data.data.forEach((item: any) => {
+          const id = String(item.package_id);
+          map.set(id, {
+            id,
+            packageName: item.package_name,
+            packageType: item.product_type_name ?? "Unknown",
+            image: item.package_cover_image ?? null,
+            description: item.package_description ?? "",
+            packageTag: item.package_tag ?? null,
+            createdAt: item.created_at ?? null,
+          });
+        });
 
-        if (pageNumber === 1) {
-          setPackages(formatted);
-        } else {
-          setPackages((prev) => [...prev, ...formatted]);
-        }
-
-        setHasMore(pageNumber < res.data.total_page);
-        setPage(pageNumber);
+        setPackages(Array.from(map.values()));
+        return;
       }
+
+      const first = await getPackageList({ page: 1, limit: 50 });
+      if (!first.success || !first.data) {
+        setPackages([]);
+        return;
+      }
+
+      const totalPages = first.data.total_page || 1;
+      const applyPage = (items: any[]) => {
+        items.forEach((item: any) => {
+          const id = String(item.package_id);
+          map.set(id, {
+            id,
+            packageName: item.package_name,
+            packageType: item.product_type_name ?? "Unknown",
+            image: item.package_cover_image ?? null,
+            description: item.package_description ?? "",
+            packageTag: item.package_tag ?? null,
+            createdAt: item.created_at ?? null,
+          });
+        });
+      };
+
+      applyPage(first.data.data ?? []);
+
+      for (let pageNumber = 2; pageNumber <= totalPages; pageNumber++) {
+        const res = await getPackageList({ page: pageNumber, limit: 50 });
+        if (!res.success || !res.data) break;
+        applyPage(res.data.data ?? []);
+      }
+
+      setPackages(Array.from(map.values()));
     } catch (error) {
       console.log("Error fetching packages:", error);
+      setPackages([]);
     } finally {
       setLoading(false);
     }
-  }, [hasMore]);
+  }, []);
 
   useEffect(() => {
-    fetchPackages(1);
+    fetchPackages();
   }, [fetchPackages]);
 
   return (
@@ -320,7 +347,7 @@ export default function ListPackages({ navigation, route }: Props) {
         <View className="my-2"></View>
         <FlatList
           data={visiblePackages}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.id}
           renderItem={({ item }) => <PackageCard item={item} />}
           numColumns={2}
           columnWrapperStyle={{ justifyContent: "space-between" }}
@@ -330,12 +357,6 @@ export default function ListPackages({ navigation, route }: Props) {
             paddingTop: 10,
             paddingBottom: 300,
           }}
-          onEndReached={() => {
-            if (!loading && hasMore) {
-              fetchPackages(page + 1);
-            }
-          }}
-          onEndReachedThreshold={0.5}
         />
       </View>
       <Modal
