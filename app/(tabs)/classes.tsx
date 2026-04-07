@@ -103,7 +103,8 @@ function BookingCard({
 
 const Home = () => {
   const { auth, loading: loadingAuth } = useAuth();
-  const [bookings, setBookings] = useState<BookingSchema[]>([]);
+  const [upcomingBookings, setUpcomingBookings] = useState<BookingSchema[]>([]);
+  const [ongoingBookings, setOngoingBookings] = useState<BookingSchema[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
 
   const memberProfileId = auth?.accountDetail?.profile_id;
@@ -114,18 +115,27 @@ const Home = () => {
     let cancelled = false;
     setLoadingBookings(true);
 
-    getBookingList({
-      member_profile_id: memberProfileId,
-      is_not_expired: true,
-      booking_status_id: 3,
-    })
-      .then((res) => {
+    Promise.all([
+      getBookingList({
+        member_profile_id: memberProfileId,
+        is_not_expired: true,
+        booking_status_id: 3,
+      }),
+      getBookingList({
+        member_profile_id: memberProfileId,
+        is_not_expired: true,
+        booking_status_id: 4,
+      }),
+    ])
+      .then(([upcomingRes, ongoingRes]) => {
         if (cancelled) return;
-        if (!res.success || !res.data) {
-          setBookings([]);
-          return;
-        }
-        setBookings(res.data.data ?? []);
+
+        setUpcomingBookings(
+          upcomingRes.success && upcomingRes.data ? upcomingRes.data.data ?? [] : [],
+        );
+        setOngoingBookings(
+          ongoingRes.success && ongoingRes.data ? ongoingRes.data.data ?? [] : [],
+        );
       })
       .finally(() => {
         if (cancelled) return;
@@ -137,42 +147,39 @@ const Home = () => {
     };
   }, [memberProfileId]);
 
-  const classBookings = useMemo(
-    () => bookings.filter((b) => b.schedule_type === "class"),
-    [bookings],
+  const classUpcomingBookings = useMemo(
+    () => upcomingBookings.filter((b) => b.schedule_type === "class"),
+    [upcomingBookings],
+  );
+
+  const classOngoingBookings = useMemo(
+    () => ongoingBookings.filter((b) => b.schedule_type === "class"),
+    [ongoingBookings],
   );
 
   if (loadingAuth) return null;
 
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
-    2,
-    "0",
-  )}-${String(now.getDate()).padStart(2, "0")}`;
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const sortedOngoingBookings = useMemo(
+    () =>
+      [...classOngoingBookings].sort((a, b) => {
+        if (a.schedule_date !== b.schedule_date) {
+          return a.schedule_date.localeCompare(b.schedule_date);
+        }
+        return a.time_start.localeCompare(b.time_start);
+      }),
+    [classOngoingBookings],
+  );
 
-  const ongoingBookings = classBookings.filter((b) => {
-    if (b.schedule_date !== today) return false;
-    const start = timeToMinutes(b.time_start);
-    const end = timeToMinutes(b.time_end);
-    return nowMinutes >= start && nowMinutes < end;
-  });
-
-  const upcomingBookings = classBookings
-    .filter((b) => {
-      if (b.schedule_date > today) return true;
-      if (b.schedule_date < today) return false;
-      const end = timeToMinutes(b.time_end);
-      if (end <= nowMinutes) return false;
-      const start = timeToMinutes(b.time_start);
-      return !(nowMinutes >= start && nowMinutes < end);
-    })
-    .sort((a, b) => {
-      if (a.schedule_date !== b.schedule_date) {
-        return a.schedule_date.localeCompare(b.schedule_date);
-      }
-      return a.time_start.localeCompare(b.time_start);
-    });
+  const sortedUpcomingBookings = useMemo(
+    () =>
+      [...classUpcomingBookings].sort((a, b) => {
+        if (a.schedule_date !== b.schedule_date) {
+          return a.schedule_date.localeCompare(b.schedule_date);
+        }
+        return a.time_start.localeCompare(b.time_start);
+      }),
+    [classUpcomingBookings],
+  );
 
   return (
     <View className="flex-1 mb-28">
@@ -232,8 +239,8 @@ const Home = () => {
         <View className="flex flex-row flex-wrap justify-between mx-5">
           {loadingBookings ? (
             <Text className="text-base text-slate-500">Loading...</Text>
-          ) : ongoingBookings.length > 0 ? (
-            ongoingBookings.map((item) => (
+          ) : sortedOngoingBookings.length > 0 ? (
+            sortedOngoingBookings.map((item) => (
               <BookingCard
                 key={item.booking_id}
                 item={item}
@@ -251,8 +258,8 @@ const Home = () => {
         <View className="flex flex-row flex-wrap justify-between mx-5">
           {loadingBookings ? (
             <Text className="text-base text-slate-500">Loading...</Text>
-          ) : upcomingBookings.length > 0 ? (
-            upcomingBookings.map((item) => (
+          ) : sortedUpcomingBookings.length > 0 ? (
+            sortedUpcomingBookings.map((item) => (
               <BookingCard key={item.booking_id} item={item} />
             ))
           ) : (
