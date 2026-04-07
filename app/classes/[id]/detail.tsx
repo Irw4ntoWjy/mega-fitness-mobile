@@ -1,8 +1,11 @@
 import { BackgroundGlow } from "@/components/Theme/background";
+import { useAuth } from "@/hooks/useAuth";
+import * as Location from "expo-location";
 import { router, useLocalSearchParams } from "expo-router";
 import { ArrowLeft, Check, Clock, Contact, X } from "lucide-react-native";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   Modal,
   Pressable,
@@ -11,7 +14,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { activities, member, profile } from "../dummy_data";
+import { activities, member } from "../dummy_data";
 
 type Activity = {
   title: string;
@@ -24,6 +27,32 @@ type Member = {
   id: string;
   name: string;
 };
+
+const TRAINER_SIGN_OUT_RADIUS_METERS = 10;
+const TRAINER_SIGN_OUT_TARGET = {
+  latitude: 3.591907,
+  longitude: 98.681419,
+};
+
+const toRadians = (deg: number) => (deg * Math.PI) / 180;
+
+function getDistanceMeters(
+  start: { latitude: number; longitude: number },
+  end: { latitude: number; longitude: number },
+) {
+  const earthRadiusMeters = 6371000;
+  const dLat = toRadians(end.latitude - start.latitude);
+  const dLon = toRadians(end.longitude - start.longitude);
+  const lat1 = toRadians(start.latitude);
+  const lat2 = toRadians(end.latitude);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadiusMeters * c;
+}
 
 function Checkbox({
   checked,
@@ -52,11 +81,13 @@ function SignOutModal({
   onClose,
   onConfirm,
   activity,
+  isSubmitting,
 }: {
   visible: boolean;
   activity: Activity;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
+  isSubmitting: boolean;
 }) {
   return (
     <Modal
@@ -119,6 +150,7 @@ function SignOutModal({
               <View className="mt-4 flex-row gap-4">
                 <Pressable
                   onPress={onClose}
+                  disabled={isSubmitting}
                   className="flex-1 h-12 rounded-xl border border-black items-center justify-center"
                 >
                   <Text className="text-xl font-semibold text-black">
@@ -127,12 +159,19 @@ function SignOutModal({
                 </Pressable>
 
                 <Pressable
-                  onPress={onConfirm}
+                  onPress={() => {
+                    void onConfirm();
+                  }}
+                  disabled={isSubmitting}
                   className="flex-1 h-12 rounded-xl bg-red-600 items-center justify-center"
                 >
-                  <Text className="text-xl font-semibold text-white">
-                    Sign Out
-                  </Text>
+                  {isSubmitting ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text className="text-xl font-semibold text-white">
+                      Sign Out
+                    </Text>
+                  )}
                 </Pressable>
               </View>
             </View>
@@ -143,13 +182,85 @@ function SignOutModal({
   );
 }
 
+function FeedbackModal({
+  visible,
+  title,
+  message,
+  onClose,
+}: {
+  visible: boolean;
+  title: string;
+  message: string;
+  onClose: () => void;
+}) {
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 24,
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View className="w-full rounded-2xl bg-white p-5 shadow-lg">
+              <View className="flex flex-row justify-between items-center">
+                <Text className="text-xl font-semibold text-gray-900 mt-1">
+                  {title}
+                </Text>
+                <Pressable
+                  onPress={onClose}
+                  className="w-8 h-8 rounded-md bg-gray-100 items-center justify-center ml-auto"
+                >
+                  <X size={22} color="#111" />
+                </Pressable>
+              </View>
+
+              <Text className="mt-4 text-base text-gray-700 leading-6">
+                {message}
+              </Text>
+
+              <Pressable
+                onPress={onClose}
+                className="mt-6 h-12 rounded-xl bg-cyan-600 items-center justify-center"
+              >
+                <Text className="text-xl font-semibold text-white">OK</Text>
+              </Pressable>
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
+    </Modal>
+  );
+}
+
 export default function ClassesDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
+  const { auth } = useAuth();
 
   const activity = activities.find((item) => item.id === Number(id));
-  const userProfile = profile;
-  const isTrainer = userProfile.role === "Trainer";
+  const isTrainer = auth?.accountDetail?.account_role === "Trainer";
   const members: Member[] = member;
+  const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState(activity?.status ?? "Upcoming");
+  const [isSubmittingSignOut, setIsSubmittingSignOut] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+  }>({
+    visible: false,
+    title: "",
+    message: "",
+  });
 
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
 
@@ -162,16 +273,75 @@ export default function ClassesDetailScreen() {
   };
 
   if (!activity) {
-    return <div>Activity not found</div>;
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text className="text-lg text-zinc-900">Activity not found</Text>
+      </View>
+    );
   }
-  const [open, setOpen] = useState(false);
-  const [status, setStatus] = useState(activity.status);
 
   const isOngoing = status === "Ongoing";
 
-  const handleSignOut = () => {
-    setStatus("Signed Out");
-    setOpen(false);
+  const handleSignOut = async () => {
+    if (isSubmittingSignOut) {
+      return;
+    }
+
+    if (!isTrainer) {
+      setStatus("Signed Out");
+      setOpen(false);
+      return;
+    }
+
+    setIsSubmittingSignOut(true);
+
+    try {
+      const { status: permissionStatus } =
+        await Location.requestForegroundPermissionsAsync();
+
+      if (permissionStatus !== "granted") {
+        setFeedbackModal({
+          visible: true,
+          title: "Location Permission Needed",
+          message: "Aktifkan izin lokasi untuk sign out trainer.",
+        });
+        return;
+      }
+
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      const trainerLocation = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      };
+
+      const distanceMeters = getDistanceMeters(
+        trainerLocation,
+        TRAINER_SIGN_OUT_TARGET,
+      );
+
+      if (distanceMeters > TRAINER_SIGN_OUT_RADIUS_METERS) {
+        setFeedbackModal({
+          visible: true,
+          title: "Di Luar Radius",
+          message: `Trainer harus berada dalam radius ${TRAINER_SIGN_OUT_RADIUS_METERS}m.\nJarak saat ini ${Math.round(distanceMeters)}m.`,
+        });
+        return;
+      }
+
+      setStatus("Signed Out");
+      setOpen(false);
+    } catch {
+      setFeedbackModal({
+        visible: true,
+        title: "Sign Out Gagal",
+        message: "Lokasi tidak bisa diambil. Coba lagi beberapa saat.",
+      });
+    } finally {
+      setIsSubmittingSignOut(false);
+    }
   };
 
   return (
@@ -225,7 +395,7 @@ export default function ClassesDetailScreen() {
           </View>
         </View>
 
-        {userProfile.role === "Member" ? (
+        {!isTrainer ? (
           <Text
             style={{
               marginTop: 28,
@@ -237,7 +407,7 @@ export default function ClassesDetailScreen() {
           >
             {activity.description}
           </Text>
-        ) : userProfile.role === "Trainer" ? (
+        ) : isTrainer ? (
           <View className="mt-7">
             <Text className="text-[20px] text-zinc-900/90 font-bold">
               Member:
@@ -261,7 +431,7 @@ export default function ClassesDetailScreen() {
 
                       {activity.status === "Ongoing" && (
                         <Pressable
-                          onPress={() => router.push("journal/journal")}
+                          onPress={() => router.push("/journal/journal")}
                           hitSlop={10}
                         >
                           <Text className="text-[14px] text-zinc-500 underline">
@@ -292,7 +462,7 @@ export default function ClassesDetailScreen() {
                   pathname: "/classes/[id]/barcode",
                   params: {
                     id: String(activity.id),
-                    trainer: String(userProfile.role === "Trainer"),
+                    trainer: String(isTrainer),
                   },
                 })
           }
@@ -310,8 +480,21 @@ export default function ClassesDetailScreen() {
       <SignOutModal
         visible={open}
         activity={activity}
+        isSubmitting={isSubmittingSignOut}
         onClose={() => setOpen(false)}
         onConfirm={handleSignOut}
+      />
+
+      <FeedbackModal
+        visible={feedbackModal.visible}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        onClose={() =>
+          setFeedbackModal((prev) => ({
+            ...prev,
+            visible: false,
+          }))
+        }
       />
     </View>
   );

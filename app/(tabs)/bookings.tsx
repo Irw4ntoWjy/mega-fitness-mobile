@@ -246,7 +246,6 @@ function CancelModal({
 }
 
 export default function Bookings() {
-  const { auth, loading: loadingAuth } = useAuth();
   const [tab, setTab] = useState<TabKey>("Upcoming");
   const { auth, loading: loadingAuth } = useAuth();
   const [data, setData] = useState<BookingSchema[]>([]);
