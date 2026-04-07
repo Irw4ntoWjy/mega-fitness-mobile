@@ -22,10 +22,11 @@ function BookingCard({
   item: BookingSchema;
   showOngoingTag?: boolean;
 }) {
+  const statusId = String(item.booking_status_id);
   const statusBg =
-    item.booking_status_id === "1"
+    statusId === "1" || statusId === "3"
       ? "#16A34A"
-      : item.booking_status_id === "-1"
+      : statusId === "-1"
         ? "#DC2626"
         : "#64748B";
   return (
@@ -116,7 +117,7 @@ const Home = () => {
     getBookingList({
       member_profile_id: memberProfileId,
       is_not_expired: true,
-      booking_status_id: "1",
+      booking_status_id: 3,
     })
       .then((res) => {
         if (cancelled) return;
