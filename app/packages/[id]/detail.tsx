@@ -4,7 +4,15 @@ import { Package } from "@/type/package";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
-import { Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Linking,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 
 
 type PersonalTrainer = {
@@ -38,6 +46,7 @@ export const TrainerCard = ({ item }: { item: PersonalTrainer }) => {
 
 export default function ProductDetail() {
   const [packageData, setPackageData] = useState<Package | null>(null);
+  const [loading, setLoading] = useState(true);
   const [personalTrainers, setPersonalTrainers] = useState<PersonalTrainer[]>([]);
   const { id, from } = useLocalSearchParams<{ id: string; from?: string }>();
 
@@ -53,6 +62,7 @@ export default function ProductDetail() {
   const fetchDetail = useCallback(async () => {
     try {
       if (!id) return;
+      setLoading(true);
       const res = await getPackageDetail({ package_id: id });
 
       if (res.success && res.data) {
@@ -60,6 +70,8 @@ export default function ProductDetail() {
       }
     } catch (err) {
       console.log("Detail error:", err);
+    } finally {
+      setLoading(false);
     }
   }, [id]);
 
@@ -67,13 +79,21 @@ export default function ProductDetail() {
     fetchDetail();
   }, [fetchDetail]);
 
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
   if (!packageData) {
-  return (
-    <View className="flex-1 items-center justify-center">
-      <Text>Package not found</Text>
-    </View>
-  );
-}
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text>Package not found</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -103,11 +123,15 @@ export default function ProductDetail() {
 
       <ScrollView className="flex-1 mx-6" showsVerticalScrollIndicator={false}>
         <View className="h-[210px] rounded-[18px] overflow-hidden bg-black mt-1">
-          <Image
-            source={{ uri: packageData.package_cover_image }}
-            className="h-full w-full"
-            resizeMode="cover"
-          />
+          {packageData.package_cover_image ? (
+            <Image
+              source={{ uri: packageData.package_cover_image }}
+              className="h-full w-full"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="h-full w-full bg-black" />
+          )}
         </View>
 
         <View className="flex-row items-center mt-6">
