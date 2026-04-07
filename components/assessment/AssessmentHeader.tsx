@@ -16,7 +16,6 @@ export default function AssessmentHeader({
   subtitle,
 }: Props) {
   const progressPercentage = (currentStep / totalSteps) * 100;
-  console.log(progressPercentage);
   return (
     <View className="px-8">
       <View className="flex-row justify-between items-center mb-3">
