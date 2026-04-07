@@ -1,4 +1,3 @@
-import { AssessmentPages } from "@/app/assessment/dummy_question";
 import { router } from "expo-router";
 import { Bell, ChevronLeft, FileQuestionMark } from "lucide-react-native";
 import { ReactNode } from "react";
@@ -62,12 +61,7 @@ export default function HeaderNavBar({
           <HeaderIcon
             onPress={() =>
               router.push({
-                pathname: "/assessment/[section]/[id]/detail",
-                params: {
-                  section: AssessmentPages.PHYSICAL_ACTIVITY_READINESS,
-                  // TODO update use userId
-                  id: "1",
-                },
+                pathname: "/assessment/detail",
               })
             }
           >
