@@ -1,4 +1,3 @@
-import { AssessmentPages } from "@/app/assessment/dummy_question";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { useToast } from "@/components/Toast/toast-provider";
 import MemberActionList from "@/components/Trainer/member-action-list";
@@ -361,11 +360,9 @@ export default function Bookings() {
         emptyLabel="Belum ada member untuk di-assess."
         onSelectMember={(memberItem) =>
           router.push({
-            pathname: "/assessment/[section]/[id]/detail",
+            pathname: "/assessment/detail",
             params: {
-              section: AssessmentPages.PHYSICAL_ACTIVITY_READINESS,
-              id: memberItem.id,
-              memberName: memberItem.name,
+              memberProfileId: memberItem.id,
             },
           })
         }

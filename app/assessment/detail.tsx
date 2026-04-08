@@ -6,7 +6,7 @@ import { BackgroundGlow } from "@/components/Theme/background";
 import { useToast } from "@/components/Toast/toast-provider";
 import { useAuth } from "@/hooks/useAuth";
 import { AnswerValue, SectionSchema } from "@/type/assessment";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
@@ -14,6 +14,10 @@ import { QUESTION_META } from "./dummy_question";
 
 export default function AssessmentDetail() {
   const { auth, loading: loadingAuth } = useAuth();
+  const isTrainer = auth?.accountDetail?.account_role === "Trainer";
+  const { memberProfileId } = useLocalSearchParams<{
+    memberProfileId?: string;
+  }>();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<SectionSchema[]>([]);
@@ -22,11 +26,16 @@ export default function AssessmentDetail() {
   const [isEditMode, setIsEditMode] = useState(false);
 
   const currentSection = data[currentStep];
+  const isReadOnlySection = (section?: number) =>
+    isTrainer && (section === 1 || section === 2);
+  const isTrainerReadOnlySection = isReadOnlySection(currentSection?.section);
 
   useEffect(() => {
     if (loadingAuth) return;
 
-    const profileId = auth?.accountDetail?.profile_id;
+    const profileId = memberProfileId
+      ? String(memberProfileId)
+      : auth?.accountDetail?.profile_id;
     if (!profileId) return;
 
     const fetchData = async () => {
@@ -91,9 +100,13 @@ export default function AssessmentDetail() {
     };
 
     fetchData();
-  }, [loadingAuth, auth]);
+  }, [loadingAuth, auth, memberProfileId]);
 
   const isCurrentStepValid = () => {
+    if (isTrainerReadOnlySection) {
+      return true;
+    }
+
     return currentSection?.data?.every((q: any) => {
       const key = `${currentSection.section}-${q.key.en}`;
       const answer = answers[key];
@@ -150,7 +163,11 @@ export default function AssessmentDetail() {
   };
 
   const handleSubmit = async () => {
-    if (!auth.accountDetail.profile_id) {
+    const profileId = memberProfileId
+      ? String(memberProfileId)
+      : auth?.accountDetail?.profile_id;
+
+    if (!profileId) {
       showToast({
         message: "Profile ID not found.",
         variant: "error",
@@ -189,7 +206,7 @@ export default function AssessmentDetail() {
         };
       });
 
-      if (section.section === 1 || section.section === 2) {
+      if ((section.section === 1 || section.section === 2) && !isTrainer) {
         for (const q of data) {
           const answer = q.rawAnswer;
 
@@ -234,7 +251,7 @@ export default function AssessmentDetail() {
 
     try {
       const res = await createAssessment({
-        profile_id: auth.accountDetail.profile_id,
+        profile_id: profileId,
         answer_json: result,
       });
 
@@ -304,7 +321,7 @@ export default function AssessmentDetail() {
                 q={q}
                 index={index}
                 value={answers[key]}
-                disabled={!isEditMode}
+                disabled={!isEditMode || isTrainerReadOnlySection}
                 setAnswer={(k, value) => {
                   setAnswers((prev) => ({
                     ...prev,
@@ -329,6 +346,10 @@ export default function AssessmentDetail() {
         backDisabled={currentStep === 0}
         nextDisabled={!isCurrentStepValid()}
         isLastStep={currentStep === data.length - 1}
+        hideNext={
+          currentStep === data.length - 1 &&
+          (isEditMode || isTrainerReadOnlySection)
+        }
       />
     </View>
   );

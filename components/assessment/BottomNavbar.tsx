@@ -7,6 +7,7 @@ type Props = {
   backDisabled?: boolean;
   nextDisabled?: boolean;
   isLastStep?: boolean;
+  hideNext?: boolean;
 };
 
 export default function BottomNavbar({
@@ -15,6 +16,7 @@ export default function BottomNavbar({
   backDisabled = false,
   nextDisabled = false,
   isLastStep = false,
+  hideNext = false,
 }: Props) {
   return (
     <View className="absolute bottom-5 left-0 right-0 px-4 py-4">
@@ -34,18 +36,22 @@ export default function BottomNavbar({
         )}
 
         {/* NEXT / SUBMIT BUTTON */}
-        <Pressable
-          onPress={onNext}
-          disabled={nextDisabled}
-          className={`w-1/3 h-14 flex-row items-center justify-center rounded-2xl ${
-            nextDisabled ? "bg-gray-300" : "bg-[#30B8C4]"
-          }`}
-        >
-          <Text className="font-semibold text-white">
-            {isLastStep ? "Submit" : "Next"}
-          </Text>
-          {!isLastStep && <ChevronRight size={20} color="#fff" />}
-        </Pressable>
+        {hideNext ? (
+          <View className="w-1/3" />
+        ) : (
+          <Pressable
+            onPress={onNext}
+            disabled={nextDisabled}
+            className={`w-1/3 h-14 flex-row items-center justify-center rounded-2xl ${
+              nextDisabled ? "bg-gray-300" : "bg-[#30B8C4]"
+            }`}
+          >
+            <Text className="font-semibold text-white">
+              {isLastStep ? "Submit" : "Next"}
+            </Text>
+            {!isLastStep && <ChevronRight size={20} color="#fff" />}
+          </Pressable>
+        )}
       </View>
     </View>
   );
