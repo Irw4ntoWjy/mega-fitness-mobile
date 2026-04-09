@@ -21,18 +21,15 @@ import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeabl
 import { checkAssessment } from "../api/assessment";
 import { cancelBooking, getBookingList } from "../api/booking";
 import AddBookingModal from "../bookings/add-bookings";
-import { bookings } from "../bookings/dummy_data";
 
 type TabKey = "Upcoming" | "Completed" | "Cancelled";
 const TABS: TabKey[] = ["Upcoming", "Completed", "Cancelled"];
 
-const TAB_STATUS_MAP: Record<TabKey, string> = {
-  Upcoming: "1",
-  Completed: "0",
-  Cancelled: "-1",
+const TAB_STATUS_MAP: Record<TabKey, number[]> = {
+  Upcoming: [3, 4],
+  Completed: [2],
+  Cancelled: [1],
 };
-
-type Booking = (typeof bookings)[number];
 
 function TabPill({
   label,
@@ -275,11 +272,11 @@ export default function Bookings() {
   }, [loadingAuth, auth]);
 
   const filteredData = useMemo(() => {
-    return data.filter(
-      (item) => item.booking_status_id === TAB_STATUS_MAP[tab],
+    return data.filter((item) =>
+      TAB_STATUS_MAP[tab].includes(item.booking_status_id),
     );
   }, [data, tab]);
-
+  console.log("filteredData", filteredData);
   const [open, setOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<BookingSchema | null>(
     null,
