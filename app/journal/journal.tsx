@@ -1,8 +1,14 @@
+import { getActivityGroupDetail } from "@/app/api/activity-group";
+import { getActivityGroupCombobox } from "@/app/api/combobox/activity-group";
+import { createJournal } from "@/app/api/journal";
 import Combobox from "@/components/Combobox/combobox";
 import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
+import ConfirmModal from "@/components/Journal/ConfirmModal";
+import FeedbackModal from "@/components/Journal/FeedbackModal";
+import { ComboboxItem } from "@/type/combobox";
 import { BackgroundGlow } from "@components/Theme/background";
 import { useFocusEffect } from "@react-navigation/native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import {
   ChevronRight,
   ChevronUp,
@@ -15,7 +21,6 @@ import {
 } from "lucide-react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Alert,
   BackHandler,
   Modal,
   Pressable,
@@ -27,30 +32,22 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Journal = () => {
+  const { sessionLogId, sessionDuration } = useLocalSearchParams<{
+    sessionLogId?: string;
+    sessionDuration?: string;
+  }>();
   const insets = useSafeAreaInsets();
-  const activityGroupOptions = [
-    "Strength Training",
-    "Cardio",
-    "Mobility",
-    "HIIT",
-    "Recovery",
-  ];
-  const activityGroupDurations: Record<string, string> = {
-    "Strength Training": "01:00",
-    Cardio: "00:45",
-    Mobility: "00:30",
-    HIIT: "00:40",
-    Recovery: "00:25",
-  };
-  const exerciseOptions = [
-    "Bench Press",
-    "Squat",
-    "Deadlift",
-    "Pull Up",
-    "Push Up",
-  ];
+  const [activityGroupOptions, setActivityGroupOptions] = useState<
+    ComboboxItem[]
+  >([]);
+  const [activityOptions, setActivityOptions] = useState<string[]>([]);
+  const [pickerOpenIndex, setPickerOpenIndex] = useState<number | null>(null);
+  const [activityOptionsLoading, setActivityOptionsLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const [activityGroupId, setActivityGroupId] = useState<string | null>(null);
   const [activityGroupTitle, setActivityGroupTitle] = useState<string | null>(
-    null
+    null,
   );
   const [activityGroupDuration, setActivityGroupDuration] = useState<
     string | null
@@ -61,6 +58,28 @@ const Journal = () => {
   const [notes, setNotes] = useState("");
   const [notesDraft, setNotesDraft] = useState("");
   const [notesModalOpen, setNotesModalOpen] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+  }>({
+    visible: false,
+    title: "",
+    message: "",
+  });
+  const [confirmModal, setConfirmModal] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+  }>({
+    visible: false,
+    title: "",
+    message: "",
+    confirmText: "",
+  });
+  const feedbackOnCloseRef = useRef<(() => void) | null>(null);
+  const confirmOnConfirmRef = useRef<(() => void) | null>(null);
   const savedSnapshot = useRef("");
   const [setGroups, setActivityGroups] = useState<
     {
@@ -69,7 +88,6 @@ const Journal = () => {
       sets: { weight: string; reps: string }[];
     }[]
   >([]);
-  const [pickerOpenIndex, setPickerOpenIndex] = useState<number | null>(null);
   const weightInputRefs = useRef<(TextInput | null)[][]>([]);
   const shouldFocusOnAdd = useRef<{
     groupIndex: number;
@@ -82,22 +100,75 @@ const Journal = () => {
     sets: [{ weight: "", reps: "" }],
   });
 
+  const openFeedbackModal = (
+    title: string,
+    message: string,
+    onClose?: () => void,
+  ) => {
+    feedbackOnCloseRef.current = onClose ?? null;
+    setFeedbackModal({
+      visible: true,
+      title,
+      message,
+    });
+  };
+
+  const closeFeedbackModal = () => {
+    setFeedbackModal((prev) => ({
+      ...prev,
+      visible: false,
+    }));
+
+    const callback = feedbackOnCloseRef.current;
+    feedbackOnCloseRef.current = null;
+    callback?.();
+  };
+
+  const openConfirmModal = (
+    title: string,
+    message: string,
+    onConfirm: () => void,
+    confirmText?: string,
+  ) => {
+    confirmOnConfirmRef.current = onConfirm;
+    setConfirmModal({
+      visible: true,
+      title,
+      message,
+      confirmText,
+    });
+  };
+
+  const closeConfirmModal = () => {
+    setConfirmModal((prev) => ({
+      ...prev,
+      visible: false,
+    }));
+    confirmOnConfirmRef.current = null;
+  };
+
+  const confirmModalAction = () => {
+    const callback = confirmOnConfirmRef.current;
+    closeConfirmModal();
+    callback?.();
+  };
+
   const handleAddGroup = () => {
     if (!activityGroupTitle) {
-      Alert.alert(
+      openFeedbackModal(
         "Pilih activity group dulu",
-        "Tentukan activity group sebelum menambah activity."
+        "Tentukan activity group sebelum menambah activity.",
       );
       return;
     }
     const hasIncompleteGroup = setGroups.some(
       (group) =>
-        !group.title || group.sets.some((set) => !set.weight || !set.reps)
+        !group.title || group.sets.some((set) => !set.weight || !set.reps),
     );
     if (hasIncompleteGroup) {
-      Alert.alert(
+      openFeedbackModal(
         "Data belum lengkap",
-        "Lengkapi aktivitas dan set sebelum menambah group baru."
+        "Lengkapi aktivitas dan set sebelum menambah group baru.",
       );
       return;
     }
@@ -110,14 +181,11 @@ const Journal = () => {
       group?.isOpen &&
       (!group.title || group.sets.some((set) => !set.weight || !set.reps))
     ) {
-      Alert.alert(
+      openFeedbackModal(
         "Data belum lengkap",
-        "Lengkapi aktivitas dan set sebelum menutup aktivitas."
+        "Lengkapi aktivitas dan set sebelum menutup aktivitas.",
       );
       return;
-    }
-    if (setGroups[groupIndex]?.isOpen && pickerOpenIndex === groupIndex) {
-      setPickerOpenIndex(null);
     }
     setActivityGroups((prev) =>
       prev.map((group, index) => {
@@ -125,69 +193,94 @@ const Journal = () => {
           return group;
         }
         return { ...group, isOpen: !group.isOpen };
-      })
+      }),
     );
   };
 
-  const handlePickExercise = (groupIndex: number, title: string) => {
-    if (!title) {
-      setActivityGroups((prev) =>
-        prev.map((group, index) =>
-          index === groupIndex ? { ...group, title: "" } : group
-        )
-      );
-      return;
-    }
+  const handleExerciseTitleChange = (groupIndex: number, title: string) => {
     const hasDuplicate = setGroups.some(
-      (group, index) => index !== groupIndex && group.title === title
+      (group, index) => index !== groupIndex && group.title === title,
     );
-    if (hasDuplicate) {
-      Alert.alert("Aktivitas sudah ada", "Pilih aktivitas yang berbeda.");
+    if (title && hasDuplicate) {
+      openFeedbackModal("Aktivitas sudah ada", "Pilih aktivitas yang berbeda.");
       return;
     }
+
     setActivityGroups((prev) =>
       prev.map((group, index) =>
-        index === groupIndex ? { ...group, title } : group
-      )
+        index === groupIndex ? { ...group, title } : group,
+      ),
     );
+
     setPickerOpenIndex(null);
   };
+
+  const loadActivitiesByGroupId = useCallback(async (groupId?: string) => {
+    if (!groupId) {
+      setActivityOptions([]);
+      return;
+    }
+
+    try {
+      setActivityOptionsLoading(true);
+      const res = await getActivityGroupDetail({ activity_group_id: groupId });
+
+      if (!res.success || !res.data) {
+        setActivityOptions([]);
+        return;
+      }
+
+      setActivityOptions(
+        (res.data.activities ?? []).map((activity) => activity.activity_name),
+      );
+    } catch (error) {
+      console.error(error);
+      setActivityOptions([]);
+    } finally {
+      setActivityOptionsLoading(false);
+    }
+  }, []);
 
   const handlePickActivityGroup = (title: string) => {
     if (!title) {
       return;
     }
     if (activityGroupTitle && activityGroupEditing) {
-      Alert.alert(
+      openConfirmModal(
         "Ubah activity group?",
         "Mengubah activity group akan menghapus semua data yang sudah diisi.",
-        [
-          { text: "Batal", style: "cancel" },
-          {
-            text: "Lanjut",
-            style: "destructive",
-            onPress: () => {
-              setActivityGroupTitle(title);
-              setActivityGroupDuration(
-                activityGroupDurations[title] ?? "01:00"
-              );
-              setActivityGroupModalOpen(false);
-              setActivityGroupPickerOpen(false);
-              setActivityGroupEditing(false);
-              setActivityGroups([createEmptyGroup()]);
-              setPickerOpenIndex(null);
-              setNotes("");
-              setNotesDraft("");
-              savedSnapshot.current = "";
-            },
-          },
-        ]
+        () => {
+          const selected = activityGroupOptions.find(
+            (item) => item.label === title,
+          );
+          const nextGroupId =
+            String((selected?.data as any)?.activity_group_id ?? "") || null;
+
+          setActivityGroupTitle(title);
+          setActivityGroupId(nextGroupId);
+          setActivityGroupDuration(sessionDuration ?? null);
+          setActivityGroupModalOpen(false);
+          setActivityGroupPickerOpen(false);
+          setActivityGroupEditing(false);
+          setActivityGroups([createEmptyGroup()]);
+          setNotes("");
+          setNotesDraft("");
+          savedSnapshot.current = "";
+
+          void loadActivitiesByGroupId(nextGroupId ?? undefined);
+        },
+        "Lanjut",
       );
       return;
     }
 
+    const selected = activityGroupOptions.find((item) => item.label === title);
+    const nextGroupId =
+      String((selected?.data as any)?.activity_group_id ?? "") || null;
+
     setActivityGroupTitle(title);
-    setActivityGroupDuration(activityGroupDurations[title] ?? "01:00");
+    setActivityGroupId(nextGroupId);
+    setActivityGroupDuration(sessionDuration ?? null);
     setActivityGroupModalOpen(false);
     setActivityGroupPickerOpen(false);
     setActivityGroupEditing(false);
@@ -195,6 +288,8 @@ const Journal = () => {
     setNotes("");
     setNotesDraft("");
     savedSnapshot.current = "";
+
+    void loadActivitiesByGroupId(nextGroupId ?? undefined);
   };
 
   const handleEditActivityGroup = () => {
@@ -216,40 +311,48 @@ const Journal = () => {
     setNotesModalOpen(false);
   };
 
-  const buildPayload = useCallback(
+  const buildJournalJson = useCallback(
     () => ({
-      "activity-group": activityGroupTitle,
-      "activity-group-duration": activityGroupDuration ?? "01:00",
+      activity_group_id: activityGroupId,
+      activity_group_name: activityGroupTitle,
+      activity_group_duration: activityGroupDuration ?? sessionDuration ?? null,
       notes,
       activities: setGroups.map((group) => ({
-        "activity-title": group.title,
+        activity_name: group.title,
         sets: group.sets.map((set) => ({
           weight: set.weight,
           reps: set.reps,
         })),
       })),
     }),
-    [activityGroupTitle, activityGroupDuration, notes, setGroups]
+    [
+      activityGroupTitle,
+      activityGroupId,
+      activityGroupDuration,
+      sessionDuration,
+      notes,
+      setGroups,
+    ],
   );
 
   const hasContent = useCallback(
     () =>
       Boolean(
         notes.trim() ||
-          setGroups.some(
-            (group) =>
-              group.title || group.sets.some((set) => set.weight || set.reps)
-          )
+        setGroups.some(
+          (group) =>
+            group.title || group.sets.some((set) => set.weight || set.reps),
+        ),
       ),
-    [notes, setGroups]
+    [notes, setGroups],
   );
 
   const isDirty = useCallback(() => {
     if (!hasContent()) {
       return false;
     }
-    return JSON.stringify(buildPayload()) !== savedSnapshot.current;
-  }, [buildPayload, hasContent]);
+    return JSON.stringify(buildJournalJson()) !== savedSnapshot.current;
+  }, [buildJournalJson, hasContent]);
 
   const confirmLeaveIfDirty = useCallback(
     (onLeave: () => void) => {
@@ -257,59 +360,95 @@ const Journal = () => {
         onLeave();
         return;
       }
-      Alert.alert(
+      openConfirmModal(
         "Perubahan belum disimpan",
         "Perubahan yang dibuat akan hilang jika keluar tanpa menyimpan.",
-        [
-          { text: "Batal", style: "cancel" },
-          { text: "Tetap keluar", style: "destructive", onPress: onLeave },
-        ]
+        onLeave,
+        "Tetap keluar",
       );
     },
-    [isDirty]
+    [isDirty],
   );
 
   const handleBackPress = useCallback(() => {
     confirmLeaveIfDirty(() => router.back());
   }, [confirmLeaveIfDirty]);
 
-  const handleSaveJournal = () => {
+  const handleSaveJournal = async () => {
+    const resolvedSessionLogId = Array.isArray(sessionLogId)
+      ? sessionLogId[0]
+      : sessionLogId;
+
+    if (!resolvedSessionLogId) {
+      openFeedbackModal(
+        "Session log tidak ditemukan",
+        "Silakan kembali dari halaman History lalu coba lagi.",
+      );
+      return;
+    }
+
+    if (saving) {
+      return;
+    }
+
     if (!activityGroupTitle) {
-      Alert.alert(
+      openFeedbackModal(
         "Pilih activity group dulu",
-        "Tentukan activity group sebelum menyimpan journal."
+        "Tentukan activity group sebelum menyimpan journal.",
       );
       return;
     }
     const hasIncompleteGroup = setGroups.some(
       (group) =>
-        !group.title || group.sets.some((set) => !set.weight || !set.reps)
+        !group.title || group.sets.some((set) => !set.weight || !set.reps),
     );
     if (hasIncompleteGroup) {
-      Alert.alert(
+      openFeedbackModal(
         "Data belum lengkap",
-        "Lengkapi aktivitas dan set sebelum menyimpan journal."
+        "Lengkapi aktivitas dan set sebelum menyimpan journal.",
       );
       return;
     }
     if (!notes.trim()) {
-      Alert.alert(
+      openFeedbackModal(
         "Notes belum diisi",
-        "Tambahkan catatan sebelum menyimpan journal."
+        "Tambahkan catatan sebelum menyimpan journal.",
       );
       return;
     }
 
-    const payload = buildPayload();
+    const journalJson = buildJournalJson();
 
-    console.log("[journal] payload", JSON.stringify(payload));
-    savedSnapshot.current = JSON.stringify(payload);
-    Alert.alert("Journal tersimpan", "Catatan dan aktivitas sudah disimpan.", [
-      {
-        text: "OK",
-        onPress: () => router.back(),
-      },
-    ]);
+    try {
+      setSaving(true);
+      const res = await createJournal({
+        session_log_id: resolvedSessionLogId,
+        journal_json: journalJson,
+      });
+
+      if (!res.success) {
+        openFeedbackModal(
+          "Gagal menyimpan journal",
+          res.message || "Terjadi kesalahan saat menyimpan journal.",
+        );
+        return;
+      }
+
+      savedSnapshot.current = JSON.stringify(journalJson);
+      openFeedbackModal(
+        "Journal tersimpan",
+        res.message || "Catatan dan aktivitas sudah disimpan.",
+        () => router.back(),
+      );
+    } catch (error) {
+      console.error(error);
+      openFeedbackModal(
+        "Gagal menyimpan journal",
+        "Terjadi kesalahan saat menyimpan journal.",
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleAddSet = (groupIndex: number) => {
@@ -324,28 +463,22 @@ const Journal = () => {
           setIndex: nextSets.length - 1,
         };
         return { ...group, sets: nextSets };
-      })
+      }),
     );
   };
 
   const handleRemoveSet = (groupIndex: number, setIndexToRemove: number) => {
     const group = setGroups[groupIndex];
     if (group?.sets.length <= 1) {
-      Alert.alert(
+      openConfirmModal(
         "Hapus aktivitas?",
         "Aksi ini akan menghapus keseluruhan aktivitas. Lanjutkan?",
-        [
-          { text: "Batal", style: "cancel" },
-          {
-            text: "Hapus",
-            style: "destructive",
-            onPress: () => {
-              setActivityGroups((prev) =>
-                prev.filter((_, index) => index !== groupIndex)
-              );
-            },
-          },
-        ]
+        () => {
+          setActivityGroups((prev) =>
+            prev.filter((_, index) => index !== groupIndex),
+          );
+        },
+        "Hapus",
       );
       return;
     }
@@ -357,10 +490,10 @@ const Journal = () => {
         return {
           ...groupItem,
           sets: groupItem.sets.filter(
-            (_, setIndex) => setIndex !== setIndexToRemove
+            (_, setIndex) => setIndex !== setIndexToRemove,
           ),
         };
-      })
+      }),
     );
   };
 
@@ -368,7 +501,7 @@ const Journal = () => {
     groupIndex: number,
     setIndexToUpdate: number,
     field: "weight" | "reps",
-    value: string
+    value: string,
   ) => {
     const sanitizedValue = value.replace(/[^0-9]/g, "");
     setActivityGroups((prev) =>
@@ -381,29 +514,23 @@ const Journal = () => {
           sets: group.sets.map((set, setIndex) =>
             setIndex === setIndexToUpdate
               ? { ...set, [field]: sanitizedValue }
-              : set
+              : set,
           ),
         };
-      })
+      }),
     );
   };
 
   const handleRemoveGroup = (groupIndex: number) => {
-    Alert.alert(
+    openConfirmModal(
       "Hapus aktivitas?",
       "Aksi ini akan menghapus keseluruhan aktivitas. Lanjutkan?",
-      [
-        { text: "Batal", style: "cancel" },
-        {
-          text: "Hapus",
-          style: "destructive",
-          onPress: () => {
-            setActivityGroups((prev) =>
-              prev.filter((_, index) => index !== groupIndex)
-            );
-          },
-        },
-      ]
+      () => {
+        setActivityGroups((prev) =>
+          prev.filter((_, index) => index !== groupIndex),
+        );
+      },
+      "Hapus",
     );
   };
 
@@ -415,11 +542,31 @@ const Journal = () => {
       };
       const subscription = BackHandler.addEventListener(
         "hardwareBackPress",
-        onBackPress
+        onBackPress,
       );
       return () => subscription.remove();
-    }, [confirmLeaveIfDirty])
+    }, [confirmLeaveIfDirty]),
   );
+
+  useEffect(() => {
+    const fetchActivityGroupCombobox = async () => {
+      try {
+        const res = await getActivityGroupCombobox({
+          q: null,
+          page: 1,
+          limit: -1,
+          activity_group_status_id: null,
+        });
+
+        setActivityGroupOptions(res.data);
+      } catch (error) {
+        console.error(error);
+        setActivityGroupOptions([]);
+      }
+    };
+
+    fetchActivityGroupCombobox();
+  }, []);
 
   useEffect(() => {
     if (!shouldFocusOnAdd.current) {
@@ -460,7 +607,7 @@ const Journal = () => {
               </View>
               <View className="flex-col items-center">
                 <Text className="text-2xl">
-                  {activityGroupDuration ?? "01:00"}
+                  {activityGroupDuration ?? sessionDuration}
                 </Text>
                 <Text className="text-md font-light">Duration</Text>
               </View>
@@ -501,18 +648,23 @@ const Journal = () => {
                       <>
                         <Combobox
                           value={group.title}
-                          placeholder="Select activity"
-                          options={exerciseOptions}
+                          placeholder={
+                            activityOptionsLoading
+                              ? "Loading activity..."
+                              : "Select activity"
+                          }
+                          options={activityOptions}
                           open={pickerOpenIndex === groupIndex}
                           onOpenChange={(nextOpen) =>
                             setPickerOpenIndex(nextOpen ? groupIndex : null)
                           }
                           onSelect={(value) =>
-                            handlePickExercise(groupIndex, value)
+                            handleExerciseTitleChange(groupIndex, value)
                           }
                           showIcon={false}
                           textClassName="text-2xl text-gray-900"
                           placeholderTextClassName="text-2xl text-gray-400"
+                          searchPlaceholder="Cari activity..."
                         />
                         <Pressable
                           className="ml-auto"
@@ -578,7 +730,7 @@ const Journal = () => {
                                 groupIndex,
                                 setIndex,
                                 "weight",
-                                value
+                                value,
                               )
                             }
                           />
@@ -594,7 +746,7 @@ const Journal = () => {
                                 groupIndex,
                                 setIndex,
                                 "reps",
-                                value
+                                value,
                               )
                             }
                           />
@@ -766,7 +918,7 @@ const Journal = () => {
                 <Combobox
                   value={activityGroupTitle ?? ""}
                   placeholder="Activity group"
-                  options={activityGroupOptions}
+                  options={activityGroupOptions.map((item) => item.label)}
                   open={activityGroupPickerOpen}
                   onOpenChange={setActivityGroupPickerOpen}
                   onSelect={handlePickActivityGroup}
@@ -782,6 +934,22 @@ const Journal = () => {
           </Pressable>
         </Pressable>
       </Modal>
+
+      <FeedbackModal
+        visible={feedbackModal.visible}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        onClose={closeFeedbackModal}
+      />
+
+      <ConfirmModal
+        visible={confirmModal.visible}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        onCancel={closeConfirmModal}
+        onConfirm={confirmModalAction}
+      />
     </View>
   );
 };

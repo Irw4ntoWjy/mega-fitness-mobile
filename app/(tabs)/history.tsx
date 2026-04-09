@@ -1,26 +1,30 @@
+import { getSessionLogHistoryList } from "@/app/api/session-log";
 import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
 import { useAuth } from "@/hooks/useAuth";
+import { SessionLogProductType } from "@/type/session-log";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
 import { ChevronLeft, ChevronRight, Timer } from "lucide-react-native";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 
 type Response = {
   id: string;
-  start_at: string;
-  end_at: string;
+  schedule_date: string;
+  time_start: string;
+  time_end: string;
   title: string;
   coach: string;
-  color?: string;
+  color: string;
+  durationMinutes: number;
 };
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
 
-function dayKeyFromISO(iso: string) {
-  const d = new Date(iso);
+function dayKeyFromScheduleDate(scheduleDate: string) {
+  const d = new Date(scheduleDate);
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
 
@@ -34,12 +38,33 @@ function formatDayNumberFromKey(dayKey: string) {
   return Number(dayKey.split("-")[2]);
 }
 
-function formatTimeRange(startISO: string, endISO: string) {
-  const start = new Date(startISO);
-  const end = new Date(endISO);
-  const fmt = (d: Date) =>
-    d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  return `${fmt(start)} - ${fmt(end)}`;
+function toHM(value: string) {
+  return value.slice(0, 5);
+}
+
+function formatTimeRange(startTime: string, endTime: string) {
+  return `${toHM(startTime)} - ${toHM(endTime)}`;
+}
+
+function getDurationMinutes(timeStart: string, timeEnd: string) {
+  const [startH, startM] = timeStart.split(":").map(Number);
+  const [endH, endM] = timeEnd.split(":").map(Number);
+
+  const startTotal = startH * 60 + startM;
+  const endTotal = endH * 60 + endM;
+
+  return Math.max(0, endTotal - startTotal);
+}
+
+function formatDurationFromMinutes(minutes: number) {
+  const safeMinutes = Math.max(0, minutes);
+  const hours = Math.floor(safeMinutes / 60);
+  const remainder = safeMinutes % 60;
+  return `${pad2(hours)}:${pad2(remainder)}`;
+}
+
+function getCardColor(productType: SessionLogProductType) {
+  return productType === "Private" ? "#0891B2" : "#DAA770";
 }
 
 function EventCard({
@@ -131,13 +156,14 @@ function DayRow({
     title: string;
     coach: string;
     time: string;
-    color?: string;
+    durationMinutes: number;
+    color: string;
   }[];
   firstEventHeight: number | null;
   eventsHeight: number | null;
   onEventsColumnLayout: (height: number) => void;
   onFirstCardHeight: (height: number) => void;
-  onEventPress: () => void;
+  onEventPress: (eventId: string, durationMinutes: number) => void;
 }) {
   return (
     <View className="flex-row justify-between gap-6">
@@ -203,11 +229,11 @@ function DayRow({
               title={ev.title}
               coach={ev.coach}
               time={ev.time}
-              bgColor={idx % 2 === 0 ? "#DAA770" : "#0891B2"}
+              bgColor={ev.color}
               status="completed"
-              durationMinutes={60}
+              durationMinutes={ev.durationMinutes}
               onFirstLayout={idx === 0 ? onFirstCardHeight : undefined}
-              onPress={onEventPress}
+              onPress={() => onEventPress(ev.id, ev.durationMinutes)}
             />
           );
         })}
@@ -220,6 +246,7 @@ export default function Profile() {
   const { auth } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [response, setResponse] = useState<Response[]>([]);
 
   const [firstEventHeightByDay, setFirstEventHeightByDay] = useState<
     Record<string, number | null>
@@ -270,64 +297,50 @@ export default function Profile() {
     [selectedDate],
   );
 
-  const response: Response[] = useMemo(
-    () => [
-      {
-        id: "e1",
-        start_at: "2026-1-06T09:00:00.000Z",
-        end_at: "2026-1-06T10:00:00.000Z",
-        title: "t",
-        coach: "Test Coach",
-      },
-      {
-        id: "e2",
-        start_at: "2026-1-06T09:00:00.000Z",
-        end_at: "2026-1-06T10:00:00.000Z",
-        title: "test eventttttttttttttttttttttttttttttttttttttt",
-        coach: "Test Coach",
-      },
-      {
-        id: "e3",
-        start_at: "2026-1-07T09:00:00.000Z",
-        end_at: "2026-1-07T10:00:00.000Z",
-        title: "test eventttttttttttttttttttttttttttttttttttttt",
-        coach: "Test Coach",
-      },
-      {
-        id: "e4",
-        start_at: "2026-1-07T09:00:00.000Z",
-        end_at: "2026-1-07T10:00:00.000Z",
-        title: "test eventttttttttttttttttttttttttttttttttttttt",
-        coach: "Test Coach",
-      },
-      {
-        id: "e5",
-        start_at: "2026-1-08T09:00:00.000Z",
-        end_at: "2026-1-08T10:00:00.000Z",
-        title: "test eventttttttttttttttttttttttttttttttttttttt",
-        coach: "Test Coach",
-      },
-      {
-        id: "e6",
-        start_at: "2026-1-08T09:00:00.000Z",
-        end_at: "2026-1-08T10:00:00.000Z",
-        title: "test eventttttttttttttttttttttttttttttttttttttt",
-        coach: "Test Coach",
-      },
-      {
-        id: "e7",
-        start_at: "2026-1-08T09:00:00.000Z",
-        end_at: "2026-1-08T10:00:00.000Z",
-        title: "test eventttttttttttttttttttttttttttttttttttttt",
-        coach: "Test Coach",
-      },
-    ],
-    [],
-  );
+  useEffect(() => {
+    const profileId = auth?.accountDetail?.profile_id;
+    if (!profileId) return;
+
+    const fetchSessionHistory = async () => {
+      try {
+        const res = await getSessionLogHistoryList({
+          page: 1,
+          limit: -1,
+          member_profile_id: profileId,
+        });
+
+        if (!res.success || !res.data) {
+          setResponse([]);
+          return;
+        }
+
+        const mapped: Response[] = res.data.data.map((item) => {
+          const productType: SessionLogProductType = item.product_type_name;
+          return {
+            id: item.session_log_id,
+            schedule_date: item.schedule_date,
+            time_start: item.time_start,
+            time_end: item.time_end,
+            title: item.product_name,
+            coach: item.trainers[0]?.trainer_name?.trim() || "Unknown Trainer",
+            color: getCardColor(productType),
+            durationMinutes: getDurationMinutes(item.time_start, item.time_end),
+          };
+        });
+
+        setResponse(mapped);
+      } catch (error) {
+        console.error(error);
+        setResponse([]);
+      }
+    };
+
+    fetchSessionHistory();
+  }, [auth?.accountDetail?.profile_id]);
 
   const eventsInSelectedMonth = useMemo(() => {
     return response.filter((ev) => {
-      const d = new Date(ev.start_at);
+      const d = new Date(ev.schedule_date);
       return (
         d.getFullYear() === selectedDate.getFullYear() &&
         d.getMonth() === selectedDate.getMonth()
@@ -338,11 +351,11 @@ export default function Profile() {
   const eventsByDay = useMemo(() => {
     const grouped: Record<string, Response[]> = {};
     for (const ev of eventsInSelectedMonth) {
-      const key = dayKeyFromISO(ev.start_at);
+      const key = dayKeyFromScheduleDate(ev.schedule_date);
       (grouped[key] ||= []).push(ev);
     }
     Object.keys(grouped).forEach((k) => {
-      grouped[k].sort((a, b) => +new Date(a.start_at) - +new Date(b.start_at));
+      grouped[k].sort((a, b) => a.time_start.localeCompare(b.time_start));
     });
     return grouped;
   }, [eventsInSelectedMonth]);
@@ -351,11 +364,20 @@ export default function Profile() {
     return Object.keys(eventsByDay).sort((a, b) => +new Date(a) - +new Date(b));
   }, [eventsByDay]);
 
-  const handleEventPress = useCallback(() => {
-    if (auth?.accountDetail?.account_role === "Member") {
-      router.push("/journal/journal");
-    }
-  }, [auth?.accountDetail?.account_role]);
+  const handleEventPress = useCallback(
+    (sessionLogId: string, durationMinutes: number) => {
+      if (auth?.accountDetail?.account_role === "Member") {
+        router.push({
+          pathname: "/journal/journal",
+          params: {
+            sessionLogId,
+            sessionDuration: formatDurationFromMinutes(durationMinutes),
+          },
+        });
+      }
+    },
+    [auth?.accountDetail?.account_role],
+  );
 
   return (
     <View className="flex-1">
@@ -450,14 +472,15 @@ export default function Profile() {
                 </Text>
               ) : null}
 
-              {dayKeysSorted.map((dayKey, idx) => {
+              {dayKeysSorted.map((dayKey) => {
                 const dayEvents = eventsByDay[dayKey];
 
                 const cardEvents = dayEvents.map((ev) => ({
                   id: ev.id,
                   title: ev.title,
                   coach: ev.coach,
-                  time: formatTimeRange(ev.start_at, ev.end_at),
+                  time: formatTimeRange(ev.time_start, ev.time_end),
+                  durationMinutes: ev.durationMinutes,
                   color: ev.color,
                 }));
 
