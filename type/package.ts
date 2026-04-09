@@ -1,3 +1,4 @@
+import { paginationSchema } from "@/type/pagination";
 import { z } from "zod";
 
 export const trainerPackageSchema = z.object({
@@ -16,3 +17,32 @@ export const trainerPackageSchema = z.object({
 });
 
 export type TrainerPackage = z.infer<typeof trainerPackageSchema>;
+
+export const packageSchema = z.object({
+  package_id: z.string(),
+  package_name: z.string(),
+  package_description: z.string().nullable(),
+  package_tag: z.string().nullable(),
+  package_cover_image: z.string().nullable(),
+  product_type_id: z.string(),
+  product_type_name: z.string(),
+  package_price: z.number(),
+  package_expiry: z.number(),
+  package_purchase_limit: z.number().nullable(),
+  package_active_from: z.string().nullable(),
+  package_active_to: z.string().nullable(),
+  package_status_id: z.string(),
+  package_status_name: z.string(),
+  created_at: z.string(),
+  created_by: z.string(),
+  updated_at: z.string().nullable(),
+  updated_by: z.string().nullable(),
+  deleted_at: z.string().nullable(),
+  deleted_by: z.string().nullable(),
+});
+
+export type Package = z.infer<typeof packageSchema>;
+
+export const packagePaginationSchema = paginationSchema(packageSchema);
+
+export type PackagePagination = z.infer<typeof packagePaginationSchema>;

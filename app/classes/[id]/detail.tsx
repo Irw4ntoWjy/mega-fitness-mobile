@@ -261,7 +261,7 @@ export default function ClassesDetailScreen() {
 
                       {activity.status === "Ongoing" && (
                         <Pressable
-                          onPress={() => router.push("journal/journal")}
+                          onPress={() => router.push("/journal/journal")}
                           hitSlop={10}
                         >
                           <Text className="text-[14px] text-zinc-500 underline">
@@ -283,6 +283,7 @@ export default function ClassesDetailScreen() {
 
         <View className="h-32" />
       </ScrollView>
+
       {activity.owned && (
         <Pressable
           onPress={() =>
