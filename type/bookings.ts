@@ -23,7 +23,7 @@ export const bookingSchema = z.object({
   member_profile_id: z.string(),
   member_name: z.string(),
 
-  booking_status_id: z.string(),
+  booking_status_id: z.union([z.string(), z.number()]),
   booking_status_name: z.string(),
 
   created_at: z.string(),
@@ -85,7 +85,7 @@ export const bookingDetailSchema = z.object({
   member_picture_url: z.string().nullable(),
   purchase_id: z.string(),
   purchase_invoice_number: z.string(),
-  booking_status_id: z.string(),
+  booking_status_id: z.union([z.string(), z.number()]),
   booking_status_name: z.string(),
   cancel_reason: z.string().nullable(),
   created_at: z.string(),
@@ -103,7 +103,7 @@ export type BookingPagination = z.infer<typeof bookingPaginationSchema>;
 export type BookingListParams = BaseListParams & {
   is_not_expired: boolean;
   member_profile_id?: string;
-  booking_status_id?: string;
+  booking_status_id?: string | number;
   schedule_type?: string;
 };
 

@@ -8,7 +8,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { profile } from "../classes/dummy_data";
 
-
 function timeToMinutes(time: string) {
   const parts = time.split(":");
   const hours = Number(parts[0] ?? 0);
@@ -16,11 +15,18 @@ function timeToMinutes(time: string) {
   return hours * 60 + minutes;
 }
 
-function BookingCard({ item }: { item: BookingSchema }) {
+function BookingCard({
+  item,
+  showOngoingTag,
+}: {
+  item: BookingSchema;
+  showOngoingTag?: boolean;
+}) {
+  const statusId = String(item.booking_status_id);
   const statusBg =
-    item.booking_status_id === "1"
+    statusId === "1" || statusId === "3"
       ? "#16A34A"
-      : item.booking_status_id === "-1"
+      : statusId === "-1"
         ? "#DC2626"
         : "#64748B";
   return (
@@ -56,7 +62,7 @@ function BookingCard({ item }: { item: BookingSchema }) {
             position: "absolute",
             top: -10,
             left: -5,
-            backgroundColor: statusBg,
+            backgroundColor: showOngoingTag ? "#06B6D4" : statusBg,
             paddingHorizontal: 12,
             paddingVertical: 7,
             borderRadius: 8,
@@ -73,7 +79,7 @@ function BookingCard({ item }: { item: BookingSchema }) {
               letterSpacing: 0.8,
             }}
           >
-            {item.booking_status_name}
+            {showOngoingTag ? "Ongoing" : item.booking_status_name}
           </Text>
         </View>
 
@@ -97,7 +103,8 @@ function BookingCard({ item }: { item: BookingSchema }) {
 
 const Home = () => {
   const { auth, loading: loadingAuth } = useAuth();
-  const [bookings, setBookings] = useState<BookingSchema[]>([]);
+  const [upcomingBookings, setUpcomingBookings] = useState<BookingSchema[]>([]);
+  const [ongoingBookings, setOngoingBookings] = useState<BookingSchema[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
 
   const memberProfileId = auth?.accountDetail?.profile_id;
@@ -108,18 +115,27 @@ const Home = () => {
     let cancelled = false;
     setLoadingBookings(true);
 
-    getBookingList({
-      member_profile_id: memberProfileId,
-      is_not_expired: true,
-      booking_status_id: "1",
-    })
-      .then((res) => {
+    Promise.all([
+      getBookingList({
+        member_profile_id: memberProfileId,
+        is_not_expired: true,
+        booking_status_id: 3,
+      }),
+      getBookingList({
+        member_profile_id: memberProfileId,
+        is_not_expired: true,
+        booking_status_id: 4,
+      }),
+    ])
+      .then(([upcomingRes, ongoingRes]) => {
         if (cancelled) return;
-        if (!res.success || !res.data) {
-          setBookings([]);
-          return;
-        }
-        setBookings(res.data.data ?? []);
+
+        setUpcomingBookings(
+          upcomingRes.success && upcomingRes.data ? upcomingRes.data.data ?? [] : [],
+        );
+        setOngoingBookings(
+          ongoingRes.success && ongoingRes.data ? ongoingRes.data.data ?? [] : [],
+        );
       })
       .finally(() => {
         if (cancelled) return;
@@ -131,42 +147,39 @@ const Home = () => {
     };
   }, [memberProfileId]);
 
-  const classBookings = useMemo(
-    () => bookings.filter((b) => b.schedule_type === "class"),
-    [bookings],
+  const classUpcomingBookings = useMemo(
+    () => upcomingBookings.filter((b) => b.schedule_type === "class"),
+    [upcomingBookings],
+  );
+
+  const classOngoingBookings = useMemo(
+    () => ongoingBookings.filter((b) => b.schedule_type === "class"),
+    [ongoingBookings],
   );
 
   if (loadingAuth) return null;
 
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
-    2,
-    "0",
-  )}-${String(now.getDate()).padStart(2, "0")}`;
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const sortedOngoingBookings = useMemo(
+    () =>
+      [...classOngoingBookings].sort((a, b) => {
+        if (a.schedule_date !== b.schedule_date) {
+          return a.schedule_date.localeCompare(b.schedule_date);
+        }
+        return a.time_start.localeCompare(b.time_start);
+      }),
+    [classOngoingBookings],
+  );
 
-  const ongoingBookings = classBookings.filter((b) => {
-    if (b.schedule_date !== today) return false;
-    const start = timeToMinutes(b.time_start);
-    const end = timeToMinutes(b.time_end);
-    return nowMinutes >= start && nowMinutes < end;
-  });
-
-  const upcomingBookings = classBookings
-    .filter((b) => {
-      if (b.schedule_date > today) return true;
-      if (b.schedule_date < today) return false;
-      const end = timeToMinutes(b.time_end);
-      if (end <= nowMinutes) return false;
-      const start = timeToMinutes(b.time_start);
-      return !(nowMinutes >= start && nowMinutes < end);
-    })
-    .sort((a, b) => {
-      if (a.schedule_date !== b.schedule_date) {
-        return a.schedule_date.localeCompare(b.schedule_date);
-      }
-      return a.time_start.localeCompare(b.time_start);
-    });
+  const sortedUpcomingBookings = useMemo(
+    () =>
+      [...classUpcomingBookings].sort((a, b) => {
+        if (a.schedule_date !== b.schedule_date) {
+          return a.schedule_date.localeCompare(b.schedule_date);
+        }
+        return a.time_start.localeCompare(b.time_start);
+      }),
+    [classUpcomingBookings],
+  );
 
   return (
     <View className="flex-1 mb-28">
@@ -224,19 +237,29 @@ const Home = () => {
           Ongoing Activity
         </Text>
         <View className="flex flex-row flex-wrap justify-between mx-5">
-          {ongoingBookings.map((item) => (
-            <BookingCard key={item.booking_id} item={item} />
-          ))}
+          {loadingBookings ? (
+            <Text className="text-base text-slate-500">Loading...</Text>
+          ) : sortedOngoingBookings.length > 0 ? (
+            sortedOngoingBookings.map((item) => (
+              <BookingCard
+                key={item.booking_id}
+                item={item}
+                showOngoingTag={true}
+              />
+            ))
+          ) : (
+            <Text className="text-base text-slate-500">No Ongoing Class</Text>
+          )}
         </View>
 
-        <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
+        <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5 mt-6">
           Upcoming Classes
         </Text>
         <View className="flex flex-row flex-wrap justify-between mx-5">
           {loadingBookings ? (
             <Text className="text-base text-slate-500">Loading...</Text>
-          ) : upcomingBookings.length > 0 ? (
-            upcomingBookings.map((item) => (
+          ) : sortedUpcomingBookings.length > 0 ? (
+            sortedUpcomingBookings.map((item) => (
               <BookingCard key={item.booking_id} item={item} />
             ))
           ) : (
