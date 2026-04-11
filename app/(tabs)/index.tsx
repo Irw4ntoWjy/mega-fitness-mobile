@@ -9,7 +9,7 @@ import { checkSession } from "@/lib/auth-session";
 import { getAuth } from "@/lib/auth-storage";
 import { fetcher } from "@/lib/fetcher";
 import { useFocusEffect, useRouter } from "expo-router";
-import { ArrowRight, Bell } from "lucide-react-native";
+import { ArrowRight, Bell, HelpCircle } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -19,7 +19,10 @@ import {
   Text,
   View,
 } from "react-native";
+import { CopilotStep, useCopilot, walkthroughable } from "react-native-copilot";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const WalkableView = walkthroughable(View);
 
 const activePackagesData = {
   activePackagesSummary: {
@@ -416,6 +419,11 @@ export default function Home() {
       navigating.current = false;
     }, []),
   );
+
+  const scrollRef = useRef<ScrollView>(null);
+  const stepPositions = useRef<Record<string, number>>({});
+
+  const { start, currentStep } = useCopilot();
 
   if (loading) {
     return (
@@ -827,43 +835,77 @@ export default function Home() {
             </Text>
           </View>
 
-          <HeaderIcon onPress={() => router.push("/notification/notification")}>
-            <Bell size={18} color="black" />
-          </HeaderIcon>
+          <View className="flex-row items-center">
+            <CopilotStep
+              text="Tutorial here."
+              order={3}
+              name="onboarding tutorial"
+            >
+              <WalkableView>
+                <HeaderIcon onPress={() => start()}>
+                  <HelpCircle size={18} color="black" />
+                </HeaderIcon>
+              </WalkableView>
+            </CopilotStep>
+
+            <CopilotStep
+              text="Check your latest notifications here."
+              order={4}
+              name="notifications"
+            >
+              <WalkableView>
+                <HeaderIcon
+                  onPress={() => router.push("/notification/notification")}
+                >
+                  <Bell size={18} color="black" />
+                </HeaderIcon>
+              </WalkableView>
+            </CopilotStep>
+          </View>
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollRef}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 200 }}
+      >
         <View>
           <View className="px-4">
             <View className="relative">
               <View style={{ height: HERO_H }} />
 
-              <View className="absolute right-0 bottom-4 items-end">
-                <View className="px-[4vw] rounded-full flex flex-row justify-end items-center gap-1">
-                  <View className="rounded-full bg-[rgba(0,0,0,0.25)] w-5 h-5 flex items-center justify-center overflow-hidden">
-                    <Text className="text-center text-[10px] text-white font-medium">
-                      2
-                    </Text>
-                  </View>
-                  <Text className="text-center text-[12px] text-black font-medium">
-                    Activity
-                  </Text>
-                </View>
-              </View>
-
               <View className="absolute -bottom-15 z-50">
-                <Pressable onPress={() => router.push("/profile/profile")}>
-                  <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
-                    {profileLoading ? (
-                      <ActivityIndicator size="small" />
-                    ) : (
-                      <Text className="text-[#0F6B7E] text-2xl font-semibold">
-                        {profileInitials || getInitials(profileName) || "?"}
-                      </Text>
-                    )}
-                  </View>
-                </Pressable>
+                <View
+                  onLayout={(e) => {
+                    stepPositions.current["profile-avatar"] =
+                      e.nativeEvent.layout.y;
+                  }}
+                >
+                  <CopilotStep
+                    text="Tap your avatar to view and edit your profile."
+                    order={2}
+                    name="profile-avatar"
+                  >
+                    <WalkableView>
+                      <Pressable
+                        onPress={() => router.push("/profile/profile")}
+                      >
+                        <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
+                          {profileLoading ? (
+                            <ActivityIndicator size="small" />
+                          ) : (
+                            <Text className="text-[#0F6B7E] text-2xl font-semibold">
+                              {profileInitials ||
+                                getInitials(profileName) ||
+                                "?"}
+                            </Text>
+                          )}
+                        </View>
+                      </Pressable>
+                    </WalkableView>
+                  </CopilotStep>
+                </View>
               </View>
             </View>
             <View className="-mx-4 px-4 pt-16 pb-6 bg-[#EEEEEE]">
@@ -888,19 +930,49 @@ export default function Home() {
 
                 {isTrainer ? (
                   <View>
-                    <ActivePackagesSessionsCard
-                      summary={activePackagesData.activePackagesSummary}
-                      packages={activePackagesData.packages}
-                    />
-                    <CommisionProgressBar />
+                    <View
+                      onLayout={(e) => {
+                        stepPositions.current["active-packages"] =
+                          e.nativeEvent.layout.y;
+                      }}
+                    >
+                      <CopilotStep
+                        text="Track your active sessions and package usage."
+                        order={5}
+                        name="active-packages"
+                      >
+                        <WalkableView>
+                          <ActivePackagesSessionsCard
+                            summary={activePackagesData.activePackagesSummary}
+                            packages={activePackagesData.packages}
+                          />
+                          <CommisionProgressBar />
+                        </WalkableView>
+                      </CopilotStep>
+                    </View>
                   </View>
                 ) : (
                   <View>
-                    <ActivePackagesSessionsCard
-                      summary={activePackagesData.activePackagesSummary}
-                      packages={activePackagesData.packages}
-                    />
-                    <WarningCard />
+                    <View
+                      onLayout={(e) => {
+                        stepPositions.current["active-packages"] =
+                          e.nativeEvent.layout.y;
+                      }}
+                    >
+                      <CopilotStep
+                        text="Track your active sessions and package usage."
+                        order={5}
+                        name="active-packages"
+                      >
+                        <WalkableView>
+                          <ActivePackagesSessionsCard
+                            summary={activePackagesData.activePackagesSummary}
+                            packages={activePackagesData.packages}
+                          />
+                        </WalkableView>
+                      </CopilotStep>
+                      <WarningCard />
+                    </View>
                   </View>
                 )}
               </>
@@ -920,13 +992,10 @@ export default function Home() {
             );
           }}
         >
-          <View className="flex flex-row justify-between">
+          {/* <View className="flex flex-row justify-between">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
               Schedule Activities
             </Text>
-            {/* <Pressable className="bg-cyan-600 w-8 h-8 rounded-full mx-5 items-center justify-center">
-              <ArrowRight size={20} color="white" />
-            </Pressable> */}
           </View>
 
           <ScrollView
@@ -940,14 +1009,13 @@ export default function Home() {
                   <TodayCard key={item.id} item={item} />
                 ))}
               </View>
-              {/* Bottom row */}
               <View className="flex-row">
                 {bottomRow.map((item) => (
                   <TodayCard key={item.id} item={item} />
                 ))}
               </View>
             </View>
-          </ScrollView>
+          </ScrollView> */}
 
           {/* <ScrollView
             horizontal
@@ -991,7 +1059,6 @@ export default function Home() {
               <PromotionCard key={item.id} item={item} />
             ))}
           </View> */}
-
           <View className="flex flex-row justify-between">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
               Promotions

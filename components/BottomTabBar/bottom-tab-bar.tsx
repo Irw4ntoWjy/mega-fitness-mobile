@@ -8,7 +8,10 @@ import {
 } from "lucide-react-native";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import { CopilotStep, walkthroughable } from "react-native-copilot";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const WalkableView = walkthroughable(View);
 
 const BottomTabBar = ({
   state,
@@ -72,6 +75,16 @@ const BottomTabBar = ({
           }}
         />
         {state.routes.map((route, index) => {
+          const stepMap: Record<string, { order: number; text: string }> = {
+            index: { order: 1, text: "This is your home dashboard." },
+            workout: { order: 6, text: "Track your workouts here." },
+            transaction: { order: 7, text: "View your transactions here." },
+            bookings: { order: 8, text: "Manage your bookings here." },
+            classes: { order: 9, text: "Scan or access classes here." },
+          };
+
+          const step = stepMap[route.name];
+
           const { options } = descriptors[route.key];
           const labelOption =
             options.tabBarLabel ?? options.title ?? route.name;
@@ -130,29 +143,30 @@ const BottomTabBar = ({
           return (
             <TouchableOpacity
               key={route.key}
-              accessibilityRole="button"
-              accessibilityState={isFocused ? { selected: true } : {}}
-              accessibilityLabel={options.tabBarAccessibilityLabel}
               onPress={onPress}
               onLongPress={onLongPress}
               style={{
-                width: tabWidth,
-                height: tabHeight,
+                width: 70,
                 justifyContent: "center",
                 alignItems: "center",
-                paddingVertical: tabPaddingVertical,
-                backgroundColor: "transparent",
-                borderRadius: tabBorderRadius,
+                paddingVertical: 8,
               }}
             >
-              <View
-                style={{
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexDirection: "column",
-                }}
-              >
-                {getIcon(route.name, isFocused)}
+              <View style={{ alignItems: "center" }}>
+                {step ? (
+                  <CopilotStep
+                    text={step.text}
+                    order={step.order}
+                    name={`tab-${route.name}`}
+                  >
+                    <WalkableView>
+                      {getIcon(route.name, isFocused)}
+                    </WalkableView>
+                  </CopilotStep>
+                ) : (
+                  getIcon(route.name, isFocused)
+                )}
+
                 {route.name !== "classes" && label}
               </View>
             </TouchableOpacity>
