@@ -453,6 +453,7 @@ export default function ClassesDetailScreen() {
 
         <View className="h-32" />
       </ScrollView>
+
       {activity.owned && (
         <Pressable
           onPress={() =>

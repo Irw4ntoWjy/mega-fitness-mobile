@@ -1,16 +1,22 @@
 import { fetcher } from "@/lib/fetcher";
-import { BookingPagination } from "@/type/bookings";
+import {
+  BookingDetail,
+  BookingDetailParams,
+  BookingListParams,
+  BookingPagination,
+} from "@/type/bookings";
 import { buildListPayload } from "@/type/pagination";
 
-export function getBookingList(payload?: {
-  q?: string | null;
-  page?: number;
-  limit?: number;
-  member_profile_id?: string;
-  is_not_expired: boolean;
-}) {
+export function getBookingList(payload?: BookingListParams) {
+  const body = buildListPayload(payload);
+  if ("is_not_expired" in body) {
+    (body as any).IS_NOT_EXPIRED = (body as any).is_not_expired;
+  }
+  if ("booking_status_id" in body) {
+    (body as any).booking_status_Id = (body as any).booking_status_id;
+  }
   return fetcher<BookingPagination>("/booking/list", {
-    body: buildListPayload(payload),
+    body,
     auth: true,
   });
 }
@@ -42,6 +48,13 @@ export function addTrainerBooking(payload: {
 }) {
   return fetcher("/booking/trainer-booking/book", {
     method: "POST",
+    body: payload,
+    auth: true,
+  });
+}
+
+export function getBookingDetail(payload: BookingDetailParams) {
+  return fetcher<BookingDetail>("/booking/detail", {
     body: payload,
     auth: true,
   });

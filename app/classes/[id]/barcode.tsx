@@ -1,4 +1,6 @@
+import { getBookingDetail } from "@/app/api/booking";
 import { BackgroundGlow } from "@/components/Theme/background";
+import { BookingDetail } from "@/type/bookings";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   ArrowLeft,
@@ -6,24 +8,57 @@ import {
   Clock,
   User as UserIcon,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
-import { activities } from "../dummy_data";
 
-export default function barcodePages() {
+export default function BarcodePages() {
   const { id, trainer } = useLocalSearchParams<{
     id?: string;
     trainer?: string;
   }>();
 
+  const bookingId = id ?? null;
   const isTrainer = trainer === "true";
-  console.log(id);
-  const item = activities.find((item) => item.id === Number(id));
-  if (!item) {
-    return <div>Activity not found</div>;
-  }
 
-  const [isRefreshed, setIsRefreshed] = useState(isTrainer ?? false);
+  const [booking, setBooking] = useState<BookingDetail | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [isRefreshed, setIsRefreshed] = useState(isTrainer);
+
+  useEffect(() => {
+    if (!bookingId) return;
+
+    let cancelled = false;
+    setLoading(true);
+
+    getBookingDetail({ booking_id: bookingId })
+      .then((res) => {
+        if (cancelled) return;
+        if (!res.success || !res.data) {
+          setBooking(null);
+          return;
+        }
+        setBooking(res.data);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [bookingId]);
+
+  const trainerSchedule = booking?.trainer_schedule_detail ?? null;
+  const scheduleDate = trainerSchedule?.schedule_date || "-";
+  const timeRange = trainerSchedule
+    ? `${trainerSchedule.time_start} - ${trainerSchedule.time_end}`
+    : "-";
+
+  const trainerName = useMemo(() => {
+    const name = booking?.trainer_schedule_detail?.trainer_name;
+    return name && name.trim().length > 0 ? name : "-";
+  }, [booking]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -75,9 +110,15 @@ export default function barcodePages() {
         </View>
 
         <View className="mt-10 items-center">
-          <Text className="text-xl font-semibold text-gray-900">
-            {item.date}
-          </Text>
+          {loading ? (
+            <Text className="text-xl font-semibold text-gray-900">
+              Loading...
+            </Text>
+          ) : (
+            <Text className="text-xl font-semibold text-gray-900">
+              {scheduleDate}
+            </Text>
+          )}
 
           <View className="mt-2 w-full max-w-[520px] space-y-4">
             <View className="flex-row items-center">
@@ -85,7 +126,7 @@ export default function barcodePages() {
                 <Clock size={20} color="#111827" />
               </View>
               <Text className="ml-4 text-lg text-gray-800 font-semibold">
-                {item.time}
+                {timeRange}
               </Text>
             </View>
 
@@ -94,7 +135,7 @@ export default function barcodePages() {
                 <UserIcon size={20} color="#111827" />
               </View>
               <Text className="ml-4 text-lg text-gray-800 font-semibold">
-                {item.instructor}
+                {trainerName}
               </Text>
             </View>
           </View>
