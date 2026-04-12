@@ -6,7 +6,7 @@ export const profile = {
 };
 
 export const member = [
-  { id: "1", name: "Kilto Aznah" },
+  { id: "f7c485ff-a751-4080-992a-980441938325", name: "Kilto Aznah" },
   { id: "2", name: "Kilto Aznah 1" },
   { id: "3", name: "Kilto Aznah 2" },
   { id: "4", name: "Kilto Aznah 3" },

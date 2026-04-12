@@ -87,7 +87,13 @@ export default function PhysicalQuestionCard({
   };
 
   return (
-    <View className="bg-white rounded-4xl p-4 mb-4 shadow-sm">
+    <View
+      className={
+        isDisabled
+          ? "bg-gray-100 rounded-4xl p-4 mb-4 border-gray-600/50 border"
+          : "bg-white rounded-4xl p-4 mb-4 shadow-sm "
+      }
+    >
       <View className="flex-row">
         <View className="flex-1 px-4">
           {/* QUESTION */}
