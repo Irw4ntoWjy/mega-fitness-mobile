@@ -268,21 +268,22 @@ export default function Home() {
   }, [loadAccountDetail, router]);
 
   useEffect(() => {
-    const checkNewUser = async () => {
-      const auth = await getAuth();
-      if (!auth?.accountDetail?.created_at) return;
+    if (!isTrainer) {
+      const checkNewUser = async () => {
+        const auth = await getAuth();
+        if (!auth?.accountDetail?.created_at) return;
 
-      const createdAt = new Date(auth.accountDetail.created_at);
-      const now = new Date();
-      const diffInHours =
-        (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+        const createdAt = new Date(auth.accountDetail.created_at);
+        const now = new Date();
+        const diffInHours =
+          (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
 
-      if (diffInHours <= 1) {
-        setTimeout(() => start(), 500);
-      }
-    };
-
-    checkNewUser();
+        if (diffInHours <= 1) {
+          setTimeout(() => start(), 500);
+        }
+      };
+      checkNewUser();
+    }
   }, []);
 
   const fetchBuyPackages = useCallback(async () => {
