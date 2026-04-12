@@ -823,26 +823,7 @@ export default function Home() {
 
                 {isTrainer ? (
                   <View>
-                    <View
-                      onLayout={(e) => {
-                        stepPositions.current["active-packages"] =
-                          e.nativeEvent.layout.y;
-                      }}
-                    >
-                      <CopilotStep
-                        text="Track your active sessions and package usage."
-                        order={5}
-                        name="active-packages"
-                      >
-                        <WalkableView>
-                          <ActivePackagesSessionsCard
-                            summary={activePackagesData.activePackagesSummary}
-                            packages={activePackagesData.packages}
-                          />
-                          <CommisionProgressBar />
-                        </WalkableView>
-                      </CopilotStep>
-                    </View>
+                    <CommisionProgressBar />
                   </View>
                 ) : (
                   <View>

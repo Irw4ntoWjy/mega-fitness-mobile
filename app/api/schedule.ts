@@ -16,11 +16,19 @@ export function getClassScheduleList(payload?: {
 
 export function getTrainerScheduleList(payload?: {
   trainer_id: string;
-  is_booked: boolean;
-  date_from: string;
-  date_to: string;
+  is_booked?: boolean;
+  date_from?: string | null;
+  date_to?: string | null;
+  this_week?: boolean;
 }) {
   return fetcher<TrainerSchedule[]>("/trainer-schedule/list", {
+    body: payload,
+    auth: true,
+  });
+}
+
+export function getMasterTrainerScheduleList(payload?: { trainer_id: string }) {
+  return fetcher<TrainerSchedule[]>("/master-trainer-schedule/list", {
     body: buildListPayload(payload),
     auth: true,
   });
