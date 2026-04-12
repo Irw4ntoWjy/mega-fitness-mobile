@@ -1,5 +1,5 @@
-import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useAuth } from "@/hooks/useAuth";
+import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import {
   BookText,
   Clock3,
@@ -100,23 +100,23 @@ const BottomTabBar = ({
           const stepMap: Record<string, { order: number; text: string }> = {
             index: {
               order: 1,
-              text: "Welcome to your Home! Here you can see your active package and remaining sessions at a glance. Browse the latest promos, check out special classes, and explore all available packages. Your notifications will also appear here so you never miss an update.",
+              text: "Welcome to your Home!\nHere you can see your active package and remaining sessions at a glance. Browse the latest promos, check out special classes, and explore all available packages. Your notifications will also appear here so you never miss an update.",
             },
-            workout: {
+            history: {
               order: 6,
-              text: "This is your Workout page. View your class history to track which sessions you've attended, and use the workout journal to log your personal training notes, sets, reps, or any progress you'd like to record.",
+              text: "This is your History page.\nView your class history to track which sessions you've attended, and use the workout journal to log your personal training notes, sets, reps, or any progress you'd like to record.",
             },
             transaction: {
               order: 7,
-              text: "Here you can find your full Transaction History. All your purchases are listed here — filter by status to see completed payments, pending orders, or any cancelled transactions.",
+              text: "Here you can find your full Transaction History.\nAll your purchases are listed here — filter by status to see completed payments, pending orders, or any cancelled transactions.",
             },
             bookings: {
               order: 8,
-              text: "Manage all your Bookings in one place. View upcoming sessions, check ongoing or completed classes, and see any cancelled bookings. You can also make a new booking directly from this page.",
+              text: "Manage all your Bookings in one place.\nView upcoming sessions, check ongoing or completed classes, and see any cancelled bookings. You can also make a new booking directly from this page.",
             },
             classes: {
               order: 9,
-              text: "Access your Classes here. Sign in to generate your personal QR code, which you can use to check in to any class session. Keep this page handy when you arrive at the gym.",
+              text: "Access your Classes here.\nSign in to generate your personal QR code, which you can use to check in to any class session. Keep this page handy when you arrive at the gym.",
             },
           };
 

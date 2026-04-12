@@ -3,8 +3,13 @@ import { Tabs } from "expo-router";
 import { CopilotProvider } from "react-native-copilot";
 
 export default function Layout() {
+  const tooltipStyle = {
+    borderRadius: 10,
+    paddingTop: 5,
+  };
+
   return (
-    <CopilotProvider>
+    <CopilotProvider tooltipStyle={tooltipStyle}>
       <Tabs
         tabBar={(props) => <BottomTabBar {...props} />}
         screenOptions={{
