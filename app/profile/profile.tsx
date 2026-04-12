@@ -1,3 +1,4 @@
+import { getWeekRange } from "@/components/dateWeekRange";
 import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
 import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
 import {
@@ -183,12 +184,13 @@ export default function Profile() {
         auth?.accountDetail?.profile_id;
 
       if (!trainerId) return;
+      const { monday, sunday } = getWeekRange();
 
       const res = await getTrainerScheduleList({
         trainer_id: trainerId,
-        date_from: null,
-        date_to: null,
-        this_week: true,
+        date_from: monday.toISOString(),
+        date_to: sunday.toISOString(),
+        this_week: false,
       });
 
       if (res.success && res.data) {
