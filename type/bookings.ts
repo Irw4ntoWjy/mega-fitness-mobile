@@ -23,7 +23,7 @@ export const bookingSchema = z.object({
   member_profile_id: z.string(),
   member_name: z.string(),
 
-  booking_status_id: z.union([z.string(), z.number()]),
+  booking_status_id: z.number(),
   booking_status_name: z.string(),
 
   created_at: z.string(),
