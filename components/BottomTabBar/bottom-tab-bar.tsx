@@ -76,11 +76,26 @@ const BottomTabBar = ({
         />
         {state.routes.map((route, index) => {
           const stepMap: Record<string, { order: number; text: string }> = {
-            index: { order: 1, text: "This is your home dashboard." },
-            workout: { order: 6, text: "Track your workouts here." },
-            transaction: { order: 7, text: "View your transactions here." },
-            bookings: { order: 8, text: "Manage your bookings here." },
-            classes: { order: 9, text: "Scan or access classes here." },
+            index: {
+              order: 1,
+              text: "Welcome to your Home! Here you can see your active package and remaining sessions at a glance. Browse the latest promos, check out special classes, and explore all available packages. Your notifications will also appear here so you never miss an update.",
+            },
+            workout: {
+              order: 6,
+              text: "This is your Workout page. View your class history to track which sessions you've attended, and use the workout journal to log your personal training notes, sets, reps, or any progress you'd like to record.",
+            },
+            transaction: {
+              order: 7,
+              text: "Here you can find your full Transaction History. All your purchases are listed here — filter by status to see completed payments, pending orders, or any cancelled transactions.",
+            },
+            bookings: {
+              order: 8,
+              text: "Manage all your Bookings in one place. View upcoming sessions, check ongoing or completed classes, and see any cancelled bookings. You can also make a new booking directly from this page.",
+            },
+            classes: {
+              order: 9,
+              text: "Access your Classes here. Sign in to generate your personal QR code, which you can use to check in to any class session. Keep this page handy when you arrive at the gym.",
+            },
           };
 
           const step = stepMap[route.name];

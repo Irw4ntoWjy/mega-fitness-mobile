@@ -80,65 +80,6 @@ const timeAvailabilityData: TimeAvailabilityData = {
 
 const HERO_H = 76;
 
-const todaysActivityData = [
-  {
-    id: 1,
-    title: "Campfire",
-    time: "03.00PM - 04.00PM",
-    duration: "60 min",
-    label: "Monday",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 2,
-    title: "Campfire",
-    time: "03.00PM - 04.00PM",
-    duration: "60 min",
-    label: "Tuesday",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 3,
-    title: "Campfire",
-    time: "03.00PM - 04.00PM",
-    duration: "60 min",
-    label: "Wednesday",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 4,
-    title: "Campfire",
-    time: "03.00PM - 04.00PM",
-    duration: "60 min",
-    label: "Thursday",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 5,
-    title: "Campfire",
-    time: "03.00PM - 04.00PM",
-    duration: "60 min",
-    label: "Friday",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 6,
-    title: "Campfire",
-    time: "03.00PM - 04.00PM",
-    duration: "60 min",
-    label: "Saturday",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 7,
-    title: "Campfire",
-    time: "03.00PM - 04.00PM",
-    duration: "60 min",
-    label: "Sunday",
-    image: require("../../assets/png/Campfire.png"),
-  },
-];
-
 function getInitials(value: string) {
   const parts = value.trim().split(/\s+/).filter(Boolean);
 
@@ -270,11 +211,6 @@ export default function Home() {
   const isTrainer = normalizeRole(accountRole).includes("trainer");
   const roleTheme = getRoleTheme(accountRole);
 
-  const half = Math.ceil(todaysActivityData.length / 2);
-
-  const topRow = todaysActivityData.slice(0, half);
-  const bottomRow = todaysActivityData.slice(half);
-
   const loadAccountDetail = useCallback(async () => {
     setProfileLoading(true);
 
@@ -331,19 +267,6 @@ export default function Home() {
 
     guard();
   }, [loadAccountDetail, router]);
-
-  // useEffect(() => {
-  //   const loadProfile = async () => {
-  //     setProfileLoading(true);
-
-  //     // simulate delay for demo
-  //     await new Promise((resolve) => setTimeout(resolve, 2000));
-
-  //     setProfileLoading(false);
-  //   };
-
-  //   loadProfile();
-  // }, []);
 
   const fetchBuyPackages = useCallback(async () => {
     try {
@@ -430,56 +353,6 @@ export default function Home() {
       <View className="flex-1 items-center justify-center">
         <ActivityIndicator size="large" />
       </View>
-    );
-  }
-
-  type TodayActivity = (typeof todaysActivityData)[number];
-  function TodayCard({ item }: { item: TodayActivity }) {
-    return (
-      <Pressable key={item.id} className="w-[44vw] mb-4 mr-5">
-        <View className="bg-white rounded-2xl shadow-md relative">
-          <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
-            <Image
-              source={item.image}
-              className="w-full h-full"
-              resizeMode="cover"
-            />
-          </View>
-
-          <View
-            style={{
-              position: "absolute",
-              top: -10,
-              left: -5,
-              backgroundColor: "#06B6D4",
-              paddingHorizontal: 12,
-              paddingVertical: 7,
-              borderRadius: 8,
-              zIndex: 1000,
-              elevation: 30,
-            }}
-          >
-            <Text
-              style={{
-                color: "white",
-                fontSize: 10,
-                fontWeight: "700",
-                textTransform: "uppercase",
-                letterSpacing: 0.8,
-              }}
-            >
-              {item.label}
-            </Text>
-          </View>
-
-          <View className="flex-row items-center justify-between px-4 py-4">
-            <View>
-              <Text className="text-black font-bold text-lg">{item.title}</Text>
-              <Text className="text-black text-xs mt-1">{item.time}</Text>
-            </View>
-          </View>
-        </View>
-      </Pressable>
     );
   }
 
@@ -835,7 +708,7 @@ export default function Home() {
             </Text>
           </View>
 
-          <View className="flex-row items-center">
+          <View className="flex-row items-center justify-end gap-1 pr-2">
             <CopilotStep
               text="Tutorial here."
               order={3}
@@ -1141,7 +1014,7 @@ function HeaderIcon({
   return (
     <Pressable
       onPress={onPress}
-      className="w-10 h-10  mx-4 rounded-xl items-center justify-center bg-white shadow-sm"
+      className="w-10 h-10 mx-1 rounded-xl items-center justify-center bg-white shadow-sm"
     >
       {children}
     </Pressable>
