@@ -222,7 +222,6 @@ export default function Home() {
     if (auth?.accessPayload?.account_role) {
       setAccountRole(auth.accessPayload.account_role);
     }
-
     let detail: any = null;
     if (accountCode) {
       const res = await fetchAccountDetailByCode(accountCode);
@@ -267,6 +266,24 @@ export default function Home() {
 
     guard();
   }, [loadAccountDetail, router]);
+
+  useEffect(() => {
+    const checkNewUser = async () => {
+      const auth = await getAuth();
+      if (!auth?.accountDetail?.created_at) return;
+
+      const createdAt = new Date(auth.accountDetail.created_at);
+      const now = new Date();
+      const diffInHours =
+        (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+
+      if (diffInHours <= 1) {
+        setTimeout(() => start(), 500);
+      }
+    };
+
+    checkNewUser();
+  }, []);
 
   const fetchBuyPackages = useCallback(async () => {
     try {
