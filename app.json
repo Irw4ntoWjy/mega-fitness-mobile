@@ -27,6 +27,12 @@
     "plugins": [
       "expo-router",
       [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to access your location."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/png/mega-fitness-logo.png",
@@ -38,6 +44,9 @@
           }
         }
       ]
+    ],
+    "permissions": [
+      "location"
     ],
     "experiments": {
       "typedRoutes": true,

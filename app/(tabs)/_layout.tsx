@@ -15,7 +15,7 @@ export default function Layout() {
       }}
     >
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="workout" />
+      <Tabs.Screen name="history" />
       <Tabs.Screen name="classes" />
       <Tabs.Screen name="transaction" />
       <Tabs.Screen name="bookings" />
