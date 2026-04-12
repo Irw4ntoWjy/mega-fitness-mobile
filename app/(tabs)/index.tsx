@@ -726,17 +726,19 @@ export default function Home() {
           </View>
 
           <View className="flex-row items-center justify-end gap-1 pr-2">
-            <CopilotStep
-              text="Tutorial here."
-              order={3}
-              name="onboarding tutorial"
-            >
-              <WalkableView>
-                <HeaderIcon onPress={() => start()}>
-                  <HelpCircle size={18} color="black" />
-                </HeaderIcon>
-              </WalkableView>
-            </CopilotStep>
+            {!isTrainer && (
+              <CopilotStep
+                text="Tutorial here."
+                order={3}
+                name="onboarding tutorial"
+              >
+                <WalkableView>
+                  <HeaderIcon onPress={() => start()}>
+                    <HelpCircle size={18} color="black" />
+                  </HeaderIcon>
+                </WalkableView>
+              </CopilotStep>
+            )}
 
             <CopilotStep
               text="Check your latest notifications here."
