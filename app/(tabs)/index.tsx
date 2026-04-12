@@ -9,7 +9,7 @@ import { checkSession } from "@/lib/auth-session";
 import { getAuth } from "@/lib/auth-storage";
 import { fetcher } from "@/lib/fetcher";
 import { useFocusEffect, useRouter } from "expo-router";
-import { ArrowRight, Bell } from "lucide-react-native";
+import { ArrowRight, Bell, HelpCircle } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -19,7 +19,10 @@ import {
   Text,
   View,
 } from "react-native";
+import { CopilotStep, useCopilot, walkthroughable } from "react-native-copilot";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const WalkableView = walkthroughable(View);
 
 const activePackagesData = {
   activePackagesSummary: {
@@ -76,65 +79,6 @@ const timeAvailabilityData: TimeAvailabilityData = {
 };
 
 const HERO_H = 76;
-
-const todaysActivityData = [
-  {
-    id: 1,
-    title: "Campfire",
-    time: "03.00PM - 04.00PM",
-    duration: "60 min",
-    label: "Monday",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 2,
-    title: "Campfire",
-    time: "03.00PM - 04.00PM",
-    duration: "60 min",
-    label: "Tuesday",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 3,
-    title: "Campfire",
-    time: "03.00PM - 04.00PM",
-    duration: "60 min",
-    label: "Wednesday",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 4,
-    title: "Campfire",
-    time: "03.00PM - 04.00PM",
-    duration: "60 min",
-    label: "Thursday",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 5,
-    title: "Campfire",
-    time: "03.00PM - 04.00PM",
-    duration: "60 min",
-    label: "Friday",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 6,
-    title: "Campfire",
-    time: "03.00PM - 04.00PM",
-    duration: "60 min",
-    label: "Saturday",
-    image: require("../../assets/png/Campfire.png"),
-  },
-  {
-    id: 7,
-    title: "Campfire",
-    time: "03.00PM - 04.00PM",
-    duration: "60 min",
-    label: "Sunday",
-    image: require("../../assets/png/Campfire.png"),
-  },
-];
 
 function getInitials(value: string) {
   const parts = value.trim().split(/\s+/).filter(Boolean);
@@ -267,11 +211,6 @@ export default function Home() {
   const isTrainer = normalizeRole(accountRole).includes("trainer");
   const roleTheme = getRoleTheme(accountRole);
 
-  const half = Math.ceil(todaysActivityData.length / 2);
-
-  const topRow = todaysActivityData.slice(0, half);
-  const bottomRow = todaysActivityData.slice(half);
-
   const loadAccountDetail = useCallback(async () => {
     setProfileLoading(true);
 
@@ -283,7 +222,6 @@ export default function Home() {
     if (auth?.accessPayload?.account_role) {
       setAccountRole(auth.accessPayload.account_role);
     }
-
     let detail: any = null;
     if (accountCode) {
       const res = await fetchAccountDetailByCode(accountCode);
@@ -329,18 +267,24 @@ export default function Home() {
     guard();
   }, [loadAccountDetail, router]);
 
-  // useEffect(() => {
-  //   const loadProfile = async () => {
-  //     setProfileLoading(true);
+  useEffect(() => {
+    if (!isTrainer) {
+      const checkNewUser = async () => {
+        const auth = await getAuth();
+        if (!auth?.accountDetail?.created_at) return;
 
-  //     // simulate delay for demo
-  //     await new Promise((resolve) => setTimeout(resolve, 2000));
+        const createdAt = new Date(auth.accountDetail.created_at);
+        const now = new Date();
+        const diffInHours =
+          (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
 
-  //     setProfileLoading(false);
-  //   };
-
-  //   loadProfile();
-  // }, []);
+        if (diffInHours <= 1) {
+          setTimeout(() => start(), 500);
+        }
+      };
+      checkNewUser();
+    }
+  }, []);
 
   const fetchBuyPackages = useCallback(async () => {
     try {
@@ -417,61 +361,16 @@ export default function Home() {
     }, []),
   );
 
+  const scrollRef = useRef<ScrollView>(null);
+  const stepPositions = useRef<Record<string, number>>({});
+
+  const { start, currentStep } = useCopilot();
+
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center">
         <ActivityIndicator size="large" />
       </View>
-    );
-  }
-
-  type TodayActivity = (typeof todaysActivityData)[number];
-  function TodayCard({ item }: { item: TodayActivity }) {
-    return (
-      <Pressable key={item.id} className="w-[44vw] mb-4 mr-5">
-        <View className="bg-white rounded-2xl shadow-md relative">
-          <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
-            <Image
-              source={item.image}
-              className="w-full h-full"
-              resizeMode="cover"
-            />
-          </View>
-
-          <View
-            style={{
-              position: "absolute",
-              top: -10,
-              left: -5,
-              backgroundColor: "#06B6D4",
-              paddingHorizontal: 12,
-              paddingVertical: 7,
-              borderRadius: 8,
-              zIndex: 1000,
-              elevation: 30,
-            }}
-          >
-            <Text
-              style={{
-                color: "white",
-                fontSize: 10,
-                fontWeight: "700",
-                textTransform: "uppercase",
-                letterSpacing: 0.8,
-              }}
-            >
-              {item.label}
-            </Text>
-          </View>
-
-          <View className="flex-row items-center justify-between px-4 py-4">
-            <View>
-              <Text className="text-black font-bold text-lg">{item.title}</Text>
-              <Text className="text-black text-xs mt-1">{item.time}</Text>
-            </View>
-          </View>
-        </View>
-      </Pressable>
     );
   }
 
@@ -827,43 +726,79 @@ export default function Home() {
             </Text>
           </View>
 
-          <HeaderIcon onPress={() => router.push("/notification/notification")}>
-            <Bell size={18} color="black" />
-          </HeaderIcon>
+          <View className="flex-row items-center justify-end gap-1 pr-2">
+            {!isTrainer && (
+              <CopilotStep
+                text="Tutorial here."
+                order={3}
+                name="onboarding tutorial"
+              >
+                <WalkableView>
+                  <HeaderIcon onPress={() => start()}>
+                    <HelpCircle size={18} color="black" />
+                  </HeaderIcon>
+                </WalkableView>
+              </CopilotStep>
+            )}
+
+            <CopilotStep
+              text="Check your latest notifications here."
+              order={4}
+              name="notifications"
+            >
+              <WalkableView>
+                <HeaderIcon
+                  onPress={() => router.push("/notification/notification")}
+                >
+                  <Bell size={18} color="black" />
+                </HeaderIcon>
+              </WalkableView>
+            </CopilotStep>
+          </View>
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollRef}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 200 }}
+      >
         <View>
           <View className="px-4">
             <View className="relative">
               <View style={{ height: HERO_H }} />
 
-              <View className="absolute right-0 bottom-4 items-end">
-                <View className="px-[4vw] rounded-full flex flex-row justify-end items-center gap-1">
-                  <View className="rounded-full bg-[rgba(0,0,0,0.25)] w-5 h-5 flex items-center justify-center overflow-hidden">
-                    <Text className="text-center text-[10px] text-white font-medium">
-                      2
-                    </Text>
-                  </View>
-                  <Text className="text-center text-[12px] text-black font-medium">
-                    Activity
-                  </Text>
-                </View>
-              </View>
-
               <View className="absolute -bottom-15 z-50">
-                <Pressable onPress={() => router.push("/profile/profile")}>
-                  <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
-                    {profileLoading ? (
-                      <ActivityIndicator size="small" />
-                    ) : (
-                      <Text className="text-[#0F6B7E] text-2xl font-semibold">
-                        {profileInitials || getInitials(profileName) || "?"}
-                      </Text>
-                    )}
-                  </View>
-                </Pressable>
+                <View
+                  onLayout={(e) => {
+                    stepPositions.current["profile-avatar"] =
+                      e.nativeEvent.layout.y;
+                  }}
+                >
+                  <CopilotStep
+                    text="Tap your avatar to view and edit your profile."
+                    order={2}
+                    name="profile-avatar"
+                  >
+                    <WalkableView>
+                      <Pressable
+                        onPress={() => router.push("/profile/profile")}
+                      >
+                        <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
+                          {profileLoading ? (
+                            <ActivityIndicator size="small" />
+                          ) : (
+                            <Text className="text-[#0F6B7E] text-2xl font-semibold">
+                              {profileInitials ||
+                                getInitials(profileName) ||
+                                "?"}
+                            </Text>
+                          )}
+                        </View>
+                      </Pressable>
+                    </WalkableView>
+                  </CopilotStep>
+                </View>
               </View>
             </View>
             <View className="-mx-4 px-4 pt-16 pb-6 bg-[#EEEEEE]">
@@ -888,19 +823,49 @@ export default function Home() {
 
                 {isTrainer ? (
                   <View>
-                    <ActivePackagesSessionsCard
-                      summary={activePackagesData.activePackagesSummary}
-                      packages={activePackagesData.packages}
-                    />
-                    <CommisionProgressBar />
+                    <View
+                      onLayout={(e) => {
+                        stepPositions.current["active-packages"] =
+                          e.nativeEvent.layout.y;
+                      }}
+                    >
+                      <CopilotStep
+                        text="Track your active sessions and package usage."
+                        order={5}
+                        name="active-packages"
+                      >
+                        <WalkableView>
+                          <ActivePackagesSessionsCard
+                            summary={activePackagesData.activePackagesSummary}
+                            packages={activePackagesData.packages}
+                          />
+                          <CommisionProgressBar />
+                        </WalkableView>
+                      </CopilotStep>
+                    </View>
                   </View>
                 ) : (
                   <View>
-                    <ActivePackagesSessionsCard
-                      summary={activePackagesData.activePackagesSummary}
-                      packages={activePackagesData.packages}
-                    />
-                    <WarningCard />
+                    <View
+                      onLayout={(e) => {
+                        stepPositions.current["active-packages"] =
+                          e.nativeEvent.layout.y;
+                      }}
+                    >
+                      <CopilotStep
+                        text="Track your active sessions and package usage."
+                        order={5}
+                        name="active-packages"
+                      >
+                        <WalkableView>
+                          <ActivePackagesSessionsCard
+                            summary={activePackagesData.activePackagesSummary}
+                            packages={activePackagesData.packages}
+                          />
+                        </WalkableView>
+                      </CopilotStep>
+                      <WarningCard />
+                    </View>
                   </View>
                 )}
               </>
@@ -920,13 +885,10 @@ export default function Home() {
             );
           }}
         >
-          <View className="flex flex-row justify-between">
+          {/* <View className="flex flex-row justify-between">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
               Schedule Activities
             </Text>
-            {/* <Pressable className="bg-cyan-600 w-8 h-8 rounded-full mx-5 items-center justify-center">
-              <ArrowRight size={20} color="white" />
-            </Pressable> */}
           </View>
 
           <ScrollView
@@ -940,14 +902,13 @@ export default function Home() {
                   <TodayCard key={item.id} item={item} />
                 ))}
               </View>
-              {/* Bottom row */}
               <View className="flex-row">
                 {bottomRow.map((item) => (
                   <TodayCard key={item.id} item={item} />
                 ))}
               </View>
             </View>
-          </ScrollView>
+          </ScrollView> */}
 
           {/* <ScrollView
             horizontal
@@ -991,7 +952,6 @@ export default function Home() {
               <PromotionCard key={item.id} item={item} />
             ))}
           </View> */}
-
           <View className="flex flex-row justify-between">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
               Promotions
@@ -1074,7 +1034,7 @@ function HeaderIcon({
   return (
     <Pressable
       onPress={onPress}
-      className="w-10 h-10  mx-4 rounded-xl items-center justify-center bg-white shadow-sm"
+      className="w-10 h-10 mx-1 rounded-xl items-center justify-center bg-white shadow-sm"
     >
       {children}
     </Pressable>

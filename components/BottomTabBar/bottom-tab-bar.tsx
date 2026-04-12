@@ -1,5 +1,5 @@
-import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useAuth } from "@/hooks/useAuth";
+import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import {
   BookText,
   Clock3,
@@ -11,7 +11,10 @@ import {
 } from "lucide-react-native";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import { CopilotStep, walkthroughable } from "react-native-copilot";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const WalkableView = walkthroughable(View);
 
 const BottomTabBar = ({
   state,
@@ -94,6 +97,31 @@ const BottomTabBar = ({
           }}
         />
         {state.routes.map((route, index) => {
+          const stepMap: Record<string, { order: number; text: string }> = {
+            index: {
+              order: 1,
+              text: "Welcome to your Home!\nHere you can see your active package and remaining sessions at a glance. Browse the latest promos, check out special classes, and explore all available packages. Your notifications will also appear here so you never miss an update.",
+            },
+            history: {
+              order: 6,
+              text: "This is your History page.\nView your class history to track which sessions you've attended, and use the workout journal to log your personal training notes, sets, reps, or any progress you'd like to record.",
+            },
+            transaction: {
+              order: 7,
+              text: "Here you can find your full Transaction History.\nAll your purchases are listed here — filter by status to see completed payments, pending orders, or any cancelled transactions.",
+            },
+            bookings: {
+              order: 8,
+              text: "Manage all your Bookings in one place.\nView upcoming sessions, check ongoing or completed classes, and see any cancelled bookings. You can also make a new booking directly from this page.",
+            },
+            classes: {
+              order: 9,
+              text: "Access your Classes here.\nSign in to generate your personal QR code, which you can use to check in to any class session. Keep this page handy when you arrive at the gym.",
+            },
+          };
+
+          const step = stepMap[route.name];
+
           const { options } = descriptors[route.key];
           const labelOption =
             options.tabBarLabel ?? options.title ?? route.name;
@@ -154,29 +182,30 @@ const BottomTabBar = ({
           return (
             <TouchableOpacity
               key={route.key}
-              accessibilityRole="button"
-              accessibilityState={isFocused ? { selected: true } : {}}
-              accessibilityLabel={options.tabBarAccessibilityLabel}
               onPress={onPress}
               onLongPress={onLongPress}
               style={{
-                width: tabWidth,
-                height: tabHeight,
+                width: 70,
                 justifyContent: "center",
                 alignItems: "center",
-                paddingVertical: tabPaddingVertical,
-                backgroundColor: "transparent",
-                borderRadius: tabBorderRadius,
+                paddingVertical: 8,
               }}
             >
-              <View
-                style={{
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexDirection: "column",
-                }}
-              >
-                {getIcon(route.name, isFocused)}
+              <View style={{ alignItems: "center" }}>
+                {step ? (
+                  <CopilotStep
+                    text={step.text}
+                    order={step.order}
+                    name={`tab-${route.name}`}
+                  >
+                    <WalkableView>
+                      {getIcon(route.name, isFocused)}
+                    </WalkableView>
+                  </CopilotStep>
+                ) : (
+                  getIcon(route.name, isFocused)
+                )}
+
                 {route.name !== "classes" && label}
               </View>
             </TouchableOpacity>
