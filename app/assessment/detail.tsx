@@ -1,0 +1,335 @@
+import { createAssessment, getAssessmentList } from "@/app/api/assessment";
+import AssessmentHeader from "@/components/assessment/AssessmentHeader";
+import BottomNavbar from "@/components/assessment/BottomNavbar";
+import PhysicalQuestionCard from "@/components/assessment/PhysicalQuestionCard";
+import { BackgroundGlow } from "@/components/Theme/background";
+import { useToast } from "@/components/Toast/toast-provider";
+import { useAuth } from "@/hooks/useAuth";
+import { AnswerValue, SectionSchema } from "@/type/assessment";
+import { router } from "expo-router";
+import { ChevronLeft } from "lucide-react-native";
+import { useEffect, useState } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
+import { QUESTION_META } from "./dummy_question";
+
+export default function AssessmentDetail() {
+  const { auth, loading: loadingAuth } = useAuth();
+  const { showToast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<SectionSchema[]>([]);
+  const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  const currentSection = data[currentStep];
+
+  useEffect(() => {
+    if (loadingAuth) return;
+
+    const profileId = auth?.accountDetail?.profile_id;
+    if (!profileId) return;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        const res = await getAssessmentList({
+          limit: 1,
+          profile_id: profileId,
+        });
+
+        const resData = res.data;
+        const rawAnswerJson = (resData as any)?.data?.[0]?.answer_json;
+
+        const isEditMode = !rawAnswerJson;
+
+        const answerJson = rawAnswerJson ?? QUESTION_META;
+
+        setIsEditMode(isEditMode);
+
+        setData(answerJson);
+
+        const initialAnswers: Record<string, AnswerValue> = {};
+
+        answerJson?.forEach((section: any) => {
+          section.data?.forEach((item: any) => {
+            const key = `${section.section}-${item.key.en}`;
+            const val = item.value;
+
+            if (!val) return;
+
+            if (val.type === "TEXT") {
+              initialAnswers[key] = {
+                type: "TEXT",
+                desc: val.value,
+              };
+            }
+
+            if (val.type === "BOOL") {
+              initialAnswers[key] = {
+                type: "BOOL",
+                value: val.value,
+              };
+            }
+
+            if (val.type === "BOOL_TEXT") {
+              initialAnswers[key] = {
+                type: "BOOL_TEXT",
+                value: val.value,
+                desc: val.desc,
+              };
+            }
+          });
+        });
+
+        setAnswers(initialAnswers);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [loadingAuth, auth]);
+
+  const isCurrentStepValid = () => {
+    return currentSection?.data?.every((q: any) => {
+      const key = `${currentSection.section}-${q.key.en}`;
+      const answer = answers[key];
+
+      if (!answer) return false;
+
+      if (answer.type === "BOOL") {
+        return answer.value !== undefined;
+      }
+
+      if (answer.type === "TEXT") {
+        return !!answer.desc;
+      }
+
+      if (answer.type === "BOOL_TEXT") {
+        return (
+          answer.value !== undefined &&
+          (answer.value === false || !!answer.desc)
+        );
+      }
+
+      return false;
+    });
+  };
+
+  const cleanKey = (key: string) => key.replace(/^\d+-/, "");
+
+  const mapValue = (metaType: string, answer?: any) => {
+    if (!answer) return { type: metaType };
+
+    if (metaType === "BOOL") {
+      return {
+        type: "BOOL",
+        value: answer.value ?? false,
+      };
+    }
+
+    if (metaType === "BOOL_TEXT") {
+      return {
+        type: "BOOL_TEXT",
+        value: answer.value ?? false,
+        ...(answer.desc ? { desc: answer.desc } : {}),
+      };
+    }
+
+    if (metaType === "TEXT") {
+      return {
+        type: "TEXT",
+        value: answer.desc ?? "",
+      };
+    }
+
+    return { type: metaType };
+  };
+
+  const handleSubmit = async () => {
+    if (!auth.accountDetail.profile_id) {
+      showToast({
+        message: "Profile ID not found.",
+        variant: "error",
+        duration: 2500,
+      });
+      return;
+    }
+
+    const isAnswerValid = (type: string, value: any) => {
+      if (!value) return false;
+
+      switch (type) {
+        case "BOOL":
+          return typeof value.value === "boolean";
+        case "BOOL_TEXT":
+          return typeof value.value === "boolean";
+        case "TEXT":
+          return typeof value.value === "string" && value.value.trim() !== "";
+        default:
+          return true;
+      }
+    };
+
+    const result = [];
+
+    for (const section of QUESTION_META) {
+      const data = section.data.map((q) => {
+        const answerEntry = Object.entries(answers).find(
+          ([key]) => cleanKey(key) === q.key.en,
+        );
+        const answer = answerEntry?.[1];
+        return {
+          key: q.key,
+          value: mapValue(q.value.type, answer),
+          rawAnswer: answer,
+        };
+      });
+
+      if (section.section === 1 || section.section === 2) {
+        for (const q of data) {
+          const answer = q.rawAnswer;
+
+          let isValid = true;
+
+          if (!answer) {
+            isValid = false;
+          } else {
+            switch (answer.type) {
+              case "BOOL":
+                isValid = typeof answer.value === "boolean";
+                break;
+              case "BOOL_TEXT":
+                isValid = typeof answer.value === "boolean";
+                break;
+              case "TEXT":
+                isValid =
+                  typeof answer.desc === "string" && answer.desc.trim() !== "";
+                break;
+              default:
+                isValid = false;
+            }
+          }
+
+          if (!isValid) {
+            showToast({
+              message: `Question missing required answer in section ${section.section}: "${q.key.en}"`,
+              variant: "warning",
+              duration: 3500,
+            });
+            return;
+          }
+        }
+      }
+
+      result.push({
+        section: section.section,
+        subtitle: section.subtitle,
+        data: data.map(({ key, value }) => ({ key, value })),
+      });
+    }
+
+    try {
+      const res = await createAssessment({
+        profile_id: auth.accountDetail.profile_id,
+        answer_json: result,
+      });
+
+      showToast({
+        message: res.message,
+        variant: res.success === true ? "success" : "error",
+        duration: 2500,
+      });
+
+      setIsEditMode(false);
+    } catch (err) {
+      console.error(err);
+      showToast({
+        message: "Failed to submit assessment.",
+        variant: "error",
+        duration: 2500,
+      });
+    }
+  };
+
+  return (
+    <View className="flex-1">
+      <BackgroundGlow showText />
+
+      <View className="mt-20 h-14 px-4 flex-row items-center justify-between">
+        <Pressable
+          onPress={() => router.back()}
+          className="w-10 h-10 items-center justify-center"
+        >
+          <ChevronLeft size={22} color="#000" />
+        </Pressable>
+
+        <Pressable
+          onPress={() => {
+            if (isEditMode) {
+              handleSubmit();
+            } else {
+              setIsEditMode(true);
+            }
+          }}
+          className="px-3 h-10 items-center justify-center"
+        >
+          <Text className="text-[#0E8BAA] text-xl underline">
+            {isEditMode ? "Done" : "Edit"}
+          </Text>
+        </Pressable>
+      </View>
+
+      {currentSection && (
+        <AssessmentHeader
+          currentStep={currentStep + 1}
+          totalSteps={data.length}
+          sectionLabel={`Section ${currentSection.section}`}
+          title={currentSection.subtitle}
+        />
+      )}
+
+      <ScrollView className="flex-1 mb-30" showsVerticalScrollIndicator={false}>
+        <View className="px-6 mt-6">
+          {currentSection?.data?.map((q: any, index: number) => {
+            const key = `${currentSection.section}-${q.key.en}`;
+
+            return (
+              <PhysicalQuestionCard
+                key={key}
+                questionKey={key}
+                q={q}
+                index={index}
+                value={answers[key]}
+                disabled={!isEditMode}
+                setAnswer={(k, value) => {
+                  setAnswers((prev) => ({
+                    ...prev,
+                    [k]: value,
+                  }));
+                }}
+              />
+            );
+          })}
+        </View>
+      </ScrollView>
+
+      <BottomNavbar
+        onNext={() => {
+          if (currentStep === data.length - 1) {
+            handleSubmit();
+            return;
+          }
+          setCurrentStep((prev) => prev + 1);
+        }}
+        onBack={() => setCurrentStep((prev) => prev - 1)}
+        backDisabled={currentStep === 0}
+        nextDisabled={!isCurrentStepValid()}
+        isLastStep={currentStep === data.length - 1}
+      />
+    </View>
+  );
+}
