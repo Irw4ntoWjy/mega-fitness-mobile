@@ -1,4 +1,5 @@
 import { getBookingDetail } from "@/app/api/booking";
+import { getPurchaseDetail } from "@/app/api/purchase";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { BookingDetail } from "@/type/bookings";
 import { router, useLocalSearchParams } from "expo-router";
@@ -22,6 +23,7 @@ export default function BarcodePages() {
   const isTrainer = trainer === "true";
 
   const [booking, setBooking] = useState<BookingDetail | null>(null);
+  const [packageId, setPackageId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isRefreshed, setIsRefreshed] = useState(isTrainer);
 
@@ -32,13 +34,32 @@ export default function BarcodePages() {
     setLoading(true);
 
     getBookingDetail({ booking_id: bookingId })
-      .then((res) => {
+      .then(async (res) => {
         if (cancelled) return;
         if (!res.success || !res.data) {
           setBooking(null);
+          setPackageId(null);
           return;
         }
+
         setBooking(res.data);
+
+        const purchaseId = res.data.purchase_id;
+        if (!purchaseId) {
+          setPackageId(null);
+          return;
+        }
+
+        const purchaseRes = await getPurchaseDetail({
+          purchase_id: purchaseId,
+        });
+        if (cancelled) return;
+        if (!purchaseRes.success || !purchaseRes.data) {
+          setPackageId(null);
+          return;
+        }
+
+        setPackageId(purchaseRes.data.package_id);
       })
       .finally(() => {
         if (cancelled) return;
@@ -62,15 +83,16 @@ export default function BarcodePages() {
   }, [booking]);
 
   const qrValue = useMemo(() => {
-    if (!bookingId || !booking?.member_profile_id) {
+    if (!bookingId || !booking?.member_profile_id || !packageId) {
       return "";
     }
 
     return JSON.stringify({
       booking_id: booking.booking_id ?? bookingId,
       member_profile_id: booking.member_profile_id,
+      package_id: packageId,
     });
-  }, [booking, bookingId]);
+  }, [booking, bookingId, packageId]);
 
   return (
     <View style={{ flex: 1 }}>
