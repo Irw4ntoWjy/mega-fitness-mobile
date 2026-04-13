@@ -49,3 +49,20 @@ export const accountForm = z.object({
 });
 
 export type AccountForm = z.infer<typeof accountForm>;
+
+export const trainerScheduleSchema = z.object({
+  id: z.string(),
+  trainer_id: z.string(),
+  trainer_name: z.string(),
+  day_of_week: z.number(),
+  time_start: z.string(),
+  time_end: z.string(),
+  created_at: z.string(),
+  created_by: z.string(),
+  updated_at: z.string().nullable(),
+  updated_by: z.string().nullable(),
+  deleted_at: z.string().nullable(),
+  deleted_by: z.string().nullable(),
+});
+
+export type TrainerSchedule = z.infer<typeof trainerScheduleSchema>;

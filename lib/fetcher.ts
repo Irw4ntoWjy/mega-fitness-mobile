@@ -1,5 +1,6 @@
 import { refreshToken as refreshTokenApi } from "@/app/api/auth";
 import { clearAuth, getAuth, saveAuth } from "@/lib/auth-storage";
+import { syncAccountDetailFromAuth } from "@/lib/auth-session";
 import { parseJwt } from "@/lib/jwt";
 import { logger } from "@/lib/logger";
 import { ApiResponse } from "@/type/api";
@@ -41,6 +42,7 @@ async function tryRefreshToken(): Promise<boolean> {
       refreshPayload: parseJwt(refreshToken),
       accountDetail: auth.accountDetail,
     });
+    await syncAccountDetailFromAuth(true);
 
     logger.authSaved();
     logger.user(parseJwt(accessToken));
@@ -143,6 +145,7 @@ export async function fetcher<T>(
         refreshPayload: parseJwt(refreshToken),
         accountDetail: payload.data,
       });
+      await syncAccountDetailFromAuth(true);
 
       logger.authSaved();
       logger.user(accessPayload);

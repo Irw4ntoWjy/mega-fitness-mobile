@@ -1,5 +1,6 @@
 import { BackgroundGlow } from "@/components/Theme/background";
 import { useToast } from "@/components/Toast/toast-provider";
+import MemberActionList from "@/components/Trainer/member-action-list";
 import { useAuth } from "@/hooks/useAuth";
 import { BookingSchema } from "@/type/bookings";
 import { router } from "expo-router";
@@ -345,6 +346,26 @@ export default function Bookings() {
       setLoadingCancel(false);
     }
   };
+
+  if (loadingAuth) return null;
+
+  if (auth?.accountDetail?.account_role === "Trainer") {
+    return (
+      <MemberActionList
+        title="ASSESSMENT"
+        subtitle="Pilih member untuk membuka assessment dan melanjutkan evaluasi."
+        emptyLabel="Belum ada member untuk di-assess."
+        onSelectMember={(memberItem) =>
+          router.push({
+            pathname: "/assessment/detail",
+            params: {
+              memberProfileId: memberItem.id,
+            },
+          })
+        }
+      />
+    );
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

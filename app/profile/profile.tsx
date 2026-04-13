@@ -1,3 +1,4 @@
+import { getWeekRange } from "@/components/dateWeekRange";
 import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
 import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
 import {
@@ -6,7 +7,7 @@ import {
 } from "@/components/Profile/time-availability";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { useAuth } from "@/hooks/useAuth";
-import { AccountSchema } from "@/type/profile";
+import { AccountSchema, TrainerSchedule } from "@/type/profile";
 import { formatDate } from "@/utils/datetimeFormat";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
@@ -15,6 +16,7 @@ import React, { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { profileDetail } from "../api/profile";
+import { getTrainerScheduleList } from "../api/schedule";
 
 const activePackagesData = {
   activePackagesSummary: {
@@ -44,29 +46,24 @@ const activePackagesData = {
   ],
 };
 
-const timeAvailabilityData: TimeAvailabilityData = {
+const DEFAULT_TIME_AVAILABILITY: TimeAvailabilityData = {
   days: [
-    { key: "Sun", label: "Sun" },
     { key: "Mon", label: "Mon" },
     { key: "Tue", label: "Tue" },
     { key: "Wed", label: "Wed" },
     { key: "Thu", label: "Thu" },
     { key: "Fri", label: "Fri" },
     { key: "Sat", label: "Sat" },
+    { key: "Sun", label: "Sun" },
   ],
   slotsByDay: {
-    Sun: [
-      { id: "sun-1", label: "12.00 PM - 04.00 PM" },
-      { id: "sun-2", label: "12.00 PM - 04.00 PM" },
-      { id: "sun-3", label: "12.00 PM - 04.00 PM" },
-      { id: "sun-4", label: "12.00 PM - 04.00 PM" },
-    ],
     Mon: [],
     Tue: [],
     Wed: [],
     Thu: [],
     Fri: [],
     Sat: [],
+    Sun: [],
   },
 };
 
@@ -112,12 +109,49 @@ export function getInitials(name: string): string {
   return (words[0][0] + words[words.length - 1][0]).toUpperCase();
 }
 
+// day_of_week: 0 = Monday ... 6 = Sunday
+const DAY_KEYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+function mapSchedulesToTimeAvailability(
+  schedules: TrainerSchedule[],
+): TimeAvailabilityData {
+  const slotsByDay: TimeAvailabilityData["slotsByDay"] = {
+    Mon: [],
+    Tue: [],
+    Wed: [],
+    Thu: [],
+    Fri: [],
+    Sat: [],
+    Sun: [],
+  };
+
+  schedules.forEach((schedule) => {
+    const dayIndex = schedule.day_of_week;
+    if (dayIndex === undefined || dayIndex === null) return;
+
+    const dayKey = DAY_KEYS[dayIndex];
+    if (!dayKey) return;
+
+    slotsByDay[dayKey]?.push({
+      id: schedule.id,
+      label: `${schedule.time_start} - ${schedule.time_end}`,
+    });
+  });
+
+  return {
+    days: DAY_KEYS.map((k) => ({ key: k, label: k })),
+    slotsByDay,
+  };
+}
+
 export default function Profile() {
   const insets = useSafeAreaInsets();
   const { auth, loading: loadingAuth } = useAuth();
 
   const [profile, setProfile] = useState<AccountSchema | null>(null);
-
+  const [trainerScheduleData, setTrainerScheduleData] =
+    useState<TimeAvailabilityData>(DEFAULT_TIME_AVAILABILITY);
+  const [scheduleLoading, setScheduleLoading] = useState(false);
   const isTrainer = auth?.accountDetail?.account_role === "Trainer";
 
   const fetchProfile = async () => {
@@ -133,11 +167,42 @@ export default function Profile() {
 
       const data = res.data as AccountSchema;
 
-      console.log("DATA:", data);
-
       setProfile(data);
     } catch (err) {
       console.error("Fetch error:", err);
+    }
+  };
+
+  const fetchTrainerSchedule = async () => {
+    try {
+      setScheduleLoading(true);
+
+      if (!auth?.accountDetail) return;
+
+      const trainerId =
+        (auth?.accountDetail?.trainer_detail as any)?.profile_id ??
+        auth?.accountDetail?.profile_id;
+
+      if (!trainerId) return;
+      const { monday, sunday } = getWeekRange();
+
+      const res = await getTrainerScheduleList({
+        trainer_id: trainerId,
+        date_from: monday.toISOString(),
+        date_to: sunday.toISOString(),
+        this_week: false,
+      });
+
+      if (res.success && res.data) {
+        const mapped = mapSchedulesToTimeAvailability(
+          res.data as TrainerSchedule[],
+        );
+        setTrainerScheduleData(mapped);
+      }
+    } catch (err) {
+      console.error("Fetch trainer schedule error:", err);
+    } finally {
+      setScheduleLoading(false);
     }
   };
 
@@ -145,6 +210,12 @@ export default function Profile() {
     if (!auth?.accountDetail?.account_id) return;
     fetchProfile();
   }, [auth?.accountDetail?.account_id]);
+
+  useEffect(() => {
+    if (!isTrainer) return;
+    if (!auth?.accountDetail?.account_id) return;
+    fetchTrainerSchedule();
+  }, [isTrainer, auth?.accountDetail?.account_id]);
 
   const profileValues: Record<string, string> = {
     name: profile?.profile_name ?? "-",
@@ -221,10 +292,16 @@ export default function Profile() {
 
           {isTrainer ? (
             <>
-              <TimeAvailabilitySection
-                data={timeAvailabilityData}
-                defaultDayKey="Sun"
-              />
+              {scheduleLoading ? (
+                <View className="items-center justify-center py-6">
+                  <Text className="text-gray-500">Loading schedule...</Text>
+                </View>
+              ) : (
+                <TimeAvailabilitySection
+                  data={trainerScheduleData}
+                  defaultDayKey="Mon"
+                />
+              )}
             </>
           ) : (
             <ActivePackagesSessionsCard
@@ -254,6 +331,7 @@ export default function Profile() {
           />
         </View>
       </ScrollView>
+
       <Pressable
         onPress={() =>
           router.push({
@@ -273,10 +351,10 @@ export default function Profile() {
         {!isTrainer && (
           <View
             className={`
-        w-16 h-16 rounded-full
-        items-center justify-center
-        shadow-lg bg-[#0891B2]
-      `}
+              w-16 h-16 rounded-full
+              items-center justify-center
+              shadow-lg bg-[#0891B2]
+            `}
           >
             <Pencil size={24} color="#FFFFFF" />
           </View>
