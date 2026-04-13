@@ -9,7 +9,8 @@ import {
   User as UserIcon,
 } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import QRCode from "react-native-qrcode-svg";
 
 export default function BarcodePages() {
   const { id, trainer } = useLocalSearchParams<{
@@ -60,6 +61,17 @@ export default function BarcodePages() {
     return name && name.trim().length > 0 ? name : "-";
   }, [booking]);
 
+  const qrValue = useMemo(() => {
+    if (!bookingId || !booking?.member_profile_id) {
+      return "";
+    }
+
+    return JSON.stringify({
+      booking_id: booking.booking_id ?? bookingId,
+      member_profile_id: booking.member_profile_id,
+    });
+  }, [booking, bookingId]);
+
   return (
     <View style={{ flex: 1 }}>
       <BackgroundGlow showText={true} />
@@ -85,17 +97,23 @@ export default function BarcodePages() {
           <View className="w-full max-w-[520px]  rounded-3xl bg-white shadow-lg px-8 py-9">
             {!isRefreshed ? (
               <View className="items-center">
-                <View className="h-42 w-42 rounded-2xl bg-black items-center justify-center overflow-hidden">
-                  <Image className="h-20 w-20" resizeMode="contain" />
+                <View className="w-fit h-fit rounded-2xl bg-black items-center justify-center overflow-hidden">
+                  {qrValue ? (
+                    <QRCode
+                      value={qrValue}
+                      size={240}
+                      backgroundColor="white"
+                    />
+                  ) : (
+                    <View className="h-20 items-center justify-center">
+                      <Text className="text-sm text-gray-400">
+                        Loading QR...
+                      </Text>
+                    </View>
+                  )}
                 </View>
 
                 <View className="mt-7 w-full items-center">
-                  <View className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-5 items-center justify-center">
-                    <Text className="text-gray-600 font-semibold py-8">
-                      THIS IS BARCODE LOCATION
-                    </Text>
-                  </View>
-
                   <Text className="mt-3 text-base text-gray-900 font-medium">
                     Mega-Fitness
                   </Text>
