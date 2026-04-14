@@ -13,11 +13,13 @@ type ActivePackagesSessionsCardProps = {
     currentSessions: number;
     totalSessions: number;
   }[];
+  onPress?: () => void;
 };
 
 export function ActivePackagesSessionsCard({
   summary,
   packages,
+  onPress,
 }: ActivePackagesSessionsCardProps) {
   const { totalActive, completedSessions, totalSessions } = summary;
 
@@ -30,7 +32,11 @@ export function ActivePackagesSessionsCard({
   const clampedPercent = Math.min(Math.max(progressPercent, 0), 100);
 
   return (
-    <View className="w-full my-3">
+    <Pressable
+      className="w-full my-3"
+      onPress={onPress}
+      disabled={!onPress}
+    >
       <View className="flex-row">
         <View className="flex-1 bg-white rounded-3xl border border-[#F1E6F4] mr-4 shadow-sm justify-between">
           <View className="flex-[0.95] flex-col items-center justify-center">
@@ -44,10 +50,7 @@ export function ActivePackagesSessionsCard({
             </View>
           </View>
         </View>
-        <Pressable
-          className="flex-[1.6]"
-          onPress={() => console.log("clicked")}
-        >
+        <View className="flex-[1.6]">
           <View className="bg-white rounded-3xl border border-[#F1E6F4] p-4 overflow-hidden shadow-sm">
             <View className="flex-row items-center justify-between">
               <Text className="text-sm text-gray-500">
@@ -87,8 +90,8 @@ export function ActivePackagesSessionsCard({
               ))}
             </View>
           </View>
-        </Pressable>
+        </View>
       </View>
-    </View>
+    </Pressable>
   );
 }

@@ -1,5 +1,5 @@
 import { fetcher } from "@/lib/fetcher";
-import { SessionLogHistoryPagination } from "@/type/session-log";
+import { SessionLogCount, SessionLogHistoryPagination } from "@/type/session-log";
 
 export function getSessionLogHistoryList(payload?: {
   page?: number;
@@ -13,5 +13,26 @@ export function getSessionLogHistoryList(payload?: {
       member_profile_id: payload?.member_profile_id,
     },
     auth: true,
+  });
+}
+
+export function getSessionLogCount(payload?: { member_profile_id?: string }) {
+  const memberProfileId = payload?.member_profile_id;
+
+  return fetcher<SessionLogCount>("/session-log/count", {
+    method: "POST",
+    body: {
+      member_profile_id: memberProfileId,
+      customer_profile_id: memberProfileId,
+    },
+    auth: true,
+  }).then((res) => {
+    if (res.success && res.data) return res;
+    if (!memberProfileId) return res;
+
+    return fetcher<SessionLogCount>(
+      `/session-log/count?member_profile_id=${encodeURIComponent(memberProfileId)}&customer_profile_id=${encodeURIComponent(memberProfileId)}`,
+      { method: "GET", auth: true },
+    );
   });
 }

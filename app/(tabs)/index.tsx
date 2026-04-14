@@ -1,4 +1,6 @@
 import { getPackageList } from "@/app/api/package";
+import { getPurchaseList } from "@/app/api/purchase";
+import { getSessionLogCount } from "@/app/api/session-log";
 import { WarningCard } from "@/components/Member/warning-card";
 import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
 import { TimeAvailabilityData } from "@/components/Profile/time-availability";
@@ -8,15 +10,19 @@ import { CommisionProgressBar } from "@/components/Trainer/commision-progress-ba
 import { checkSession } from "@/lib/auth-session";
 import { getAuth } from "@/lib/auth-storage";
 import { fetcher } from "@/lib/fetcher";
+import type { PurchaseItemSchema } from "@/type/purchase";
+import type { SessionLogCount } from "@/type/session-log";
 import { useFocusEffect, useRouter } from "expo-router";
-import { ArrowRight, Bell, HelpCircle } from "lucide-react-native";
+import { ArrowRight, Bell, HelpCircle, X } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Modal,
   Pressable,
   ScrollView,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { CopilotStep, useCopilot, walkthroughable } from "react-native-copilot";
@@ -26,28 +32,22 @@ const WalkableView = walkthroughable(View);
 
 const activePackagesData = {
   activePackagesSummary: {
-    totalActive: 5,
-    completedSessions: 60,
-    totalSessions: 200,
+    totalActive: 0,
+    completedSessions: 0,
+    totalSessions: 0,
   },
   packages: [
     {
-      id: "membership-pass",
-      label: "Membership Pass",
-      currentSessions: 5,
-      totalSessions: 100,
-    },
-    {
       id: "class-pass",
       label: "Class Pass",
-      currentSessions: 50,
-      totalSessions: 50,
+      currentSessions: 0,
+      totalSessions: 0,
     },
     {
       id: "private-training",
       label: "Private Training",
-      currentSessions: 5,
-      totalSessions: 50,
+      currentSessions: 0,
+      totalSessions: 0,
     },
   ],
 };
@@ -194,6 +194,7 @@ async function fetchAccountDetailByCode(accountCode: string) {
 export default function Home() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const window = useWindowDimensions();
   const [loading, setLoading] = useState(true);
   const [openNotification, setOpenNotification] = useState(false);
   const [buyPackagesData, setBuyPackagesData] = useState<any[]>([]);
@@ -203,6 +204,20 @@ export default function Home() {
   const [profileName, setProfileName] = useState("");
   const [profileInitials, setProfileInitials] = useState("");
   const [accountRole, setAccountRole] = useState("Member");
+  const [customerProfileId, setCustomerProfileId] = useState<string | null>(null);
+  const [activePackagesTotal, setActivePackagesTotal] = useState(0);
+  const [activePackagesTotalLoading, setActivePackagesTotalLoading] =
+    useState(true);
+  const [sessionLogCount, setSessionLogCount] = useState<SessionLogCount | null>(
+    null,
+  );
+  const [sessionLogCountLoading, setSessionLogCountLoading] = useState(true);
+  const [activePackagesPopupOpen, setActivePackagesPopupOpen] = useState(false);
+  const [activePackagesListLoading, setActivePackagesListLoading] =
+    useState(false);
+  const [activePackagesList, setActivePackagesList] = useState<
+    PurchaseItemSchema[]
+  >([]);
   const [bottomSectionLayout, setBottomSectionLayout] = useState<{
     width: number;
     height: number;
@@ -247,6 +262,18 @@ export default function Home() {
     if (typeof resolvedRole === "string" && resolvedRole.trim()) {
       setAccountRole(resolvedRole);
     }
+
+    const resolvedProfileId =
+      detail?.profile_id ??
+      detail?.profile?.profile_id ??
+      detail?.profile?.id ??
+      null;
+    setCustomerProfileId(
+      typeof resolvedProfileId === "string" && resolvedProfileId.trim()
+        ? resolvedProfileId
+        : null,
+    );
+    console.log("[account/detail/code] resolved profile id", resolvedProfileId);
 
     setProfileLoading(false);
   }, []);
@@ -353,6 +380,107 @@ export default function Home() {
     fetchBuyPackages();
   }, [fetchBuyPackages]);
 
+  const fetchActivePackagesTotal = useCallback(async () => {
+    if (isTrainer) return;
+    if (!customerProfileId) return;
+    setActivePackagesTotalLoading(true);
+    try {
+      const res = await getPurchaseList({
+        customer_profile_id: customerProfileId,
+        purchase_status_id: "2",
+      });
+
+      if (res.success && res.data) {
+        setActivePackagesTotal(
+          res.data.total_data ?? res.data.data?.length ?? 0,
+        );
+      } else {
+        setActivePackagesTotal(0);
+      }
+    } catch {
+      setActivePackagesTotal(0);
+    } finally {
+      setActivePackagesTotalLoading(false);
+    }
+  }, [customerProfileId, isTrainer]);
+
+  const fetchSessionLogCount = useCallback(async () => {
+    if (isTrainer) {
+      console.log("[session-log/count] skipped: trainer role");
+      return;
+    }
+    if (!customerProfileId) {
+      console.log("[session-log/count] skipped: missing customerProfileId");
+      return;
+    }
+    setSessionLogCountLoading(true);
+    try {
+      console.log("[session-log/count] fetching", {
+        member_profile_id: customerProfileId,
+      });
+      const res = await getSessionLogCount({
+        member_profile_id: customerProfileId,
+      });
+      console.log("[session-log/count] response", {
+        member_profile_id: customerProfileId,
+        success: res.success,
+        message: res.message,
+        data: res.data,
+      });
+      if (res.success && res.data) {
+        const data: any = res.data;
+        const normalized: SessionLogCount = {
+          active_class: Number(data?.active_class ?? data?.activeClass ?? 0),
+          total_class: Number(data?.total_class ?? data?.totalClass ?? 0),
+          active_private: Number(
+            data?.active_private ?? data?.activePrivate ?? 0,
+          ),
+          total_private: Number(
+            data?.total_private ?? data?.totalPrivate ?? 0,
+          ),
+        };
+        setSessionLogCount(normalized);
+      } else {
+        setSessionLogCount(null);
+      }
+    } catch {
+      setSessionLogCount(null);
+    } finally {
+      setSessionLogCountLoading(false);
+    }
+  }, [customerProfileId, isTrainer]);
+
+  const fetchActivePackagesList = useCallback(async () => {
+    if (isTrainer) return;
+    if (!customerProfileId) return;
+    setActivePackagesListLoading(true);
+    try {
+      const res = await getPurchaseList({
+        customer_profile_id: customerProfileId,
+        purchase_status_id: "2",
+      });
+
+      if (res.success && res.data) {
+        setActivePackagesList(res.data.data ?? []);
+      } else {
+        setActivePackagesList([]);
+      }
+    } catch {
+      setActivePackagesList([]);
+    } finally {
+      setActivePackagesListLoading(false);
+    }
+  }, [customerProfileId, isTrainer]);
+
+  const openActivePackagesPopup = useCallback(() => {
+    setActivePackagesPopupOpen(true);
+    fetchActivePackagesList();
+  }, [fetchActivePackagesList]);
+
+  const closeActivePackagesPopup = useCallback(() => {
+    setActivePackagesPopupOpen(false);
+  }, []);
+
   const navigating = useRef(false);
 
   useFocusEffect(
@@ -360,6 +488,26 @@ export default function Home() {
       navigating.current = false;
     }, []),
   );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!customerProfileId) return;
+      fetchActivePackagesTotal();
+      fetchSessionLogCount();
+    }, [customerProfileId, fetchActivePackagesTotal, fetchSessionLogCount]),
+  );
+
+  useEffect(() => {
+    if (isTrainer) return;
+    if (!customerProfileId) return;
+    fetchActivePackagesTotal();
+    fetchSessionLogCount();
+  }, [
+    customerProfileId,
+    fetchActivePackagesTotal,
+    fetchSessionLogCount,
+    isTrainer,
+  ]);
 
   const scrollRef = useRef<ScrollView>(null);
   const stepPositions = useRef<Record<string, number>>({});
@@ -373,6 +521,29 @@ export default function Home() {
       </View>
     );
   }
+
+  const activeClassSessions = sessionLogCount?.active_class ?? 0;
+  const totalClassSessions = sessionLogCount?.total_class ?? 0;
+  const activePrivateSessions = sessionLogCount?.active_private ?? 0;
+  const totalPrivateSessions = sessionLogCount?.total_private ?? 0;
+
+  const completedSessions = activeClassSessions + activePrivateSessions;
+  const totalSessions = totalClassSessions + totalPrivateSessions;
+
+  const packagesForActiveSessionsCard = [
+    {
+      id: "class-pass",
+      label: "Class Pass",
+      currentSessions: activeClassSessions,
+      totalSessions: totalClassSessions,
+    },
+    {
+      id: "private-training",
+      label: "Private Training",
+      currentSessions: activePrivateSessions,
+      totalSessions: totalPrivateSessions,
+    },
+  ];
 
   type PromotionActivity = {
     id: string | number;
@@ -704,9 +875,164 @@ export default function Home() {
     );
   }
 
+  function ActivePackageCard({ item }: { item: PurchaseItemSchema }) {
+    return (
+      <View className="mb-9 min-w-50 max-w-100">
+        <View className="bg-white rounded-2xl shadow-md relative">
+          <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
+            {item.package_cover_image &&
+            item.package_cover_image !== "null" &&
+            item.package_cover_image !== "" ? (
+              <Image
+                source={{ uri: String(item.package_cover_image) }}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
+            ) : (
+              <View className="w-full h-full bg-black" />
+            )}
+          </View>
+
+          {isNewPackage(item.requested_at) ? (
+            <View
+              style={{
+                position: "absolute",
+                top: 10,
+                right: 10,
+                backgroundColor: "#22C55E",
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderRadius: 10,
+                zIndex: 1000,
+                elevation: 30,
+              }}
+            >
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 10,
+                  fontWeight: "800",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.8,
+                }}
+              >
+                New
+              </Text>
+            </View>
+          ) : null}
+
+          <View
+            style={{
+              position: "absolute",
+              top: -10,
+              left: -5,
+              backgroundColor: "#06B6D4",
+              paddingHorizontal: 12,
+              paddingVertical: 7,
+              borderRadius: 8,
+              zIndex: 1000,
+              elevation: 30,
+            }}
+          >
+            <Text
+              style={{
+                color: "white",
+                fontSize: 10,
+                fontWeight: "700",
+                textTransform: "uppercase",
+                letterSpacing: 0.8,
+              }}
+            >
+              {item.purchase_status_name || "Active"}
+            </Text>
+          </View>
+
+          <View className="flex-row items-center justify-between px-4 py-4">
+            <View className="flex-1 pr-2">
+              <Text
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                className="text-black font-bold text-lg"
+              >
+                {item.package_name.trim()}
+              </Text>
+              {item.product_type_name ? (
+                <Text className="text-gray-500 text-xs mt-1">
+                  {item.product_type_name}
+                </Text>
+              ) : null}
+              {typeof item.package_session_quota === "number" ||
+              typeof item.package_expiry === "number" ? (
+                <Text className="text-gray-500 text-xs mt-0.5">
+                  {typeof item.package_session_quota === "number"
+                    ? `Quota: ${item.package_session_quota}`
+                    : null}
+                  {typeof item.package_session_quota === "number" &&
+                  typeof item.package_expiry === "number"
+                    ? " • "
+                    : null}
+                  {typeof item.package_expiry === "number"
+                    ? `Expiry: ${item.package_expiry} days`
+                    : null}
+                </Text>
+              ) : null}
+              {item.package_trainer_name ? (
+                <Text className="text-gray-500 text-xs mt-0.5">
+                  Trainer: {item.package_trainer_name}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1">
       <BackgroundGlow showText={true} />
+      <Modal
+        visible={activePackagesPopupOpen}
+        transparent={false}
+        animationType="fade"
+        onRequestClose={closeActivePackagesPopup}
+        presentationStyle="fullScreen"
+      >
+        <View className="flex-1 p-8 bg-white">
+          <View className="mb-4 flex-row items-center justify-between">
+            <Text className="text-2xl font-bold text-slate-800">
+              Active Packages
+            </Text>
+
+            <Pressable
+              onPress={closeActivePackagesPopup}
+              className="bg-[rgba(0,0,0,0.1)] rounded-full p-4"
+            >
+              <X size={18} color="black" />
+            </Pressable>
+          </View>
+
+          {activePackagesListLoading ? (
+            <View className="flex-1 items-center justify-center">
+              <ActivityIndicator size="small" />
+            </View>
+          ) : activePackagesList.length === 0 ? (
+            <View className="flex-1 items-center justify-center">
+              <Text className="text-gray-500">No active packages.</Text>
+            </View>
+          ) : (
+            <ScrollView
+              style={{ flex: 1 }}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24 }}
+            >
+              {activePackagesList.map((item) => (
+                <ActivePackageCard key={item.id} item={item} />
+              ))}
+            </ScrollView>
+          )}
+        </View>
+      </Modal>
       <View
         style={{
           flexDirection: "row",
@@ -839,10 +1165,22 @@ export default function Home() {
                         name="active-packages"
                       >
                         <WalkableView>
-                          <ActivePackagesSessionsCard
-                            summary={activePackagesData.activePackagesSummary}
-                            packages={activePackagesData.packages}
-                          />
+                          {activePackagesTotalLoading ||
+                          sessionLogCountLoading ? (
+                            <View className="py-8 items-center justify-center">
+                              <ActivityIndicator size="small" />
+                            </View>
+                          ) : (
+                            <ActivePackagesSessionsCard
+                              summary={{
+                                totalActive: activePackagesTotal,
+                                completedSessions,
+                                totalSessions,
+                              }}
+                              packages={packagesForActiveSessionsCard}
+                              onPress={openActivePackagesPopup}
+                            />
+                          )}
                         </WalkableView>
                       </CopilotStep>
                       <WarningCard />

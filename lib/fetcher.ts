@@ -126,38 +126,55 @@ export async function fetcher<T>(
       };
     }
 
-    if (
-      (payload?.data?.access_token && payload?.data?.refresh_token) ||
-      (payload?.data?.account_id && payload?.data?.account_code)
-    ) {
+    const hasTokens = Boolean(
+      payload?.data?.access_token && payload?.data?.refresh_token,
+    );
+    const hasAccountDetail = Boolean(
+      payload?.data?.account_id && payload?.data?.account_code,
+    );
+
+    if ((hasTokens || hasAccountDetail) && payload?.data) {
       const storedAuth = await getAuth();
 
-      const accessToken = storedAuth?.accessToken ?? payload.data.access_token;
-      const refreshToken =
-        storedAuth?.refreshToken ?? payload.data.refresh_token;
+      const accessToken = hasTokens
+        ? payload.data.access_token
+        : storedAuth?.accessToken;
+      const refreshToken = hasTokens
+        ? payload.data.refresh_token
+        : storedAuth?.refreshToken;
 
-      const accessPayload = parseJwt(accessToken);
+      if (accessToken && refreshToken) {
+        const accessPayload = parseJwt(accessToken);
 
-      await saveAuth({
-        accessToken,
-        refreshToken,
-        accessPayload,
-        refreshPayload: parseJwt(refreshToken),
-        accountDetail: payload.data,
-      });
-      await syncAccountDetailFromAuth(true);
+        await saveAuth({
+          accessToken,
+          refreshToken,
+          accessPayload,
+          refreshPayload: parseJwt(refreshToken),
+          accountDetail: payload.data,
+        });
+        await syncAccountDetailFromAuth(true);
 
-      logger.authSaved();
-      logger.user(accessPayload);
+        logger.authSaved();
+        logger.user(accessPayload);
+      }
     }
 
     logger.message(payload?.message);
-    logger.data(payload?.data);
+    const responseData =
+      payload &&
+      typeof payload === "object" &&
+      "data" in payload &&
+      (payload as any).data !== undefined
+        ? (payload as any).data
+        : payload;
+
+    logger.data(responseData);
 
     return {
       success: payload?.success ?? true,
       message: payload?.message ?? "OK",
-      data: payload?.data as T,
+      data: responseData as T,
     };
   } catch (err: any) {
     logger.networkError(err?.message);

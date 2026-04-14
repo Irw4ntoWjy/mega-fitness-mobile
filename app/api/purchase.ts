@@ -7,6 +7,7 @@ export function getPurchaseList(payload?: {
   page?: number;
   limit?: number;
   customer_profile_id?: string;
+  purchase_status_id?: string;
 }) {
   return fetcher<PurchasePagination>("/purchase/list", {
     body: buildListPayload(payload),

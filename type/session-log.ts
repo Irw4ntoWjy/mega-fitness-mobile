@@ -45,3 +45,12 @@ export const sessionLogHistoryPaginationSchema = paginationSchema(
 export type SessionLogHistoryPagination = z.infer<
   typeof sessionLogHistoryPaginationSchema
 >;
+
+export const sessionLogCountSchema = z.object({
+  active_class: z.number(),
+  total_class: z.number(),
+  active_private: z.number(),
+  total_private: z.number(),
+});
+
+export type SessionLogCount = z.infer<typeof sessionLogCountSchema>;
