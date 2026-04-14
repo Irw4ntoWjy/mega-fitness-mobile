@@ -19,7 +19,7 @@ export default function AssessmentDetail() {
     memberProfileId?: string;
   }>();
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [data, setData] = useState<SectionSchema[]>([]);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [currentStep, setCurrentStep] = useState(0);
@@ -176,21 +176,6 @@ export default function AssessmentDetail() {
       return;
     }
 
-    const isAnswerValid = (type: string, value: any) => {
-      if (!value) return false;
-
-      switch (type) {
-        case "BOOL":
-          return typeof value.value === "boolean";
-        case "BOOL_TEXT":
-          return typeof value.value === "boolean";
-        case "TEXT":
-          return typeof value.value === "string" && value.value.trim() !== "";
-        default:
-          return true;
-      }
-    };
-
     const result = [];
 
     for (const section of QUESTION_META) {
@@ -314,6 +299,48 @@ export default function AssessmentDetail() {
           {currentSection?.data?.map((q: any, index: number) => {
             const key = `${currentSection.section}-${q.key.en}`;
 
+            // ── Condition 1: Hide Medications & Effect if medication BOOL is false/unanswered ──
+            const medicationKey = `${currentSection.section}-Do you currently take any medications?`;
+            const isMedicationTrue = (() => {
+              const ans = answers[medicationKey];
+              if (!ans) return false;
+              if (ans.type === "BOOL" || ans.type === "BOOL_TEXT")
+                return ans.value === true;
+              return false;
+            })();
+
+            const dependsOnMedication =
+              q.key.en === "Medications" || q.key.en === "Effect";
+
+            if (dependsOnMedication && !isMedicationTrue) return null;
+
+            // ── Condition 2: Hide doctor/physio TEXT fields if ANY bool/bool_text is true ──
+            const doctorKey =
+              "Harap Anda/Dokter sebutkan rekomendasi atau batasan apa pun yang sesuai untuk Anda dalam program Latihan ini:";
+            const physioKey =
+              "Harap Physiotherapist sebutkan rekomendasi atau batasan apa pun yang sesuai untuk Anda dalam program Latihan ini:";
+
+            const isDoctorOrPhysioField =
+              q.key.en === doctorKey || q.key.en === physioKey;
+
+            if (isDoctorOrPhysioField) {
+              const hasAnyTrueAnswer = currentSection.data.some((item: any) => {
+                if (
+                  item.value.type !== "BOOL" &&
+                  item.value.type !== "BOOL_TEXT"
+                )
+                  return false;
+                const itemKey = `${currentSection.section}-${item.key.en}`;
+                const ans = answers[itemKey];
+                if (!ans) return false;
+                if (ans.type === "BOOL" || ans.type === "BOOL_TEXT")
+                  return ans.value === true;
+                return false;
+              });
+
+              if (!hasAnyTrueAnswer) return null;
+            }
+
             return (
               <PhysicalQuestionCard
                 key={key}
@@ -323,10 +350,20 @@ export default function AssessmentDetail() {
                 value={answers[key]}
                 disabled={!isEditMode || isTrainerReadOnlySection}
                 setAnswer={(k, value) => {
-                  setAnswers((prev) => ({
-                    ...prev,
-                    [k]: value,
-                  }));
+                  setAnswers((prev) => {
+                    const updated = { ...prev, [k]: value };
+
+                    // Clear Medications & Effect when medication toggled off
+                    if (
+                      k === medicationKey &&
+                      (value as any)?.value === false
+                    ) {
+                      delete updated[`${currentSection.section}-Medications`];
+                      delete updated[`${currentSection.section}-Effect`];
+                    }
+
+                    return updated;
+                  });
                 }}
               />
             );
