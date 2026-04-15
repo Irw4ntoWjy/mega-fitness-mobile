@@ -612,10 +612,10 @@ const Journal = () => {
 
         const journalJson = journalItem.journal_json;
         const loadedGroups =
-          journalJson.activities?.map((activity: any) => ({
+          journalJson.activities?.map((activity) => ({
             title: activity.activity_name,
             isOpen: true,
-            sets: activity.sets.map((set: any) => ({
+            sets: activity.sets.map((set) => ({
               reps: set.reps,
               weight: set.weight,
             })),

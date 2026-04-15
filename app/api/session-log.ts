@@ -1,5 +1,8 @@
 import { fetcher } from "@/lib/fetcher";
-import { SessionLogHistoryPagination } from "@/type/session-log";
+import {
+  SessionLogHistoryPagination,
+  TrainerSessionLogHistoryPagination,
+} from "@/type/session-log";
 
 export function getSessionLogHistoryList(payload?: {
   page?: number;
@@ -14,4 +17,18 @@ export function getSessionLogHistoryList(payload?: {
     },
     auth: true,
   });
+}
+
+export function getTrainerSessionLogHistory(payload: {
+  page: number;
+  limit: number;
+  trainer_profile_id: string;
+}) {
+  return fetcher<TrainerSessionLogHistoryPagination>(
+    "/session-log/history/trainer",
+    {
+      body: payload,
+      auth: true,
+    },
+  );
 }

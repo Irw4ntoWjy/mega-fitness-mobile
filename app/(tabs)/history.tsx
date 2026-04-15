@@ -1,4 +1,7 @@
-import { getSessionLogHistoryList } from "@/app/api/session-log";
+import {
+  getSessionLogHistoryList,
+  getTrainerSessionLogHistory,
+} from "@/app/api/session-log";
 import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
 import { useAuth } from "@/hooks/useAuth";
 import { SessionLogProductType } from "@/type/session-log";
@@ -299,36 +302,68 @@ export default function Profile() {
 
   useEffect(() => {
     const profileId = auth?.accountDetail?.profile_id;
-    if (!profileId) return;
+    const accountRole = auth?.accountDetail?.account_role;
+    if (!profileId || !accountRole) return;
 
     const fetchSessionHistory = async () => {
       try {
-        const res = await getSessionLogHistoryList({
-          page: 1,
-          limit: -1,
-          member_profile_id: profileId,
-        });
-
-        if (!res.success || !res.data) {
-          setResponse([]);
-          return;
+        if (accountRole === "Trainer") {
+          const res = await getTrainerSessionLogHistory({
+            page: 1,
+            limit: -1,
+            trainer_profile_id: profileId,
+          });
+          if (!res.success || !res.data) {
+            setResponse([]);
+            return;
+          }
+          const mapped: Response[] = res.data.data.map((item) => {
+            return {
+              id: item.schedule_id,
+              schedule_date: item.schedule_date,
+              time_start: item.time_start,
+              time_end: item.time_end,
+              title: item.product_name,
+              coach: item.trainer_name?.trim() || "Unknown Trainer",
+              color: getCardColor(
+                item.product_type_name === "Private" ? "Private" : "Class",
+              ),
+              durationMinutes: getDurationMinutes(
+                item.time_start,
+                item.time_end,
+              ),
+            };
+          });
+          setResponse(mapped);
+        } else {
+          const res = await getSessionLogHistoryList({
+            page: 1,
+            limit: -1,
+            member_profile_id: profileId,
+          });
+          if (!res.success || !res.data) {
+            setResponse([]);
+            return;
+          }
+          const mapped: Response[] = res.data.data.map((item) => {
+            const productType: SessionLogProductType = item.product_type_name;
+            return {
+              id: item.session_log_id,
+              schedule_date: item.schedule_date,
+              time_start: item.time_start,
+              time_end: item.time_end,
+              title: item.product_name,
+              coach:
+                item.trainers[0]?.trainer_name?.trim() || "Unknown Trainer",
+              color: getCardColor(productType),
+              durationMinutes: getDurationMinutes(
+                item.time_start,
+                item.time_end,
+              ),
+            };
+          });
+          setResponse(mapped);
         }
-
-        const mapped: Response[] = res.data.data.map((item) => {
-          const productType: SessionLogProductType = item.product_type_name;
-          return {
-            id: item.session_log_id,
-            schedule_date: item.schedule_date,
-            time_start: item.time_start,
-            time_end: item.time_end,
-            title: item.product_name,
-            coach: item.trainers[0]?.trainer_name?.trim() || "Unknown Trainer",
-            color: getCardColor(productType),
-            durationMinutes: getDurationMinutes(item.time_start, item.time_end),
-          };
-        });
-
-        setResponse(mapped);
       } catch (error) {
         console.error(error);
         setResponse([]);
@@ -336,7 +371,7 @@ export default function Profile() {
     };
 
     fetchSessionHistory();
-  }, [auth?.accountDetail?.profile_id]);
+  }, [auth?.accountDetail?.profile_id, auth?.accountDetail?.account_role]);
 
   const eventsInSelectedMonth = useMemo(() => {
     return response.filter((ev) => {
