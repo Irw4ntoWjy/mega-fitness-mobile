@@ -12,25 +12,6 @@ type AccountDetailApiResponse<T> = {
   message?: string;
 };
 
-const assetBaseUrl =
-  process.env.EXPO_PUBLIC_ASSET_BASE_URL ?? "http://164.152.166.4:9000";
-
-function toAbsolutePictureUrl(pictureUrl?: string) {
-  if (!pictureUrl) return pictureUrl;
-  if (pictureUrl.startsWith("http://") || pictureUrl.startsWith("https://")) {
-    return encodeURI(pictureUrl);
-  }
-
-  const normalizedBase = assetBaseUrl.endsWith("/")
-    ? assetBaseUrl.slice(0, -1)
-    : assetBaseUrl;
-  const normalizedPath = pictureUrl.startsWith("/")
-    ? pictureUrl.slice(1)
-    : pictureUrl;
-
-  return encodeURI(`${normalizedBase}/${normalizedPath}`);
-}
-
 export async function syncAccountDetailFromAuth(force = false) {
   try {
     const auth = await getAuth();
@@ -76,7 +57,7 @@ export async function syncAccountDetailFromAuth(force = false) {
 
     const normalizedDetail: AccountDetail = {
       ...payload.data,
-      picture_url: toAbsolutePictureUrl(payload.data.picture_url),
+      picture_url: baseUrl + payload.data.picture_url,
     };
 
     await saveStoredAccountDetail(normalizedDetail);

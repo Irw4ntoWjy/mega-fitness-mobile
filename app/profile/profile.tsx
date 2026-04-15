@@ -13,7 +13,7 @@ import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
 import { Pencil } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { profileDetail } from "../api/profile";
 import { getTrainerScheduleList } from "../api/schedule";
@@ -262,10 +262,20 @@ export default function Profile() {
           </View>
 
           <View className="absolute -bottom-15 z-50">
-            <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
-              <Text className="text-[#0F6B7E] text-2xl font-semibold">
-                {getInitials(user.profile_name)}
-              </Text>
+            <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center overflow-hidden">
+              {auth.accountDetail.picture_url ? (
+                <Image
+                  source={{
+                    uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${auth.accountDetail.picture_url}`,
+                  }}
+                  className="w-full h-full"
+                  resizeMode="cover"
+                />
+              ) : (
+                <Text className="text-[#0F6B7E] text-2xl font-semibold">
+                  {getInitials(user.profile_name)}
+                </Text>
+              )}
             </View>
           </View>
         </View>

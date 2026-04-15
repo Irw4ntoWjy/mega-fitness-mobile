@@ -11,6 +11,7 @@ import { fetcher } from "@/lib/fetcher";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ArrowRight, Bell, HelpCircle, LogOut } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
+
 import {
   ActivityIndicator,
   Image,
@@ -202,6 +203,9 @@ export default function Home() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileName, setProfileName] = useState("");
   const [profileInitials, setProfileInitials] = useState("");
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(
+    null,
+  );
   const [accountRole, setAccountRole] = useState("Member");
   const [bottomSectionLayout, setBottomSectionLayout] = useState<{
     width: number;
@@ -228,25 +232,12 @@ export default function Home() {
       if (res.success && res.data) detail = res.data;
     }
 
-    const resolvedName =
-      detail?.profile_name ??
-      detail?.profile?.profile_name ??
-      detail?.profile?.name ??
-      detail?.name ??
-      "";
-
-    if (resolvedName) {
-      setProfileName(resolvedName);
-      setProfileInitials(getInitials(resolvedName));
-    } else {
-      setProfileName("");
-      setProfileInitials("");
-    }
-
-    const resolvedRole = detail?.account_role ?? detail?.role;
-    if (typeof resolvedRole === "string" && resolvedRole.trim()) {
-      setAccountRole(resolvedRole);
-    }
+    setProfileName(detail.profile_name);
+    setProfileInitials(getInitials(detail.profile_name));
+    setProfilePictureUrl(
+      process.env.EXPO_PUBLIC_ASSET_BASE_URL + detail?.picture_url,
+    );
+    setAccountRole(detail?.account_role);
 
     setProfileLoading(false);
   }, []);
@@ -793,9 +784,15 @@ export default function Home() {
                       <Pressable
                         onPress={() => router.push("/profile/profile")}
                       >
-                        <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
+                        <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center overflow-hidden">
                           {profileLoading ? (
                             <ActivityIndicator size="small" />
+                          ) : profilePictureUrl ? (
+                            <Image
+                              source={{ uri: profilePictureUrl }}
+                              className="w-full h-full"
+                              resizeMode="cover"
+                            />
                           ) : (
                             <Text className="text-[#0F6B7E] text-2xl font-semibold">
                               {profileInitials ||
