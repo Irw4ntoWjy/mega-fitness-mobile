@@ -2,7 +2,7 @@ import { getActivityGroupDetail } from "@/app/api/activity-group";
 import { getActivityGroupCombobox } from "@/app/api/combobox/activity-group";
 import {
   createJournal,
-  getJournalList,
+  getJournalDetail,
   updateJournal,
 } from "@/app/api/journal";
 import Combobox from "@/components/Combobox/combobox";
@@ -102,9 +102,6 @@ const Journal = () => {
     setIndex: number;
   } | null>(null);
 
-  const resolvedSessionLogId = Array.isArray(sessionLogId)
-    ? sessionLogId[0]
-    : sessionLogId;
   const isReadOnlyMode = currentJournalId != null && !isEditMode;
 
   const createEmptyGroup = () => ({
@@ -395,7 +392,7 @@ const Journal = () => {
   }, [confirmLeaveIfDirty]);
 
   async function handleSaveJournal() {
-    if (!resolvedSessionLogId) {
+    if (!sessionLogId) {
       openFeedbackModal(
         "Session log tidak ditemukan",
         "Silakan kembali dari halaman History lalu coba lagi.",
@@ -441,11 +438,11 @@ const Journal = () => {
         currentJournalId != null
           ? await updateJournal({
               journal_id: currentJournalId,
-              session_log_id: resolvedSessionLogId,
+              session_log_id: sessionLogId,
               journal_json: journalJson,
             })
           : await createJournal({
-              session_log_id: resolvedSessionLogId,
+              session_log_id: sessionLogId,
               journal_json: journalJson,
             });
 
@@ -595,21 +592,18 @@ const Journal = () => {
 
   useEffect(() => {
     const fetchJournalData = async () => {
-      if (!resolvedSessionLogId) {
+      if (!sessionLogId) {
         setCurrentJournalId(null);
         setIsEditMode(true);
         return;
       }
 
       try {
-        const res = await getJournalList({
-          q: null,
-          page: 1,
-          limit: 1,
-          session_log_id: resolvedSessionLogId,
+        const res = await getJournalDetail({
+          session_log_id: sessionLogId,
         });
 
-        const journalItem = res.data?.data?.[0];
+        const journalItem = res.data;
         if (!res.success || !journalItem?.journal_json) {
           setCurrentJournalId(null);
           setIsEditMode(true);
@@ -618,10 +612,10 @@ const Journal = () => {
 
         const journalJson = journalItem.journal_json;
         const loadedGroups =
-          journalJson.activities?.map((activity) => ({
+          journalJson.activities?.map((activity: any) => ({
             title: activity.activity_name,
             isOpen: true,
-            sets: activity.sets.map((set) => ({
+            sets: activity.sets.map((set: any) => ({
               reps: set.reps,
               weight: set.weight,
             })),
@@ -636,6 +630,7 @@ const Journal = () => {
           loadedGroups.length > 0 ? loadedGroups : [createEmptyGroup()],
         );
         setCurrentJournalId(journalItem.journal_id);
+
         savedSnapshot.current = JSON.stringify(journalJson);
         setIsEditMode(false);
 
@@ -648,7 +643,7 @@ const Journal = () => {
     };
 
     fetchJournalData();
-  }, [loadActivitiesByGroupId, resolvedSessionLogId]);
+  }, [loadActivitiesByGroupId, sessionLogId]);
 
   useEffect(() => {
     if (!shouldFocusOnAdd.current) {

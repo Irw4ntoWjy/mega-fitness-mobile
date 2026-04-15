@@ -1,6 +1,5 @@
 import { fetcher } from "@/lib/fetcher";
-import { JournalPagination } from "@/type/journal";
-import { buildListPayload } from "@/type/pagination";
+import type { JournalDetail } from "@/type/journal";
 
 export function createJournal(payload: {
   session_log_id: string;
@@ -30,14 +29,9 @@ export function updateJournal(payload: {
   });
 }
 
-export function getJournalList(payload?: {
-  q?: string | null;
-  page?: number;
-  limit?: number;
-  session_log_id?: string;
-}) {
-  return fetcher<JournalPagination>("/journal/list", {
-    body: buildListPayload(payload),
+export function getJournalDetail(payload: { session_log_id: string }) {
+  return fetcher<JournalDetail>("/journal/detail", {
+    body: { session_log_id: payload.session_log_id },
     auth: true,
   });
 }

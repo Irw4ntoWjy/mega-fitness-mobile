@@ -6,10 +6,10 @@ import { BackgroundGlow } from "@/components/Theme/background";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { CommisionProgressBar } from "@/components/Trainer/commision-progress-bar";
 import { checkSession } from "@/lib/auth-session";
-import { getAuth } from "@/lib/auth-storage";
+import { getAuth, logout } from "@/lib/auth-storage";
 import { fetcher } from "@/lib/fetcher";
 import { useFocusEffect, useRouter } from "expo-router";
-import { ArrowRight, Bell, HelpCircle } from "lucide-react-native";
+import { ArrowRight, Bell, HelpCircle, LogOut } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -754,6 +754,15 @@ export default function Home() {
                 </HeaderIcon>
               </WalkableView>
             </CopilotStep>
+
+            <HeaderIcon
+              onPress={async () => {
+                await logout();
+                router.replace("/(auth)/sign-in");
+              }}
+            >
+              <LogOut size={18} color="black" />
+            </HeaderIcon>
           </View>
         </View>
       </View>

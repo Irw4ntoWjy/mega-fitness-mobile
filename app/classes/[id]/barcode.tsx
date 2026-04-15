@@ -44,6 +44,15 @@ export default function BarcodePages() {
 
         setBooking(res.data);
 
+        if (
+          res.data.booking_status_id === 2 ||
+          res.data.booking_status_name === "Selesai"
+        ) {
+          setIsRefreshed(true);
+        } else {
+          setIsRefreshed(false);
+        }
+
         const purchaseId = res.data.purchase_id;
         if (!purchaseId) {
           setPackageId(null);
@@ -71,16 +80,15 @@ export default function BarcodePages() {
     };
   }, [bookingId]);
 
-  const trainerSchedule = booking?.trainer_schedule_detail ?? null;
-  const scheduleDate = trainerSchedule?.schedule_date || "-";
-  const timeRange = trainerSchedule
-    ? `${trainerSchedule.time_start} - ${trainerSchedule.time_end}`
-    : "-";
-
+  const classDetail = booking?.class_schedule_detail;
+  const timeRange = `${classDetail?.time_start ?? "-"} - ${classDetail?.time_end ?? "-"}`;
   const trainerName = useMemo(() => {
-    const name = booking?.trainer_schedule_detail?.trainer_name;
-    return name && name.trim().length > 0 ? name : "-";
-  }, [booking]);
+    const names =
+      classDetail?.trainers?.map((t) => t.trainer_profile_name) || [];
+    if (names.length === 0) return "-";
+    return names.join(", ");
+  }, [classDetail]);
+  const scheduleTitle = classDetail?.product_name || "-";
 
   const qrValue = useMemo(() => {
     if (!bookingId || !booking?.member_profile_id || !packageId) {
@@ -137,7 +145,7 @@ export default function BarcodePages() {
 
                 <View className="mt-7 w-full items-center">
                   <Text className="mt-3 text-base text-gray-900 font-medium">
-                    Mega-Fitness
+                    {scheduleTitle}
                   </Text>
                 </View>
               </View>
@@ -156,7 +164,7 @@ export default function BarcodePages() {
             </Text>
           ) : (
             <Text className="text-xl font-semibold text-gray-900">
-              {scheduleDate}
+              {scheduleTitle}
             </Text>
           )}
 

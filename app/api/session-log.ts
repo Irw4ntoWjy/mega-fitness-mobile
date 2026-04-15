@@ -6,7 +6,7 @@ export function getSessionLogHistoryList(payload?: {
   limit?: number;
   member_profile_id?: string;
 }) {
-  return fetcher<SessionLogHistoryPagination>("/session-log/history/list", {
+  return fetcher<SessionLogHistoryPagination>("/session-log/history/member", {
     body: {
       page: payload?.page ?? 1,
       limit: payload?.limit ?? -1,
