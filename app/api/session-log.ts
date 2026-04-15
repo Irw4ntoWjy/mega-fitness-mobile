@@ -1,6 +1,7 @@
 import { fetcher } from "@/lib/fetcher";
 import {
   SessionLogHistoryPagination,
+  TrainerMember,
   TrainerSessionLogHistoryPagination,
 } from "@/type/session-log";
 
@@ -31,4 +32,11 @@ export function getTrainerSessionLogHistory(payload: {
       auth: true,
     },
   );
+}
+
+export function getTrainerMembers(payload: { trainer_profile_id: string }) {
+  return fetcher<TrainerMember[]>("/session-log/trainer-members", {
+    body: payload,
+    auth: true,
+  });
 }

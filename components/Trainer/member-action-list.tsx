@@ -1,14 +1,19 @@
-import { member } from "@/app/classes/dummy_data";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { ChevronRight } from "lucide-react-native";
 import React from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 
+export type MemberItem = {
+  id: string;
+  name: string;
+  picture_url?: string | null;
+};
 type MemberActionListProps = {
   title: string;
   subtitle: string;
   emptyLabel: string;
-  onSelectMember: (memberItem: { id: string; name: string }) => void;
+  members: MemberItem[];
+  onSelectMember: (memberItem: MemberItem) => void;
 };
 
 function getInitials(name: string) {
@@ -22,6 +27,7 @@ export default function MemberActionList({
   title,
   subtitle,
   emptyLabel,
+  members,
   onSelectMember,
 }: MemberActionListProps) {
   return (
@@ -40,22 +46,30 @@ export default function MemberActionList({
         contentContainerStyle={{ paddingBottom: 24 }}
       >
         <View className="mx-5 gap-4">
-          {member.length === 0 ? (
+          {members.length === 0 ? (
             <View className="rounded-2xl bg-white px-4 py-6 shadow-sm">
               <Text className="text-center text-slate-500">{emptyLabel}</Text>
             </View>
           ) : (
-            member.map((memberItem) => (
+            members.map((memberItem: MemberItem) => (
               <Pressable
                 key={memberItem.id}
                 onPress={() => onSelectMember(memberItem)}
                 className="rounded-2xl bg-white p-4 shadow-sm"
               >
                 <View className="flex-row items-center gap-4">
-                  <View className="h-14 w-14 items-center justify-center rounded-full bg-cyan-100">
-                    <Text className="text-lg font-bold text-cyan-700">
-                      {getInitials(memberItem.name)}
-                    </Text>
+                  <View className="h-14 w-14 items-center justify-center rounded-full bg-cyan-100 overflow-hidden">
+                    {memberItem.picture_url ? (
+                      <Image
+                        source={{ uri: memberItem.picture_url }}
+                        className="h-14 w-14 rounded-full"
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Text className="text-lg font-bold text-cyan-700">
+                        {getInitials(memberItem.name)}
+                      </Text>
+                    )}
                   </View>
 
                   <View className="flex-1">

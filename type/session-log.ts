@@ -85,3 +85,11 @@ export const trainerSessionLogHistoryPaginationSchema = paginationSchema(
 export type TrainerSessionLogHistoryPagination = z.infer<
   typeof trainerSessionLogHistoryPaginationSchema
 >;
+
+export const trainerMemberSchema = z.object({
+  member_profile_id: z.string(),
+  member_name: z.string(),
+  member_picture_url: z.string().nullable(),
+});
+export type TrainerMember = z.infer<typeof trainerMemberSchema>;
+export type TrainerMemberListResponse = TrainerMember[];
