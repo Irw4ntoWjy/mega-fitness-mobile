@@ -7,13 +7,14 @@ import {
 } from "@/components/Profile/time-availability";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { useAuth } from "@/hooks/useAuth";
+import { getInitials } from "@/lib/utils";
 import { AccountSchema, TrainerSchedule } from "@/type/profile";
 import { formatDate } from "@/utils/datetimeFormat";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
 import { Pencil } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { profileDetail } from "../api/profile";
 import { getTrainerScheduleList } from "../api/schedule";
@@ -96,18 +97,6 @@ const TRAINER_EXTRA_FIELDS: ProfileFieldConfig[] = [
   { key: "experience", label: "Experience" },
   { key: "availability", label: "Availability" },
 ];
-
-export function getInitials(name: string): string {
-  if (!name) return "";
-
-  const words = name.trim().split(" ");
-
-  if (words.length === 1) {
-    return words[0][0].toUpperCase();
-  }
-
-  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
-}
 
 // day_of_week: 0 = Monday ... 6 = Sunday
 const DAY_KEYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -262,10 +251,20 @@ export default function Profile() {
           </View>
 
           <View className="absolute -bottom-15 z-50">
-            <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
-              <Text className="text-[#0F6B7E] text-2xl font-semibold">
-                {getInitials(user.profile_name)}
-              </Text>
+            <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center overflow-hidden">
+              {auth.accountDetail.picture_url ? (
+                <Image
+                  source={{
+                    uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${auth.accountDetail.picture_url}`,
+                  }}
+                  className="w-full h-full"
+                  resizeMode="cover"
+                />
+              ) : (
+                <Text className="text-[#0F6B7E] text-2xl font-semibold">
+                  {getInitials(user.profile_name)}
+                </Text>
+              )}
             </View>
           </View>
         </View>

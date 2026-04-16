@@ -1,6 +1,6 @@
 import { fetcher } from "@/lib/fetcher";
 import { buildListPayload } from "@/type/pagination";
-import { PurchasePagination } from "@/type/purchase";
+import { PurchaseItemSchema, PurchasePagination } from "@/type/purchase";
 
 export function getPurchaseList(payload?: {
   q?: string | null;
@@ -10,6 +10,15 @@ export function getPurchaseList(payload?: {
 }) {
   return fetcher<PurchasePagination>("/purchase/list", {
     body: buildListPayload(payload),
+    auth: true,
+  });
+}
+
+export function getPurchaseDetail(payload: { purchase_id: string }) {
+  return fetcher<PurchaseItemSchema>("/purchase/detail", {
+    body: {
+      purchase_id: payload.purchase_id,
+    },
     auth: true,
   });
 }
