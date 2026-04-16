@@ -6,6 +6,7 @@ import { Image, Pressable, ScrollView, Text, View } from "react-native";
 
 export type MemberItem = {
   id: string;
+  code: string;
   name: string;
   picture_url?: string | null;
 };
@@ -47,7 +48,7 @@ export default function MemberActionList({
           ) : (
             members.map((memberItem: MemberItem) => (
               <Pressable
-                key={memberItem.id}
+                key={memberItem.code}
                 onPress={() => onSelectMember(memberItem)}
                 className="rounded-2xl bg-white p-4 shadow-sm"
               >
@@ -71,7 +72,7 @@ export default function MemberActionList({
                       {memberItem.name}
                     </Text>
                     <Text className="mt-1 text-sm text-slate-500">
-                      Member ID {memberItem.id}
+                      {memberItem.code}
                     </Text>
                   </View>
 
