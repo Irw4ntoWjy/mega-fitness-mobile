@@ -28,6 +28,7 @@ export function getTrainerSessionLogHistory(payload: {
   page: number;
   limit: number;
   trainer_profile_id: string;
+  product_type_id?: string;
   date_from?: string;
   date_to?: string;
 }) {

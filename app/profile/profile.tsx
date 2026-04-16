@@ -7,6 +7,7 @@ import {
 } from "@/components/Profile/time-availability";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { useAuth } from "@/hooks/useAuth";
+import { getInitials } from "@/lib/utils";
 import { AccountSchema, TrainerSchedule } from "@/type/profile";
 import { formatDate } from "@/utils/datetimeFormat";
 import { BackgroundGlow } from "@components/Theme/background";
@@ -96,18 +97,6 @@ const TRAINER_EXTRA_FIELDS: ProfileFieldConfig[] = [
   { key: "experience", label: "Experience" },
   { key: "availability", label: "Availability" },
 ];
-
-export function getInitials(name: string): string {
-  if (!name) return "";
-
-  const words = name.trim().split(" ");
-
-  if (words.length === 1) {
-    return words[0][0].toUpperCase();
-  }
-
-  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
-}
 
 // day_of_week: 0 = Monday ... 6 = Sunday
 const DAY_KEYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];

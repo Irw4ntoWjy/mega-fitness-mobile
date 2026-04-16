@@ -8,6 +8,7 @@ import { CommisionProgressBar } from "@/components/Trainer/commision-progress-ba
 import { checkSession } from "@/lib/auth-session";
 import { getAuth, logout } from "@/lib/auth-storage";
 import { fetcher } from "@/lib/fetcher";
+import { getInitials } from "@/lib/utils";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ArrowRight, Bell, HelpCircle, LogOut } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -80,18 +81,6 @@ const timeAvailabilityData: TimeAvailabilityData = {
 };
 
 const HERO_H = 76;
-
-function getInitials(value: string) {
-  const parts = value.trim().split(/\s+/).filter(Boolean);
-
-  if (parts.length === 0) return "";
-
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
-  }
-
-  return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
-}
 
 function normalizeRole(role: string) {
   return role.trim().toLowerCase();
@@ -234,9 +223,7 @@ export default function Home() {
 
     setProfileName(detail.profile_name);
     setProfileInitials(getInitials(detail.profile_name));
-    setProfilePictureUrl(
-      process.env.EXPO_PUBLIC_ASSET_BASE_URL + detail?.picture_url,
-    );
+    setProfilePictureUrl(detail?.picture_url);
     setAccountRole(detail?.account_role);
 
     setProfileLoading(false);
@@ -787,17 +774,19 @@ export default function Home() {
                         <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center overflow-hidden">
                           {profileLoading ? (
                             <ActivityIndicator size="small" />
-                          ) : profilePictureUrl ? (
+                          ) : profilePictureUrl && profilePictureUrl !== "" ? (
                             <Image
-                              source={{ uri: profilePictureUrl }}
+                              source={{
+                                uri:
+                                  process.env.EXPO_PUBLIC_ASSET_BASE_URL +
+                                  profilePictureUrl,
+                              }}
                               className="w-full h-full"
                               resizeMode="cover"
                             />
                           ) : (
                             <Text className="text-[#0F6B7E] text-2xl font-semibold">
-                              {profileInitials ||
-                                getInitials(profileName) ||
-                                "?"}
+                              {getInitials(profileName) || "?"}
                             </Text>
                           )}
                         </View>

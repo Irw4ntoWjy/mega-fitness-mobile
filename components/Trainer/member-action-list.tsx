@@ -1,4 +1,5 @@
 import { BackgroundGlow } from "@/components/Theme/background";
+import { getInitials } from "@/lib/utils";
 import { ChevronRight } from "lucide-react-native";
 import React from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
@@ -15,13 +16,6 @@ type MemberActionListProps = {
   members: MemberItem[];
   onSelectMember: (memberItem: MemberItem) => void;
 };
-
-function getInitials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0][0].toUpperCase();
-  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-}
 
 export default function MemberActionList({
   title,

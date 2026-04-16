@@ -5,6 +5,7 @@ import {
 import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
 import { useAuth } from "@/hooks/useAuth";
 import { SessionLogProductType } from "@/type/session-log";
+import { formatDurationFromMinutes } from "@/utils/datetimeFormat";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
 import { ChevronLeft, ChevronRight, Timer } from "lucide-react-native";
@@ -57,13 +58,6 @@ function getDurationMinutes(timeStart: string, timeEnd: string) {
   const endTotal = endH * 60 + endM;
 
   return Math.max(0, endTotal - startTotal);
-}
-
-function formatDurationFromMinutes(minutes: number) {
-  const safeMinutes = Math.max(0, minutes);
-  const hours = Math.floor(safeMinutes / 60);
-  const remainder = safeMinutes % 60;
-  return `${pad2(hours)}:${pad2(remainder)}`;
 }
 
 function getCardColor(productType: SessionLogProductType) {
