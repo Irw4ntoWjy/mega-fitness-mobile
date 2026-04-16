@@ -399,9 +399,13 @@ export default function Profile() {
     );
   }, [sessionsByDay]);
 
+  const [isNavigating, setIsNavigating] = useState(false);
+
   const handleEventPress = useCallback(
     (sessionLogId: string, durationMinutes: number) => {
       if (auth?.accountDetail?.account_role === "Member") {
+        if (isNavigating) return;
+        setIsNavigating(true);
         router.push({
           pathname: "/journal/journal",
           params: {
@@ -409,9 +413,10 @@ export default function Profile() {
             sessionDuration: formatDurationFromMinutes(durationMinutes),
           },
         });
+        setTimeout(() => setIsNavigating(false), 1000);
       }
     },
-    [auth?.accountDetail?.account_role],
+    [auth?.accountDetail?.account_role, isNavigating],
   );
 
   return (
