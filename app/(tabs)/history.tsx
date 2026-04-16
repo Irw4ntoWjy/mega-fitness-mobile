@@ -305,6 +305,12 @@ export default function Profile() {
     const accountRole = auth?.accountDetail?.account_role;
     if (!profileId || !accountRole) return;
 
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth() + 1;
+    const date_from = `${year}-${pad2(month)}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const date_to = `${year}-${pad2(month)}-${pad2(lastDay)}`;
+
     const fetchSessionHistory = async () => {
       try {
         if (accountRole === "Trainer") {
@@ -312,6 +318,8 @@ export default function Profile() {
             page: 1,
             limit: -1,
             trainer_profile_id: profileId,
+            date_from,
+            date_to,
           });
           if (!res.success || !res.data) {
             setResponse([]);
@@ -340,6 +348,8 @@ export default function Profile() {
             page: 1,
             limit: -1,
             member_profile_id: profileId,
+            date_from,
+            date_to,
           });
           if (!res.success || !res.data) {
             setResponse([]);
@@ -371,21 +381,15 @@ export default function Profile() {
     };
 
     fetchSessionHistory();
-  }, [auth?.accountDetail?.profile_id, auth?.accountDetail?.account_role]);
+  }, [
+    auth?.accountDetail?.profile_id,
+    auth?.accountDetail?.account_role,
+    selectedDate,
+  ]);
 
-  const eventsInSelectedMonth = useMemo(() => {
-    return response.filter((ev) => {
-      const d = new Date(ev.schedule_date);
-      return (
-        d.getFullYear() === selectedDate.getFullYear() &&
-        d.getMonth() === selectedDate.getMonth()
-      );
-    });
-  }, [response, selectedDate]);
-
-  const eventsByDay = useMemo(() => {
+  const sessionsByDay = useMemo(() => {
     const grouped: Record<string, Response[]> = {};
-    for (const ev of eventsInSelectedMonth) {
+    for (const ev of response) {
       const key = dayKeyFromScheduleDate(ev.schedule_date);
       (grouped[key] ||= []).push(ev);
     }
@@ -393,11 +397,13 @@ export default function Profile() {
       grouped[k].sort((a, b) => a.time_start.localeCompare(b.time_start));
     });
     return grouped;
-  }, [eventsInSelectedMonth]);
+  }, [response]);
 
   const dayKeysSorted = useMemo(() => {
-    return Object.keys(eventsByDay).sort((a, b) => +new Date(a) - +new Date(b));
-  }, [eventsByDay]);
+    return Object.keys(sessionsByDay).sort(
+      (a, b) => +new Date(a) - +new Date(b),
+    );
+  }, [sessionsByDay]);
 
   const handleEventPress = useCallback(
     (sessionLogId: string, durationMinutes: number) => {
@@ -427,7 +433,7 @@ export default function Profile() {
           <View className="flex-row items-center justify-between">
             <View className="w-10 h-10 rounded-full bg-gray-300 items-center justify-center">
               <Text className="text-2xl font-semibold text-white">
-                {eventsInSelectedMonth.length}
+                {response.length}
               </Text>
             </View>
 
@@ -508,7 +514,7 @@ export default function Profile() {
               ) : null}
 
               {dayKeysSorted.map((dayKey) => {
-                const dayEvents = eventsByDay[dayKey];
+                const dayEvents = sessionsByDay[dayKey];
 
                 const cardEvents = dayEvents.map((ev) => ({
                   id: ev.id,
