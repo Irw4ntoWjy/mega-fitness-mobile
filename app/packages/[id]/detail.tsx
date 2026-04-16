@@ -1,5 +1,6 @@
 import { getPackageDetail } from "@/app/api/package";
 import { BackgroundGlow } from "@/components/Theme/background";
+import { getInitials } from "@/lib/utils";
 import { Package } from "@/type/package";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
@@ -14,19 +15,9 @@ import {
   View,
 } from "react-native";
 
-
 type PersonalTrainer = {
   id: string;
   name: string;
-};
-
-
-const getInitials = (name: string) => {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
 };
 
 export const TrainerCard = ({ item }: { item: PersonalTrainer }) => {
@@ -47,7 +38,9 @@ export const TrainerCard = ({ item }: { item: PersonalTrainer }) => {
 export default function ProductDetail() {
   const [packageData, setPackageData] = useState<Package | null>(null);
   const [loading, setLoading] = useState(true);
-  const [personalTrainers, setPersonalTrainers] = useState<PersonalTrainer[]>([]);
+  const [personalTrainers, setPersonalTrainers] = useState<PersonalTrainer[]>(
+    [],
+  );
   const { id, from } = useLocalSearchParams<{ id: string; from?: string }>();
 
   const openWhatsApp = async () => {

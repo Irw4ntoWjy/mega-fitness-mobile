@@ -1,4 +1,5 @@
 import { getBookingDetail } from "@/app/api/booking";
+import { getPurchaseDetail } from "@/app/api/purchase";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { BookingDetail } from "@/type/bookings";
 import { router, useLocalSearchParams } from "expo-router";
@@ -9,7 +10,8 @@ import {
   User as UserIcon,
 } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import QRCode from "react-native-qrcode-svg";
 
 export default function BarcodePages() {
   const { id, trainer } = useLocalSearchParams<{
@@ -21,6 +23,7 @@ export default function BarcodePages() {
   const isTrainer = trainer === "true";
 
   const [booking, setBooking] = useState<BookingDetail | null>(null);
+  const [packageId, setPackageId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isRefreshed, setIsRefreshed] = useState(isTrainer);
 
@@ -31,13 +34,41 @@ export default function BarcodePages() {
     setLoading(true);
 
     getBookingDetail({ booking_id: bookingId })
-      .then((res) => {
+      .then(async (res) => {
         if (cancelled) return;
         if (!res.success || !res.data) {
           setBooking(null);
+          setPackageId(null);
           return;
         }
+
         setBooking(res.data);
+
+        if (
+          res.data.booking_status_id === 2 ||
+          res.data.booking_status_name === "Selesai"
+        ) {
+          setIsRefreshed(true);
+        } else {
+          setIsRefreshed(false);
+        }
+
+        const purchaseId = res.data.purchase_id;
+        if (!purchaseId) {
+          setPackageId(null);
+          return;
+        }
+
+        const purchaseRes = await getPurchaseDetail({
+          purchase_id: purchaseId,
+        });
+        if (cancelled) return;
+        if (!purchaseRes.success || !purchaseRes.data) {
+          setPackageId(null);
+          return;
+        }
+
+        setPackageId(purchaseRes.data.package_id);
       })
       .finally(() => {
         if (cancelled) return;
@@ -49,16 +80,27 @@ export default function BarcodePages() {
     };
   }, [bookingId]);
 
-  const trainerSchedule = booking?.trainer_schedule_detail ?? null;
-  const scheduleDate = trainerSchedule?.schedule_date || "-";
-  const timeRange = trainerSchedule
-    ? `${trainerSchedule.time_start} - ${trainerSchedule.time_end}`
-    : "-";
-
+  const classDetail = booking?.class_schedule_detail;
+  const timeRange = `${classDetail?.time_start ?? "-"} - ${classDetail?.time_end ?? "-"}`;
   const trainerName = useMemo(() => {
-    const name = booking?.trainer_schedule_detail?.trainer_name;
-    return name && name.trim().length > 0 ? name : "-";
-  }, [booking]);
+    const names =
+      classDetail?.trainers?.map((t) => t.trainer_profile_name) || [];
+    if (names.length === 0) return "-";
+    return names.join(", ");
+  }, [classDetail]);
+  const scheduleTitle = classDetail?.product_name || "-";
+
+  const qrValue = useMemo(() => {
+    if (!bookingId || !booking?.member_profile_id || !packageId) {
+      return "";
+    }
+
+    return JSON.stringify({
+      booking_id: booking.booking_id ?? bookingId,
+      member_profile_id: booking.member_profile_id,
+      package_id: packageId,
+    });
+  }, [booking, bookingId, packageId]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -85,19 +127,25 @@ export default function BarcodePages() {
           <View className="w-full max-w-[520px]  rounded-3xl bg-white shadow-lg px-8 py-9">
             {!isRefreshed ? (
               <View className="items-center">
-                <View className="h-42 w-42 rounded-2xl bg-black items-center justify-center overflow-hidden">
-                  <Image className="h-20 w-20" resizeMode="contain" />
+                <View className="w-fit h-fit rounded-2xl bg-black items-center justify-center overflow-hidden">
+                  {qrValue ? (
+                    <QRCode
+                      value={qrValue}
+                      size={240}
+                      backgroundColor="white"
+                    />
+                  ) : (
+                    <View className="h-20 items-center justify-center">
+                      <Text className="text-sm text-gray-400">
+                        Loading QR...
+                      </Text>
+                    </View>
+                  )}
                 </View>
 
                 <View className="mt-7 w-full items-center">
-                  <View className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-5 items-center justify-center">
-                    <Text className="text-gray-600 font-semibold py-8">
-                      THIS IS BARCODE LOCATION
-                    </Text>
-                  </View>
-
                   <Text className="mt-3 text-base text-gray-900 font-medium">
-                    Mega-Fitness
+                    {scheduleTitle}
                   </Text>
                 </View>
               </View>
@@ -116,7 +164,7 @@ export default function BarcodePages() {
             </Text>
           ) : (
             <Text className="text-xl font-semibold text-gray-900">
-              {scheduleDate}
+              {scheduleTitle}
             </Text>
           )}
 
