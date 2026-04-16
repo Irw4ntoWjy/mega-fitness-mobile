@@ -251,6 +251,7 @@ export default function Bookings() {
   const [loading, setLoading] = useState(false);
   const [members, setMembers] = useState<TrainerMember[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const fetchBookings = async () => {
     const profileId = auth?.accountDetail?.profile_id;
@@ -375,17 +376,22 @@ export default function Bookings() {
         }
         members={members.map((m) => ({
           id: m.member_profile_id,
+          code: m.member_account_code,
           name: m.member_name,
         }))}
-        onSelectMember={(memberItem) =>
+        onSelectMember={(memberItem) => {
+          if (isNavigating) return;
+          setIsNavigating(true);
           router.push({
             pathname: "/assessment/detail",
             params: {
               memberId: memberItem.id,
               memberName: memberItem.name,
             },
-          })
-        }
+          });
+
+          setTimeout(() => setIsNavigating(false), 1000);
+        }}
       />
     );
   }
