@@ -1,5 +1,5 @@
 import { getPackageList } from "@/app/api/package";
-import { getPurchaseList } from "@/app/api/purchase";
+import { getPurchaseList, getPurchaseReminder } from "@/app/api/purchase";
 import { getSessionLogCount } from "@/app/api/session-log";
 import { WarningCard } from "@/components/Member/warning-card";
 import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
@@ -10,7 +10,7 @@ import { CommisionProgressBar } from "@/components/Trainer/commision-progress-ba
 import { checkSession } from "@/lib/auth-session";
 import { getAuth } from "@/lib/auth-storage";
 import { fetcher } from "@/lib/fetcher";
-import type { PurchaseItemSchema } from "@/type/purchase";
+import type { PurchaseItemSchema, PurchaseReminder } from "@/type/purchase";
 import type { SessionLogCount } from "@/type/session-log";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ArrowRight, Bell, HelpCircle, X } from "lucide-react-native";
@@ -218,6 +218,11 @@ export default function Home() {
   const [activePackagesList, setActivePackagesList] = useState<
     PurchaseItemSchema[]
   >([]);
+  const [purchaseRemindersLoading, setPurchaseRemindersLoading] =
+    useState(false);
+  const [purchaseReminders, setPurchaseReminders] = useState<PurchaseReminder[]>(
+    [],
+  );
   const [bottomSectionLayout, setBottomSectionLayout] = useState<{
     width: number;
     height: number;
@@ -472,6 +477,27 @@ export default function Home() {
     }
   }, [customerProfileId, isTrainer]);
 
+  const fetchPurchaseReminders = useCallback(async () => {
+    if (isTrainer) return;
+    if (!customerProfileId) return;
+    setPurchaseRemindersLoading(true);
+    try {
+      const res = await getPurchaseReminder({
+        member_profile_id: customerProfileId,
+      });
+
+      if (res.success && Array.isArray(res.data)) {
+        setPurchaseReminders(res.data);
+      } else {
+        setPurchaseReminders([]);
+      }
+    } catch {
+      setPurchaseReminders([]);
+    } finally {
+      setPurchaseRemindersLoading(false);
+    }
+  }, [customerProfileId, isTrainer]);
+
   const openActivePackagesPopup = useCallback(() => {
     setActivePackagesPopupOpen(true);
     fetchActivePackagesList();
@@ -494,7 +520,13 @@ export default function Home() {
       if (!customerProfileId) return;
       fetchActivePackagesTotal();
       fetchSessionLogCount();
-    }, [customerProfileId, fetchActivePackagesTotal, fetchSessionLogCount]),
+      fetchPurchaseReminders();
+    }, [
+      customerProfileId,
+      fetchActivePackagesTotal,
+      fetchPurchaseReminders,
+      fetchSessionLogCount,
+    ]),
   );
 
   useEffect(() => {
@@ -502,9 +534,11 @@ export default function Home() {
     if (!customerProfileId) return;
     fetchActivePackagesTotal();
     fetchSessionLogCount();
+    fetchPurchaseReminders();
   }, [
     customerProfileId,
     fetchActivePackagesTotal,
+    fetchPurchaseReminders,
     fetchSessionLogCount,
     isTrainer,
   ]);
@@ -1183,7 +1217,10 @@ export default function Home() {
                           )}
                         </WalkableView>
                       </CopilotStep>
-                      <WarningCard />
+                      <WarningCard
+                        reminders={purchaseReminders}
+                        loading={purchaseRemindersLoading}
+                      />
                     </View>
                   </View>
                 )}

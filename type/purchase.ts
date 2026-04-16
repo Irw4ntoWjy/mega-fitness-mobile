@@ -51,3 +51,13 @@ export type PurchaseItemMapping = z.infer<typeof purchaseItemMapping>;
 
 export const purchasePaginationSchema = paginationSchema(purchaseItemSchema);
 export type PurchasePagination = z.infer<typeof purchasePaginationSchema>;
+
+export const purchaseReminderSchema = z.object({
+  purchase_id: z.string(),
+  package_name: z.string(),
+  time_remaining: z.number().nullable().optional(),
+  session_remaining: z.number().nullable().optional(),
+  expiry_remaining: z.number().nullable().optional(),
+});
+
+export type PurchaseReminder = z.infer<typeof purchaseReminderSchema>;
