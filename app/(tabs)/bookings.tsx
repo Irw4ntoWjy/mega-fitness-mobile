@@ -81,61 +81,50 @@ function BookingCard({ item, onCancel, showCancel }: any) {
       renderRightActions={showCancel ? renderRightActions : undefined}
       friction={1}
     >
-      <Pressable
-        onPress={() =>
-          router.push({
-            pathname: "/classes/[id]/detail",
-            params: { id: item.id },
-          })
-        }
-      >
-        <Animated.View pointerEvents="box-none">
-          <View className="mb-4 rounded-2xl bg-white p-3 shadow-md">
-            <View className="flex-row justify-between px-2">
-              <Text className="text-slate-500 text-lg">
-                {item.schedule_date}
+      <Animated.View pointerEvents="box-none">
+        <View className="mb-4 rounded-2xl bg-white p-3 shadow-md">
+          <View className="flex-row justify-between px-2">
+            <Text className="text-slate-500 text-lg">{item.schedule_date}</Text>
+            <Text className="text-slate-400 text-lg">{item.location}</Text>
+          </View>
+
+          <View className="mt-2 flex-row">
+            {item.package_cover_image ? (
+              <Image
+                source={{
+                  uri: `${process.env.EXPO_PUBLIC_URL}${item.package_cover_image}`,
+                }}
+                className="h-24 w-24 rounded-xl"
+                resizeMode="cover"
+              />
+            ) : (
+              <View className="h-24 w-24 rounded-xl bg-black" />
+            )}
+
+            <View className="ml-3 flex-1">
+              <Text className="text-lg font-bold text-slate-900">
+                {item.product_name}
               </Text>
-              <Text className="text-slate-400 text-lg">{item.location}</Text>
-            </View>
 
-            <View className="mt-2 flex-row">
-              {item.package_cover_image ? (
-                <Image
-                  source={{
-                    uri: `${process.env.EXPO_PUBLIC_URL}${item.package_cover_image}`,
-                  }}
-                  className="h-24 w-24 rounded-xl"
-                  resizeMode="cover"
-                />
-              ) : (
-                <View className="h-24 w-24 rounded-xl bg-black" />
-              )}
+              <View className="mt-7 space-y-1">
+                <View className="flex-row items-center">
+                  <Clock size={12} color="#111827" />
+                  <Text className="ml-1.5 font-semibold text-slate-900">
+                    {item.time_start} - {item.time_end}
+                  </Text>
+                </View>
 
-              <View className="ml-3 flex-1">
-                <Text className="text-lg font-bold text-slate-900">
-                  {item.product_name}
-                </Text>
-
-                <View className="mt-7 space-y-1">
-                  <View className="flex-row items-center">
-                    <Clock size={12} color="#111827" />
-                    <Text className="ml-1.5 font-semibold text-slate-900">
-                      {item.time_start} - {item.time_end}
-                    </Text>
-                  </View>
-
-                  <View className="flex-row items-center">
-                    <UserIcon size={12} color="#111827" />
-                    <Text className="ml-1.5 font-semibold text-slate-900">
-                      {item.trainer_name ?? "-"}
-                    </Text>
-                  </View>
+                <View className="flex-row items-center">
+                  <UserIcon size={12} color="#111827" />
+                  <Text className="ml-1.5 font-semibold text-slate-900">
+                    {item.trainer_name ?? "-"}
+                  </Text>
                 </View>
               </View>
             </View>
           </View>
-        </Animated.View>
-      </Pressable>
+        </View>
+      </Animated.View>
     </ReanimatedSwipeable>
   );
 }
@@ -145,11 +134,15 @@ function CancelModal({
   booking,
   onClose,
   onConfirm,
+  cancelReason,
+  setCancelReason,
 }: {
   visible: boolean;
   booking: BookingSchema | null;
   onClose: () => void;
   onConfirm: () => void;
+  cancelReason: string;
+  setCancelReason: (val: string) => void;
 }) {
   if (!booking) return null;
   return (
@@ -212,6 +205,8 @@ function CancelModal({
                   placeholderTextColor="#6b7280"
                   className="mt-4 border border-gray-300 rounded-xl p-3 text-gray-900"
                   textAlignVertical="top"
+                  value={cancelReason}
+                  onChangeText={setCancelReason}
                 />
               </View>
 
@@ -252,6 +247,7 @@ export default function Bookings() {
   const [members, setMembers] = useState<TrainerMember[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
   const fetchBookings = async () => {
     const profileId = auth?.accountDetail?.profile_id;
@@ -293,13 +289,12 @@ export default function Bookings() {
 
   const filteredData = useMemo(() => {
     return data.filter((item) =>
-      TAB_STATUS_MAP[tab].includes(item.booking_status_id)
+      TAB_STATUS_MAP[tab].includes(item.booking_status_id),
     );
   }, [data, tab]);
-  console.log("filteredData", filteredData);
   const [open, setOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<BookingSchema | null>(
-    null
+    null,
   );
 
   const [openAddBooking, setOpenAddBooking] = useState(false);
@@ -348,6 +343,7 @@ export default function Bookings() {
 
       const res = await cancelBooking({
         booking_id: selectedBooking.booking_id,
+        cancel_reason: cancelReason,
       });
       showToast({
         message: res.message,
@@ -459,6 +455,8 @@ export default function Bookings() {
             setSelectedBooking(null);
           }}
           onConfirm={handleConfirmCancel}
+          cancelReason={cancelReason}
+          setCancelReason={setCancelReason}
         />
 
         <AddBookingModal
