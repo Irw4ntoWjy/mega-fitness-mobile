@@ -31,6 +31,7 @@ export function getTrainerSessionLogHistory(payload: {
   product_type_id?: string;
   date_from?: string;
   date_to?: string;
+  session_log_status_id?: number;
 }) {
   return fetcher<TrainerSessionLogHistoryPagination>(
     "/session-log/history/trainer",
@@ -44,6 +45,30 @@ export function getTrainerSessionLogHistory(payload: {
 export function getTrainerMembers(payload: { trainer_profile_id: string }) {
   return fetcher<TrainerMember[]>("/session-log/trainer-members", {
     body: payload,
+    auth: true,
+  });
+}
+
+export function approveSessionLog(session_log_id: string) {
+  return fetcher("/session-log/approve", {
+    method: "POST",
+    body: { session_log_id },
+    auth: true,
+  });
+}
+
+export function createTrainerAttendance({
+  trainer_profile_id,
+  longitude,
+  latitude,
+}: {
+  trainer_profile_id: string;
+  longitude: string;
+  latitude: string;
+}) {
+  return fetcher("/trainer-attendance/create", {
+    method: "POST",
+    body: { trainer_profile_id, longitude, latitude },
     auth: true,
   });
 }

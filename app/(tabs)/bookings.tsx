@@ -260,6 +260,8 @@ export default function Bookings() {
     try {
       setLoading(true);
       const res = await getBookingList({
+        page: 1,
+        limit: -1,
         member_profile_id: profileId,
         is_not_expired: true,
       });
@@ -291,13 +293,13 @@ export default function Bookings() {
 
   const filteredData = useMemo(() => {
     return data.filter((item) =>
-      TAB_STATUS_MAP[tab].includes(item.booking_status_id),
+      TAB_STATUS_MAP[tab].includes(item.booking_status_id)
     );
   }, [data, tab]);
   console.log("filteredData", filteredData);
   const [open, setOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<BookingSchema | null>(
-    null,
+    null
   );
 
   const [openAddBooking, setOpenAddBooking] = useState(false);
