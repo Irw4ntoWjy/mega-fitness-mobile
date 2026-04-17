@@ -2,7 +2,7 @@ import { getActivityGroupDetail } from "@/app/api/activity-group";
 import { getActivityGroupCombobox } from "@/app/api/combobox/activity-group";
 import {
   createJournal,
-  getJournalList,
+  getJournalDetail,
   updateJournal,
 } from "@/app/api/journal";
 import Combobox from "@/components/Combobox/combobox";
@@ -25,6 +25,7 @@ import {
 } from "lucide-react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   BackHandler,
   Modal,
   Pressable,
@@ -36,11 +37,14 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Journal = () => {
-  const { sessionLogId, sessionDuration } = useLocalSearchParams<{
+  const { sessionLogId, sessionDuration, editable } = useLocalSearchParams<{
     sessionLogId?: string;
     sessionDuration?: string;
+    editable?: string;
   }>();
   const insets = useSafeAreaInsets();
+  const [loading, setLoading] = useState(false);
+
   const [activityGroupOptions, setActivityGroupOptions] = useState<
     ComboboxItem[]
   >([]);
@@ -56,7 +60,7 @@ const Journal = () => {
   const [activityGroupDuration, setActivityGroupDuration] = useState<
     string | null
   >(null);
-  const [isEditMode, setIsEditMode] = useState(true);
+  const [isEditMode, setIsEditMode] = useState(editable !== "false");
   const [currentJournalId, setCurrentJournalId] = useState<
     number | string | null
   >(null);
@@ -102,9 +106,6 @@ const Journal = () => {
     setIndex: number;
   } | null>(null);
 
-  const resolvedSessionLogId = Array.isArray(sessionLogId)
-    ? sessionLogId[0]
-    : sessionLogId;
   const isReadOnlyMode = currentJournalId != null && !isEditMode;
 
   const createEmptyGroup = () => ({
@@ -322,7 +323,6 @@ const Journal = () => {
       setIsEditMode(true);
       return;
     }
-
     void handleSaveJournal();
   };
 
@@ -395,7 +395,7 @@ const Journal = () => {
   }, [confirmLeaveIfDirty]);
 
   async function handleSaveJournal() {
-    if (!resolvedSessionLogId) {
+    if (!sessionLogId) {
       openFeedbackModal(
         "Session log tidak ditemukan",
         "Silakan kembali dari halaman History lalu coba lagi.",
@@ -441,11 +441,11 @@ const Journal = () => {
         currentJournalId != null
           ? await updateJournal({
               journal_id: currentJournalId,
-              session_log_id: resolvedSessionLogId,
+              session_log_id: sessionLogId,
               journal_json: journalJson,
             })
           : await createJournal({
-              session_log_id: resolvedSessionLogId,
+              session_log_id: sessionLogId,
               journal_json: journalJson,
             });
 
@@ -595,24 +595,24 @@ const Journal = () => {
 
   useEffect(() => {
     const fetchJournalData = async () => {
-      if (!resolvedSessionLogId) {
+      setLoading(true);
+      if (!sessionLogId) {
         setCurrentJournalId(null);
         setIsEditMode(true);
+        setLoading(false);
         return;
       }
 
       try {
-        const res = await getJournalList({
-          q: null,
-          page: 1,
-          limit: 1,
-          session_log_id: resolvedSessionLogId,
+        const res = await getJournalDetail({
+          session_log_id: sessionLogId,
         });
 
-        const journalItem = res.data?.data?.[0];
+        const journalItem = res.data;
         if (!res.success || !journalItem?.journal_json) {
           setCurrentJournalId(null);
           setIsEditMode(true);
+          setLoading(false);
           return;
         }
 
@@ -636,6 +636,7 @@ const Journal = () => {
           loadedGroups.length > 0 ? loadedGroups : [createEmptyGroup()],
         );
         setCurrentJournalId(journalItem.journal_id);
+
         savedSnapshot.current = JSON.stringify(journalJson);
         setIsEditMode(false);
 
@@ -644,11 +645,13 @@ const Journal = () => {
         console.error(error);
         setCurrentJournalId(null);
         setIsEditMode(true);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchJournalData();
-  }, [loadActivitiesByGroupId, resolvedSessionLogId]);
+  }, [loadActivitiesByGroupId, sessionLogId]);
 
   useEffect(() => {
     if (!shouldFocusOnAdd.current) {
@@ -671,7 +674,7 @@ const Journal = () => {
         title="Journal"
         showSave={Boolean(activityGroupTitle)}
         onSave={handleHeaderAction}
-        saveLabel={isReadOnlyMode ? "Edit" : "Save"}
+        saveLabel={editable === "false" ? "" : isReadOnlyMode ? "Edit" : "Save"}
         onBack={handleBackPress}
       />
 
@@ -886,6 +889,17 @@ const Journal = () => {
               ))}
             </View>
           </ScrollView>
+        ) : loading ? (
+          <View className="flex-1 items-center justify-center px-6">
+            <View className="w-full p-6 items-center gap-4">
+              <View className="w-16 h-16 rounded-full bg-cyan-50 items-center justify-center">
+                <ActivityIndicator size="large" color="#0891B2" />
+              </View>
+              <Text className="text-md text-gray-500 text-center mt-2">
+                Loading...
+              </Text>
+            </View>
+          </View>
         ) : (
           <View className="flex-1 items-center justify-center px-6">
             <View className="w-full  p-6 items-center gap-4">

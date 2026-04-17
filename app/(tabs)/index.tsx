@@ -8,13 +8,15 @@ import { BackgroundGlow } from "@/components/Theme/background";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { CommisionProgressBar } from "@/components/Trainer/commision-progress-bar";
 import { checkSession } from "@/lib/auth-session";
-import { getAuth } from "@/lib/auth-storage";
+import { getAuth, logout } from "@/lib/auth-storage";
 import { fetcher } from "@/lib/fetcher";
+import { getInitials } from "@/lib/utils";
 import type { PurchaseItemSchema, PurchaseReminder } from "@/type/purchase";
 import type { SessionLogCount } from "@/type/session-log";
 import { useFocusEffect, useRouter } from "expo-router";
-import { ArrowRight, Bell, HelpCircle, X } from "lucide-react-native";
+import { ArrowRight, Bell, HelpCircle, LogOut, X } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
+
 import {
   ActivityIndicator,
   Image,
@@ -79,18 +81,6 @@ const timeAvailabilityData: TimeAvailabilityData = {
 };
 
 const HERO_H = 76;
-
-function getInitials(value: string) {
-  const parts = value.trim().split(/\s+/).filter(Boolean);
-
-  if (parts.length === 0) return "";
-
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
-  }
-
-  return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
-}
 
 function normalizeRole(role: string) {
   return role.trim().toLowerCase();
@@ -203,6 +193,9 @@ export default function Home() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileName, setProfileName] = useState("");
   const [profileInitials, setProfileInitials] = useState("");
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(
+    null,
+  );
   const [accountRole, setAccountRole] = useState("Member");
   const [customerProfileId, setCustomerProfileId] = useState<string | null>(null);
   const [activePackagesTotal, setActivePackagesTotal] = useState(0);
@@ -248,25 +241,10 @@ export default function Home() {
       if (res.success && res.data) detail = res.data;
     }
 
-    const resolvedName =
-      detail?.profile_name ??
-      detail?.profile?.profile_name ??
-      detail?.profile?.name ??
-      detail?.name ??
-      "";
-
-    if (resolvedName) {
-      setProfileName(resolvedName);
-      setProfileInitials(getInitials(resolvedName));
-    } else {
-      setProfileName("");
-      setProfileInitials("");
-    }
-
-    const resolvedRole = detail?.account_role ?? detail?.role;
-    if (typeof resolvedRole === "string" && resolvedRole.trim()) {
-      setAccountRole(resolvedRole);
-    }
+    setProfileName(detail.profile_name);
+    setProfileInitials(getInitials(detail.profile_name));
+    setProfilePictureUrl(detail?.picture_url);
+    setAccountRole(detail?.account_role);
 
     const resolvedProfileId =
       detail?.profile_id ??
@@ -1114,6 +1092,15 @@ export default function Home() {
                 </HeaderIcon>
               </WalkableView>
             </CopilotStep>
+
+            <HeaderIcon
+              onPress={async () => {
+                await logout();
+                router.replace("/(auth)/sign-in");
+              }}
+            >
+              <LogOut size={18} color="black" />
+            </HeaderIcon>
           </View>
         </View>
       </View>
@@ -1144,14 +1131,22 @@ export default function Home() {
                       <Pressable
                         onPress={() => router.push("/profile/profile")}
                       >
-                        <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center">
+                        <View className="w-30 h-30 rounded-full bg-[#E6FAFF] border-[3px] border-[#30B8C4] items-center justify-center overflow-hidden">
                           {profileLoading ? (
                             <ActivityIndicator size="small" />
+                          ) : profilePictureUrl && profilePictureUrl !== "" ? (
+                            <Image
+                              source={{
+                                uri:
+                                  process.env.EXPO_PUBLIC_ASSET_BASE_URL +
+                                  profilePictureUrl,
+                              }}
+                              className="w-full h-full"
+                              resizeMode="cover"
+                            />
                           ) : (
                             <Text className="text-[#0F6B7E] text-2xl font-semibold">
-                              {profileInitials ||
-                                getInitials(profileName) ||
-                                "?"}
+                              {getInitials(profileName) || "?"}
                             </Text>
                           )}
                         </View>

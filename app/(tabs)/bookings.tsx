@@ -3,6 +3,7 @@ import { useToast } from "@/components/Toast/toast-provider";
 import MemberActionList from "@/components/Trainer/member-action-list";
 import { useAuth } from "@/hooks/useAuth";
 import { BookingSchema } from "@/type/bookings";
+import { TrainerMember } from "@/type/session-log";
 import { router } from "expo-router";
 import { Clock, Contact, UserIcon, X } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
@@ -21,6 +22,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { checkAssessment } from "../api/assessment";
 import { cancelBooking, getBookingList } from "../api/booking";
+import { getTrainerMembers } from "../api/session-log";
 import AddBookingModal from "../bookings/add-bookings";
 
 type TabKey = "Upcoming" | "Completed" | "Cancelled";
@@ -247,6 +249,9 @@ export default function Bookings() {
   const { auth, loading: loadingAuth } = useAuth();
   const [data, setData] = useState<BookingSchema[]>([]);
   const [loading, setLoading] = useState(false);
+  const [members, setMembers] = useState<TrainerMember[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const fetchBookings = async () => {
     const profileId = auth?.accountDetail?.profile_id;
@@ -255,6 +260,8 @@ export default function Bookings() {
     try {
       setLoading(true);
       const res = await getBookingList({
+        page: 1,
+        limit: -1,
         member_profile_id: profileId,
         is_not_expired: true,
       });
@@ -272,15 +279,27 @@ export default function Bookings() {
     fetchBookings();
   }, [loadingAuth, auth]);
 
+  useEffect(() => {
+    if (auth?.accountDetail?.account_role !== "Trainer") return;
+    if (!auth?.accountDetail?.profile_id) return;
+    setLoadingMembers(true);
+    getTrainerMembers({ trainer_profile_id: auth.accountDetail.profile_id })
+      .then((res) => {
+        setMembers(res.data ?? []);
+      })
+      .catch(() => setMembers([]))
+      .finally(() => setLoadingMembers(false));
+  }, [auth?.accountDetail?.account_role, auth?.accountDetail?.profile_id]);
+
   const filteredData = useMemo(() => {
     return data.filter((item) =>
-      TAB_STATUS_MAP[tab].includes(item.booking_status_id),
+      TAB_STATUS_MAP[tab].includes(item.booking_status_id)
     );
   }, [data, tab]);
   console.log("filteredData", filteredData);
   const [open, setOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<BookingSchema | null>(
-    null,
+    null
   );
 
   const [openAddBooking, setOpenAddBooking] = useState(false);
@@ -353,16 +372,28 @@ export default function Bookings() {
     return (
       <MemberActionList
         title="ASSESSMENT"
-        subtitle="Pilih member untuk membuka assessment dan melanjutkan evaluasi."
-        emptyLabel="Belum ada member untuk di-assess."
-        onSelectMember={(memberItem) =>
+        subtitle="Pilih member yang pernah kamu ajar untuk membuka assessment mereka."
+        emptyLabel={
+          loadingMembers ? "Loading..." : "Belum ada member yang tersedia."
+        }
+        members={members.map((m) => ({
+          id: m.member_profile_id,
+          code: m.member_account_code,
+          name: m.member_name,
+        }))}
+        onSelectMember={(memberItem) => {
+          if (isNavigating) return;
+          setIsNavigating(true);
           router.push({
             pathname: "/assessment/detail",
             params: {
-              memberProfileId: memberItem.id,
+              memberId: memberItem.id,
+              memberName: memberItem.name,
             },
-          })
-        }
+          });
+
+          setTimeout(() => setIsNavigating(false), 1000);
+        }}
       />
     );
   }

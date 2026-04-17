@@ -1,6 +1,6 @@
 import { fetcher } from "@/lib/fetcher";
 import { buildListPayload } from "@/type/pagination";
-import { PurchasePagination, PurchaseReminder } from "@/type/purchase";
+import { PurchaseItemSchema, PurchasePagination, PurchaseReminder } from "@/type/purchase";
 
 export function getPurchaseList(payload?: {
   q?: string | null;
@@ -19,6 +19,15 @@ export function getPurchaseReminder(payload?: { member_profile_id?: string }) {
   return fetcher<PurchaseReminder[]>("/purchase/reminder", {
     body: {
       member_profile_id: payload?.member_profile_id,
+    },
+    auth: true,
+  });
+}
+
+export function getPurchaseDetail(payload: { purchase_id: string }) {
+  return fetcher<PurchaseItemSchema>("/purchase/detail", {
+    body: {
+      purchase_id: payload.purchase_id,
     },
     auth: true,
   });

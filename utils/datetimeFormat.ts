@@ -1,3 +1,11 @@
+export function formatDurationFromMinutes(minutes: number) {
+  const safeMinutes = Math.max(0, minutes);
+  const hours = Math.floor(safeMinutes / 60);
+  const remainder = safeMinutes % 60;
+  return `${hours.toString().padStart(2, "0")}:${remainder
+    .toString()
+    .padStart(2, "0")}`;
+}
 export function formatDate(dateString?: string): string {
   if (!dateString) return "-";
 

@@ -1,7 +1,11 @@
-import { getSessionLogHistoryList } from "@/app/api/session-log";
+import {
+  getSessionLogHistoryList,
+  getTrainerSessionLogHistory,
+} from "@/app/api/session-log";
 import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
 import { useAuth } from "@/hooks/useAuth";
 import { SessionLogProductType } from "@/type/session-log";
+import { formatDurationFromMinutes } from "@/utils/datetimeFormat";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
 import { ChevronLeft, ChevronRight, Timer } from "lucide-react-native";
@@ -54,13 +58,6 @@ function getDurationMinutes(timeStart: string, timeEnd: string) {
   const endTotal = endH * 60 + endM;
 
   return Math.max(0, endTotal - startTotal);
-}
-
-function formatDurationFromMinutes(minutes: number) {
-  const safeMinutes = Math.max(0, minutes);
-  const hours = Math.floor(safeMinutes / 60);
-  const remainder = safeMinutes % 60;
-  return `${pad2(hours)}:${pad2(remainder)}`;
 }
 
 function getCardColor(productType: SessionLogProductType) {
@@ -299,36 +296,78 @@ export default function Profile() {
 
   useEffect(() => {
     const profileId = auth?.accountDetail?.profile_id;
-    if (!profileId) return;
+    const accountRole = auth?.accountDetail?.account_role;
+    if (!profileId || !accountRole) return;
+
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth() + 1;
+    const date_from = `${year}-${pad2(month)}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const date_to = `${year}-${pad2(month)}-${pad2(lastDay)}`;
 
     const fetchSessionHistory = async () => {
       try {
-        const res = await getSessionLogHistoryList({
-          page: 1,
-          limit: -1,
-          member_profile_id: profileId,
-        });
-
-        if (!res.success || !res.data) {
-          setResponse([]);
-          return;
+        if (accountRole === "Trainer") {
+          const res = await getTrainerSessionLogHistory({
+            page: 1,
+            limit: -1,
+            trainer_profile_id: profileId,
+            date_from,
+            date_to,
+          });
+          if (!res.success || !res.data) {
+            setResponse([]);
+            return;
+          }
+          const mapped: Response[] = res.data.data.map((item) => {
+            return {
+              id: item.schedule_id,
+              schedule_date: item.schedule_date,
+              time_start: item.time_start,
+              time_end: item.time_end,
+              title: item.product_name,
+              coach: item.trainer_name?.trim() || "Unknown Trainer",
+              color: getCardColor(
+                item.product_type_name === "Private" ? "Private" : "Class",
+              ),
+              durationMinutes: getDurationMinutes(
+                item.time_start,
+                item.time_end,
+              ),
+            };
+          });
+          setResponse(mapped);
+        } else {
+          const res = await getSessionLogHistoryList({
+            page: 1,
+            limit: -1,
+            member_profile_id: profileId,
+            date_from,
+            date_to,
+          });
+          if (!res.success || !res.data) {
+            setResponse([]);
+            return;
+          }
+          const mapped: Response[] = res.data.data.map((item) => {
+            const productType: SessionLogProductType = item.product_type_name;
+            return {
+              id: item.session_log_id,
+              schedule_date: item.schedule_date,
+              time_start: item.time_start,
+              time_end: item.time_end,
+              title: item.product_name,
+              coach:
+                item.trainers[0]?.trainer_name?.trim() || "Unknown Trainer",
+              color: getCardColor(productType),
+              durationMinutes: getDurationMinutes(
+                item.time_start,
+                item.time_end,
+              ),
+            };
+          });
+          setResponse(mapped);
         }
-
-        const mapped: Response[] = res.data.data.map((item) => {
-          const productType: SessionLogProductType = item.product_type_name;
-          return {
-            id: item.session_log_id,
-            schedule_date: item.schedule_date,
-            time_start: item.time_start,
-            time_end: item.time_end,
-            title: item.product_name,
-            coach: item.trainers[0]?.trainer_name?.trim() || "Unknown Trainer",
-            color: getCardColor(productType),
-            durationMinutes: getDurationMinutes(item.time_start, item.time_end),
-          };
-        });
-
-        setResponse(mapped);
       } catch (error) {
         console.error(error);
         setResponse([]);
@@ -336,21 +375,15 @@ export default function Profile() {
     };
 
     fetchSessionHistory();
-  }, [auth?.accountDetail?.profile_id]);
+  }, [
+    auth?.accountDetail?.profile_id,
+    auth?.accountDetail?.account_role,
+    selectedDate,
+  ]);
 
-  const eventsInSelectedMonth = useMemo(() => {
-    return response.filter((ev) => {
-      const d = new Date(ev.schedule_date);
-      return (
-        d.getFullYear() === selectedDate.getFullYear() &&
-        d.getMonth() === selectedDate.getMonth()
-      );
-    });
-  }, [response, selectedDate]);
-
-  const eventsByDay = useMemo(() => {
+  const sessionsByDay = useMemo(() => {
     const grouped: Record<string, Response[]> = {};
-    for (const ev of eventsInSelectedMonth) {
+    for (const ev of response) {
       const key = dayKeyFromScheduleDate(ev.schedule_date);
       (grouped[key] ||= []).push(ev);
     }
@@ -358,15 +391,21 @@ export default function Profile() {
       grouped[k].sort((a, b) => a.time_start.localeCompare(b.time_start));
     });
     return grouped;
-  }, [eventsInSelectedMonth]);
+  }, [response]);
 
   const dayKeysSorted = useMemo(() => {
-    return Object.keys(eventsByDay).sort((a, b) => +new Date(a) - +new Date(b));
-  }, [eventsByDay]);
+    return Object.keys(sessionsByDay).sort(
+      (a, b) => +new Date(a) - +new Date(b),
+    );
+  }, [sessionsByDay]);
+
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const handleEventPress = useCallback(
     (sessionLogId: string, durationMinutes: number) => {
       if (auth?.accountDetail?.account_role === "Member") {
+        if (isNavigating) return;
+        setIsNavigating(true);
         router.push({
           pathname: "/journal/journal",
           params: {
@@ -374,9 +413,10 @@ export default function Profile() {
             sessionDuration: formatDurationFromMinutes(durationMinutes),
           },
         });
+        setTimeout(() => setIsNavigating(false), 1000);
       }
     },
-    [auth?.accountDetail?.account_role],
+    [auth?.accountDetail?.account_role, isNavigating],
   );
 
   return (
@@ -392,7 +432,7 @@ export default function Profile() {
           <View className="flex-row items-center justify-between">
             <View className="w-10 h-10 rounded-full bg-gray-300 items-center justify-center">
               <Text className="text-2xl font-semibold text-white">
-                {eventsInSelectedMonth.length}
+                {response.length}
               </Text>
             </View>
 
@@ -473,7 +513,7 @@ export default function Profile() {
               ) : null}
 
               {dayKeysSorted.map((dayKey) => {
-                const dayEvents = eventsByDay[dayKey];
+                const dayEvents = sessionsByDay[dayKey];
 
                 const cardEvents = dayEvents.map((ev) => ({
                   id: ev.id,

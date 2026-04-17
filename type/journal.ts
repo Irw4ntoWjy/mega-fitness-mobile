@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { paginationSchema } from "./pagination";
 
 export const journalSetSchema = z.object({
   reps: z.string(),
@@ -33,5 +32,14 @@ export const journalItemSchema = z.object({
 
 export type JournalItem = z.infer<typeof journalItemSchema>;
 
-export const journalPaginationSchema = paginationSchema(journalItemSchema);
-export type JournalPagination = z.infer<typeof journalPaginationSchema>;
+export type JournalDetail = {
+  journal_id: number | string;
+  session_log_id: string;
+  member_profile_id: string;
+  member_name: string;
+  journal_json: JournalJson;
+  created_at: string;
+  created_by: string;
+  updated_at: string | null;
+  updated_by: string | null;
+};

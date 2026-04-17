@@ -182,7 +182,7 @@ function SignOutModal({
   );
 }
 
-function FeedbackModal({
+export function FeedbackModal({
   visible,
   title,
   message,
