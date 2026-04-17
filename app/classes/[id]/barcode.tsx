@@ -91,16 +91,14 @@ export default function BarcodePages() {
   const scheduleTitle = classDetail?.product_name || "-";
 
   const qrValue = useMemo(() => {
-    if (!bookingId || !booking?.member_profile_id || !packageId) {
+    if (!bookingId) {
       return "";
     }
 
     return JSON.stringify({
-      booking_id: booking.booking_id ?? bookingId,
-      member_profile_id: booking.member_profile_id,
-      package_id: packageId,
+      booking_id: bookingId,
     });
-  }, [booking, bookingId, packageId]);
+  }, [bookingId]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -127,7 +125,7 @@ export default function BarcodePages() {
           <View className="w-full max-w-[520px]  rounded-3xl bg-white shadow-lg px-8 py-9">
             {!isRefreshed ? (
               <View className="items-center">
-                <View className="w-fit h-fit rounded-2xl bg-black items-center justify-center overflow-hidden">
+                <View className="w-fit h-fit rounded-2xl p-10 items-center justify-center overflow-hidden">
                   {qrValue ? (
                     <QRCode
                       value={qrValue}
@@ -141,12 +139,6 @@ export default function BarcodePages() {
                       </Text>
                     </View>
                   )}
-                </View>
-
-                <View className="mt-7 w-full items-center">
-                  <Text className="mt-3 text-base text-gray-900 font-medium">
-                    {scheduleTitle}
-                  </Text>
                 </View>
               </View>
             ) : (
@@ -192,9 +184,25 @@ export default function BarcodePages() {
         {!isRefreshed && (
           <View className="bottom-2 left-0 right-0 bg-zinc-100/60 px-[40px] pb-[18px] pt-2">
             <Pressable
-              onPress={() => setIsRefreshed(true)}
-              className={`w-full h-14 rounded-xl items-center justify-center bg-cyan-600
-                   `}
+              onPress={async () => {
+                if (!bookingId) return;
+                setLoading(true);
+                try {
+                  const res = await getBookingDetail({ booking_id: bookingId });
+                  if (res.success && res.data) {
+                    if (
+                      res.data.booking_status_id === 2 ||
+                      res.data.booking_status_name === "Selesai"
+                    ) {
+                      setIsRefreshed(true);
+                    }
+                    setBooking(res.data);
+                  }
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              className={`w-full h-14 rounded-xl items-center justify-center bg-cyan-600`}
             >
               <Text className="text-white text-xl font-semibold">Refresh</Text>
             </Pressable>

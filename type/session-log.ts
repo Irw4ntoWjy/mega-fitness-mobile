@@ -40,7 +40,7 @@ export const sessionLogHistorySchema = z.object({
 export type SessionLogHistorySchema = z.infer<typeof sessionLogHistorySchema>;
 
 export const sessionLogHistoryPaginationSchema = paginationSchema(
-  sessionLogHistorySchema,
+  sessionLogHistorySchema
 );
 export type SessionLogHistoryPagination = z.infer<
   typeof sessionLogHistoryPaginationSchema
@@ -77,9 +77,12 @@ export const trainerSessionLogHistoryItemSchema = z.object({
   created_by: z.string(),
   created_by_name: z.string(),
 });
+export type TrainerSessionLogHistoryItem = z.infer<
+  typeof trainerSessionLogHistoryItemSchema
+>;
 
 export const trainerSessionLogHistoryPaginationSchema = paginationSchema(
-  trainerSessionLogHistoryItemSchema,
+  trainerSessionLogHistoryItemSchema
 );
 
 export type TrainerSessionLogHistoryPagination = z.infer<
@@ -90,6 +93,7 @@ export const trainerMemberSchema = z.object({
   member_profile_id: z.string(),
   member_name: z.string(),
   member_picture_url: z.string().nullable(),
+  member_account_code: z.string(),
 });
 export type TrainerMember = z.infer<typeof trainerMemberSchema>;
 export type TrainerMemberListResponse = TrainerMember[];
