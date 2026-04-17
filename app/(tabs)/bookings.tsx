@@ -285,7 +285,6 @@ export default function Bookings() {
       TAB_STATUS_MAP[tab].includes(item.booking_status_id),
     );
   }, [data, tab]);
-  console.log("filteredData", filteredData);
   const [open, setOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<BookingSchema | null>(
     null,
