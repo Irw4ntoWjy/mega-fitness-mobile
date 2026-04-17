@@ -1,8 +1,14 @@
 import { router } from "expo-router";
-import { Bell, ChevronLeft, FileQuestionMark } from "lucide-react-native";
-import { ReactNode } from "react";
+import {
+  Bell,
+  ChevronLeft,
+  FileQuestionMark,
+  FileText,
+} from "lucide-react-native";
+import { ReactNode, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import TermsModal from "../auth/terms-and-condition-modal";
 
 type HeaderNavBarProps = {
   title?: string;
@@ -22,7 +28,7 @@ export default function HeaderNavBar({
   onBack,
 }: HeaderNavBarProps) {
   const insets = useSafeAreaInsets();
-
+  const [termsVisible, setTermsVisible] = useState(false);
   return (
     <View
       style={{
@@ -70,9 +76,11 @@ export default function HeaderNavBar({
           <HeaderIcon>
             <Bell size={18} color="black" />
           </HeaderIcon>
-          {/* <HeaderIcon onPress={() => router.push("/profile/settings-list")}>
-            <Settings size={18} color="black" />
-          </HeaderIcon> */}
+          <HeaderIcon onPress={() => setTermsVisible(true)}>
+            <FileText size={18} color="black" />
+          </HeaderIcon>
+
+          <TermsModal visible={termsVisible} onView={true} />
         </View>
       ) : null}
     </View>

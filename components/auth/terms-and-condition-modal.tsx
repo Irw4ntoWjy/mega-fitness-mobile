@@ -6,11 +6,17 @@ import { DUMMY_TNC } from "./dummy_tnc";
 
 interface Props {
   visible: boolean;
-  onAccept: () => void;
-  onDecline: () => void;
+  onAccept?: () => void;
+  onDecline?: () => void;
+  onView?: boolean;
 }
 
-export default function TermsModal({ visible, onAccept, onDecline }: Props) {
+export default function TermsModal({
+  visible,
+  onAccept,
+  onDecline,
+  onView,
+}: Props) {
   const [page, setPage] = useState(0);
   const [checked, setChecked] = useState(false);
 
@@ -82,7 +88,7 @@ export default function TermsModal({ visible, onAccept, onDecline }: Props) {
             <Pressable
               onPress={() => {
                 if (page === 0) {
-                  onDecline();
+                  onDecline!();
                 } else {
                   setPage(0);
                 }
@@ -101,7 +107,7 @@ export default function TermsModal({ visible, onAccept, onDecline }: Props) {
               >
                 <Text className="text-white font-medium">Next</Text>
               </Pressable>
-            ) : (
+            ) : onView ? (
               <Pressable
                 disabled={!checked}
                 onPress={onAccept}
@@ -111,7 +117,7 @@ export default function TermsModal({ visible, onAccept, onDecline }: Props) {
               >
                 <Text className="text-white font-medium">Accept</Text>
               </Pressable>
-            )}
+            ) : null}
           </View>
         </View>
       </View>
