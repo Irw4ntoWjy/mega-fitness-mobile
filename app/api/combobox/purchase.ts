@@ -11,7 +11,7 @@ export async function getPurchaseCombobox(payload?: {
   const data = res.data;
   return {
     data: (data?.data ?? []).map((item) => ({
-      label: item.product_name,
+      label: `${item.package_name} - ${item.product_name}\nPurchase Date: ${item.requested_at.split(" ")[0]}`,
       value: String(item.id),
       data: item,
     })),
