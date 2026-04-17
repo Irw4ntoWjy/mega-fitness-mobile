@@ -73,14 +73,19 @@ export default function HeaderNavBar({
           >
             <FileQuestionMark size={18} color="black" />
           </HeaderIcon>
-          <HeaderIcon>
-            <Bell size={18} color="black" />
-          </HeaderIcon>
           <HeaderIcon onPress={() => setTermsVisible(true)}>
             <FileText size={18} color="black" />
           </HeaderIcon>
 
-          <TermsModal visible={termsVisible} onView={true} />
+          <HeaderIcon>
+            <Bell size={18} color="black" />
+          </HeaderIcon>
+
+          <TermsModal
+            visible={termsVisible}
+            onView={true}
+            onDecline={() => setTermsVisible(false)}
+          />
         </View>
       ) : null}
     </View>

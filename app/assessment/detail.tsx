@@ -381,12 +381,9 @@ export default function AssessmentDetail() {
         }}
         onBack={() => setCurrentStep((prev) => prev - 1)}
         backDisabled={currentStep === 0}
-        nextDisabled={!isCurrentStepValid()}
+        // nextDisabled={!isCurrentStepValid()}
         isLastStep={currentStep === data.length - 1}
-        hideNext={
-          currentStep === data.length - 1 &&
-          (isEditMode || isTrainerReadOnlySection)
-        }
+        hideNext={currentStep === data.length - 1}
       />
     </View>
   );

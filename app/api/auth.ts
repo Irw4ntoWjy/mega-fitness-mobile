@@ -1,4 +1,4 @@
-import { getAuth } from "@/lib/auth-storage";
+import { clearAuth, getAuth } from "@/lib/auth-storage";
 import { fetcher } from "@/lib/fetcher";
 import { AccountDetailResponse } from "@/type/account";
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/type/auth";
 
 export async function login(payload: LoginPayload) {
+  await clearAuth();
   const loginRes = await fetcher<LoginResponse>("/auth/login/mobile", {
     body: payload,
   });

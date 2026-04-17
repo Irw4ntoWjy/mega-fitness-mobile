@@ -65,7 +65,7 @@ export const bookingDetailSchema = z.object({
           trainer_profile_address: z.string().nullable(),
           action_at: z.string(),
           action_by: z.string(),
-        }),
+        })
       ),
       created_at: z.string(),
       created_by: z.string(),
@@ -119,10 +119,12 @@ export const bookingPaginationSchema = paginationSchema(bookingSchema);
 export type BookingPagination = z.infer<typeof bookingPaginationSchema>;
 
 export type BookingListParams = BaseListParams & {
+  page: number;
+  limit: number;
   is_not_expired: boolean;
   member_profile_id?: string;
   booking_status_id?: string | number;
-  schedule_type?: string;
+  // schedule_type?: string;
 };
 
 export type BookingDetailParams = {

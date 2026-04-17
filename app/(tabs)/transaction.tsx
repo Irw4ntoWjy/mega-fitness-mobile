@@ -135,6 +135,7 @@ function TransactionCard({ item }: { item: PurchaseItemSchema }) {
 }
 
 export default function Transactions() {
+  const [isNavigating, setIsNavigating] = useState(false);
   const [tab, setTab] = useState<TabKey>("All");
   const [list, setList] = useState<Transaction[]>(transactions);
   const { auth, loading: loadingAuth } = useAuth();
@@ -244,7 +245,10 @@ export default function Transactions() {
                   )}
                   <Pressable
                     className="bg-white rounded-b-2xl px-4 pb-4 pt-3 shadow-sm"
+                    disabled={isNavigating}
                     onPress={() => {
+                      if (isNavigating) return;
+                      setIsNavigating(true);
                       if (item.members && item.members.length === 1) {
                         const getDurationMinutes = (
                           start: string,
@@ -279,6 +283,7 @@ export default function Transactions() {
                           },
                         });
                       }
+                      setTimeout(() => setIsNavigating(false), 1000);
                     }}
                   >
                     <Text className="text-lg font-bold text-slate-900">
