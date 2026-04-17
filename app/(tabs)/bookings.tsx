@@ -134,11 +134,15 @@ function CancelModal({
   booking,
   onClose,
   onConfirm,
+  cancelReason,
+  setCancelReason,
 }: {
   visible: boolean;
   booking: BookingSchema | null;
   onClose: () => void;
   onConfirm: () => void;
+  cancelReason: string;
+  setCancelReason: (val: string) => void;
 }) {
   if (!booking) return null;
   return (
@@ -201,6 +205,8 @@ function CancelModal({
                   placeholderTextColor="#6b7280"
                   className="mt-4 border border-gray-300 rounded-xl p-3 text-gray-900"
                   textAlignVertical="top"
+                  value={cancelReason}
+                  onChangeText={setCancelReason}
                 />
               </View>
 
@@ -241,6 +247,7 @@ export default function Bookings() {
   const [members, setMembers] = useState<TrainerMember[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
   const fetchBookings = async () => {
     const profileId = auth?.accountDetail?.profile_id;
@@ -336,6 +343,7 @@ export default function Bookings() {
 
       const res = await cancelBooking({
         booking_id: selectedBooking.booking_id,
+        cancel_reason: cancelReason,
       });
       showToast({
         message: res.message,
@@ -447,6 +455,8 @@ export default function Bookings() {
             setSelectedBooking(null);
           }}
           onConfirm={handleConfirmCancel}
+          cancelReason={cancelReason}
+          setCancelReason={setCancelReason}
         />
 
         <AddBookingModal
