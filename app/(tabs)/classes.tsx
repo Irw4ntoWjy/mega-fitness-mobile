@@ -36,11 +36,13 @@ function BookingCard({
 }) {
   const statusId = String(item.booking_status_id);
   const statusBg =
-    statusId === "1" || statusId === "3"
+    statusId === "3"
       ? "#16A34A"
-      : statusId === "-1"
-        ? "#DC2626"
-        : "#64748B";
+      : statusId === "4"
+        ? "#06B6D4"
+        : statusId === "1"
+          ? "#DC2626"
+          : "#64748B";
   return (
     <Pressable
       onPress={() =>
