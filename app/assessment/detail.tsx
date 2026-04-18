@@ -1,7 +1,12 @@
 import { createAssessment, getAssessmentList } from "@/app/api/assessment";
 import AssessmentHeader from "@/components/assessment/AssessmentHeader";
 import BottomNavbar from "@/components/assessment/BottomNavbar";
+import MultiFieldCard from "@/components/assessment/MultiFieldCard";
 import PhysicalQuestionCard from "@/components/assessment/PhysicalQuestionCard";
+import {
+  PARSE_CONFIG,
+  parseKeyValueText,
+} from "@/components/assessment/utils/parseAssessment";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { useToast } from "@/components/Toast/toast-provider";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,7 +24,7 @@ export default function AssessmentDetail() {
     memberProfileId?: string;
   }>();
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [data, setData] = useState<SectionSchema[]>([]);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [currentStep, setCurrentStep] = useState(0);
@@ -29,6 +34,21 @@ export default function AssessmentDetail() {
   const isReadOnlySection = (section?: number) =>
     isTrainer && (section === 1 || section === 2);
   const isTrainerReadOnlySection = isReadOnlySection(currentSection?.section);
+
+  const parseBodyComposition = (text: string) => {
+    const get = (label: string) => {
+      const match = text.match(new RegExp(`${label}: ([^,]+)`));
+      return match ? match[1].replace(/[^\d.]/g, "") : "";
+    };
+
+    return {
+      height: get("Height"),
+      weight: get("Weight"),
+      bodyFat: get("Body Fat"),
+      muscleMass: get("Muscle Mass"),
+      bmi: get("BMI"),
+    };
+  };
 
   useEffect(() => {
     if (loadingAuth) return;
@@ -64,6 +84,21 @@ export default function AssessmentDetail() {
           section.data?.forEach((item: any) => {
             const key = `${section.section}-${item.key.en}`;
             const val = item.value;
+
+            const config = PARSE_CONFIG[item.key.en];
+
+            if (config && val?.value) {
+              const parsed = parseKeyValueText(val.value, config);
+
+              Object.entries(parsed).forEach(([k, v]) => {
+                initialAnswers[`${section.section}-${item.key.en}-${k}`] = {
+                  type: "TEXT",
+                  desc: v,
+                };
+              });
+
+              return;
+            }
 
             if (!val) return;
 
@@ -176,21 +211,6 @@ export default function AssessmentDetail() {
       return;
     }
 
-    const isAnswerValid = (type: string, value: any) => {
-      if (!value) return false;
-
-      switch (type) {
-        case "BOOL":
-          return typeof value.value === "boolean";
-        case "BOOL_TEXT":
-          return typeof value.value === "boolean";
-        case "TEXT":
-          return typeof value.value === "string" && value.value.trim() !== "";
-        default:
-          return true;
-      }
-    };
-
     const result = [];
 
     for (const section of QUESTION_META) {
@@ -198,7 +218,31 @@ export default function AssessmentDetail() {
         const answerEntry = Object.entries(answers).find(
           ([key]) => cleanKey(key) === q.key.en,
         );
-        const answer = answerEntry?.[1];
+        let answer = answerEntry?.[1];
+
+        const medicationKeyName = "Medications";
+        const effectKeyName = "Effect";
+
+        const doctorKey =
+          "Harap Anda/Dokter sebutkan rekomendasi atau batasan apa pun yang sesuai untuk Anda dalam program Latihan ini:";
+        const physioKey =
+          "Harap Physiotherapist sebutkan rekomendasi atau batasan apa pun yang sesuai untuk Anda dalam program Latihan ini:";
+
+        const isMedicationField =
+          q.key.en === medicationKeyName || q.key.en === effectKeyName;
+
+        const isDoctorOrPhysio =
+          q.key.en === doctorKey || q.key.en === physioKey;
+
+        if (
+          !answer ||
+          (answer == undefined && (isMedicationField || isDoctorOrPhysio))
+        ) {
+          answer = {
+            type: "TEXT",
+            desc: "-",
+          };
+        }
         return {
           key: q.key,
           value: mapValue(q.value.type, answer),
@@ -209,7 +253,7 @@ export default function AssessmentDetail() {
       if ((section.section === 1 || section.section === 2) && !isTrainer) {
         for (const q of data) {
           const answer = q.rawAnswer;
-
+          console.log(q.key, answer);
           let isValid = true;
 
           if (!answer) {
@@ -314,21 +358,124 @@ export default function AssessmentDetail() {
           {currentSection?.data?.map((q: any, index: number) => {
             const key = `${currentSection.section}-${q.key.en}`;
 
+            const config = PARSE_CONFIG[q.key.en];
+
+            if (config) {
+              const baseKey = `${currentSection.section}-${q.key.en}`;
+
+              return (
+                <MultiFieldCard
+                  key={key}
+                  title={q.key.en}
+                  baseKey={baseKey}
+                  fields={config}
+                  answers={answers}
+                  setAnswers={setAnswers}
+                  isEditMode={isEditMode}
+                  isTrainerReadOnlySection={isTrainerReadOnlySection}
+                />
+              );
+            }
+            const medicationKey = `${currentSection.section}-Do you currently take any medications?`;
+            const isMedicationTrue = (() => {
+              const ans = answers[medicationKey];
+              if (!ans) return false;
+              if (ans.type === "BOOL" || ans.type === "BOOL_TEXT")
+                return ans.value === true;
+              return false;
+            })();
+
+            const dependsOnMedication =
+              q.key.en === "Medications" || q.key.en === "Effect";
+
+            if (dependsOnMedication && !isMedicationTrue) return null;
+
+            const doctorKey =
+              "Harap Anda/Dokter sebutkan rekomendasi atau batasan apa pun yang sesuai untuk Anda dalam program Latihan ini:";
+            const physioKey =
+              "Harap Physiotherapist sebutkan rekomendasi atau batasan apa pun yang sesuai untuk Anda dalam program Latihan ini:";
+
+            const isDoctorOrPhysioField =
+              q.key.en === doctorKey || q.key.en === physioKey;
+
+            const hasAnyTrueAnswer = currentSection.data.some((item: any) => {
+              if (item.value.type !== "BOOL" && item.value.type !== "BOOL_TEXT")
+                return false;
+              const itemKey = `${currentSection.section}-${item.key.en}`;
+              const ans = answers[itemKey];
+              if (!ans) return false;
+              if (ans.type === "BOOL" || ans.type === "BOOL_TEXT")
+                return ans.value === true;
+              return false;
+            });
+
+            if (isDoctorOrPhysioField) {
+              if (!hasAnyTrueAnswer) return null;
+            }
+
+            const hidden =
+              (dependsOnMedication && !isMedicationTrue) ||
+              (isDoctorOrPhysioField && !hasAnyTrueAnswer);
+
             return (
-              <PhysicalQuestionCard
-                key={key}
-                questionKey={key}
-                q={q}
-                index={index}
-                value={answers[key]}
-                disabled={!isEditMode || isTrainerReadOnlySection}
-                setAnswer={(k, value) => {
-                  setAnswers((prev) => ({
-                    ...prev,
-                    [k]: value,
-                  }));
-                }}
-              />
+              <View key={key} style={{ display: hidden ? "none" : "flex" }}>
+                <PhysicalQuestionCard
+                  key={key}
+                  questionKey={key}
+                  q={q}
+                  index={index}
+                  value={answers[key]}
+                  disabled={!isEditMode || isTrainerReadOnlySection}
+                  setAnswer={(k, value) => {
+                    setAnswers((prev) => {
+                      const updated = { ...prev, [k]: value };
+                      const section = currentSection.section;
+
+                      const doctorKey =
+                        "Harap Anda/Dokter sebutkan rekomendasi atau batasan apa pun yang sesuai untuk Anda dalam program Latihan ini:";
+                      const physioKey =
+                        "Harap Physiotherapist sebutkan rekomendasi atau batasan apa pun yang sesuai untuk Anda dalam program Latihan ini:";
+
+                      const doctorFullKey = `${section}-${doctorKey}`;
+                      const physioFullKey = `${section}-${physioKey}`;
+
+                      const allFalse = currentSection.data
+                        .filter(
+                          (item: any) =>
+                            item.value.type === "BOOL" ||
+                            item.value.type === "BOOL_TEXT",
+                        )
+                        .every((item: any) => {
+                          const itemKey = `${section}-${item.key.en}`;
+                          const ans = updated[itemKey];
+
+                          if (!ans) return true;
+
+                          if (ans.type === "BOOL" || ans.type === "BOOL_TEXT") {
+                            return ans.value === false;
+                          }
+
+                          return true;
+                        });
+
+                      if (allFalse) {
+                        delete updated[doctorFullKey];
+                        delete updated[physioFullKey];
+                      }
+
+                      if (
+                        k === medicationKey &&
+                        (value as any)?.value === false
+                      ) {
+                        delete updated[`${currentSection.section}-Medications`];
+                        delete updated[`${currentSection.section}-Effect`];
+                      }
+
+                      return updated;
+                    });
+                  }}
+                />
+              </View>
             );
           })}
         </View>

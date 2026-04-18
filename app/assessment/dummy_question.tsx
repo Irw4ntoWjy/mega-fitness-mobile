@@ -120,7 +120,7 @@ export const QUESTION_META = [
           en: "Do you currently take any medications?",
           id: "Apakah Anda saat ini mengonsumsi obat?",
         },
-        value: { type: "BOOL_TEXT" },
+        value: { type: "BOOL" },
       },
       {
         key: { en: "Medications", id: "Obat-obatan" },
