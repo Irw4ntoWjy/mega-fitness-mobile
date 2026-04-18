@@ -6,11 +6,17 @@ import { DUMMY_TNC } from "./dummy_tnc";
 
 interface Props {
   visible: boolean;
-  onAccept: () => void;
-  onDecline: () => void;
+  onAccept?: () => void;
+  onDecline?: () => void;
+  onView?: boolean;
 }
 
-export default function TermsModal({ visible, onAccept, onDecline }: Props) {
+export default function TermsModal({
+  visible,
+  onAccept,
+  onDecline,
+  onView,
+}: Props) {
   const [page, setPage] = useState(0);
   const [checked, setChecked] = useState(false);
 
@@ -60,7 +66,7 @@ export default function TermsModal({ visible, onAccept, onDecline }: Props) {
           </ScrollView>
 
           {/* Agreement Checkbox */}
-          {isLastPage && (
+          {isLastPage && !onView && (
             <Pressable
               onPress={() => setChecked(!checked)}
               className="flex-row items-center px-5 pt-3"
@@ -79,20 +85,22 @@ export default function TermsModal({ visible, onAccept, onDecline }: Props) {
 
           {/* Buttons */}
           <View className="flex-row px-5 pb-5 pt-2">
-            <Pressable
-              onPress={() => {
-                if (page === 0) {
-                  onDecline();
-                } else {
-                  setPage(0);
-                }
-              }}
-              className="flex-1 mr-2 bg-gray-200 py-3 rounded-xl items-center"
-            >
-              <Text className="font-medium">
-                {page === 0 ? "Decline" : "Back"}
-              </Text>
-            </Pressable>
+            {!(page === 0 && onView) && (
+              <Pressable
+                onPress={() => {
+                  if (page === 0) {
+                    onDecline?.();
+                  } else {
+                    setPage(0);
+                  }
+                }}
+                className="flex-1 mr-2 bg-gray-200 py-3 rounded-xl items-center"
+              >
+                <Text className="font-medium">
+                  {page === 0 ? "Decline" : "Back"}
+                </Text>
+              </Pressable>
+            )}
 
             {!isLastPage ? (
               <Pressable
@@ -101,7 +109,7 @@ export default function TermsModal({ visible, onAccept, onDecline }: Props) {
               >
                 <Text className="text-white font-medium">Next</Text>
               </Pressable>
-            ) : (
+            ) : !onView ? (
               <Pressable
                 disabled={!checked}
                 onPress={onAccept}
@@ -111,7 +119,7 @@ export default function TermsModal({ visible, onAccept, onDecline }: Props) {
               >
                 <Text className="text-white font-medium">Accept</Text>
               </Pressable>
-            )}
+            ) : null}
           </View>
         </View>
       </View>

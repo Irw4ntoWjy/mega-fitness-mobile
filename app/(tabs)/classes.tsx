@@ -10,12 +10,14 @@ import { TrainerSessionCard } from "@/components/Trainer/TrainerSessionCard";
 import { useAuth } from "@/hooks/useAuth";
 import { getDistanceMeters } from "@/lib/utils";
 import { BookingSchema } from "@/type/bookings";
+import { PurchaseItemSchema } from "@/type/purchase";
 import { TrainerSessionLogHistoryItem } from "@/type/session-log";
 import * as Location from "expo-location";
 import { router } from "expo-router";
 import { LogIn, User } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { getPurchaseList } from "../api/purchase";
 import { profile } from "../classes/dummy_data";
 
 function timeToMinutes(time: string) {
@@ -34,11 +36,13 @@ function BookingCard({
 }) {
   const statusId = String(item.booking_status_id);
   const statusBg =
-    statusId === "1" || statusId === "3"
+    statusId === "3"
       ? "#16A34A"
-      : statusId === "-1"
-        ? "#DC2626"
-        : "#64748B";
+      : statusId === "4"
+        ? "#06B6D4"
+        : statusId === "1"
+          ? "#DC2626"
+          : "#64748B";
   return (
     <Pressable
       onPress={() =>
@@ -103,6 +107,78 @@ function BookingCard({
             </Text>
             <Text className="text-black text-xs mt-1">
               {item.trainer_name ?? "-"}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
+function MembershipCard({
+  item,
+  showOngoingTag,
+}: {
+  item: PurchaseItemSchema;
+  showOngoingTag?: boolean;
+}) {
+  const statusBg = "#16A34A";
+  return (
+    // onPress={() =>
+    //   router.push({
+    //     pathname: "/classes/[id]/barcode",
+    //     params: {
+    //       id: item.,
+    //       trainer: "false",
+    //     },
+    //   })
+    // }
+    <Pressable className="w-[48%] mb-4">
+      <View className="bg-white rounded-2xl shadow-md relative">
+        <View className="w-full h-44 rounded-t-2xl overflow-hidden">
+          {item.package_cover_image ? (
+            <Image
+              source={{
+                uri: `${process.env.EXPO_PUBLIC_URL}${item.package_cover_image}`,
+              }}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="w-full h-full bg-black" />
+          )}
+        </View>
+
+        <View
+          style={{
+            position: "absolute",
+            top: -10,
+            left: -5,
+            backgroundColor: showOngoingTag ? "#06B6D4" : statusBg,
+            paddingHorizontal: 12,
+            paddingVertical: 7,
+            borderRadius: 8,
+            zIndex: 1000,
+            elevation: 30,
+          }}
+        >
+          <Text
+            style={{
+              color: "white",
+              fontSize: 10,
+              fontWeight: "700",
+              textTransform: "uppercase",
+              letterSpacing: 0.8,
+            }}
+          >
+            Ongoing
+          </Text>
+        </View>
+
+        <View className="flex-row items-center justify-between px-4 py-4">
+          <View>
+            <Text className="text-black font-bold text-lg">
+              {item.product_name}
             </Text>
           </View>
         </View>
@@ -185,6 +261,7 @@ const Home = () => {
   const { auth, loading: loadingAuth } = useAuth();
   const [upcomingBookings, setUpcomingBookings] = useState<BookingSchema[]>([]);
   const [ongoingBookings, setOngoingBookings] = useState<BookingSchema[]>([]);
+  const [membership, setMembership] = useState<PurchaseItemSchema[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
 
   const [todaySessions, setTodaySessions] = useState<
@@ -204,6 +281,19 @@ const Home = () => {
     title: "",
     message: "",
   });
+
+  const fetchMembershipData = async ({ profileId }: { profileId: string }) => {
+    try {
+      const res = await getPurchaseList({
+        customer_profile_id: profileId,
+        q: "Membership",
+      });
+      const data = res.data;
+      if (data) setMembership(data.data ?? []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     if (!memberProfileId) return;
@@ -240,6 +330,8 @@ const Home = () => {
             ? (ongoingRes.data.data ?? [])
             : [],
         );
+
+        fetchMembershipData({ profileId: memberProfileId });
       })
       .finally(() => {
         if (cancelled) return;
@@ -290,8 +382,6 @@ const Home = () => {
     [ongoingBookings],
   );
 
-  if (loadingAuth) return null;
-
   const sortedOngoingBookings = useMemo(
     () =>
       [...classOngoingBookings].sort((a, b) => {
@@ -313,6 +403,8 @@ const Home = () => {
       }),
     [classUpcomingBookings],
   );
+
+  if (loadingAuth) return null;
 
   return (
     <View className="flex-1 mb-28">
@@ -481,20 +573,27 @@ const Home = () => {
               Ongoing Activity
             </Text>
             <View className="flex flex-row flex-wrap justify-between mx-5">
-              {loadingBookings ? (
+              {loadingBookings && membership.length === 0 ? (
                 <Text className="text-base text-slate-500">Loading...</Text>
-              ) : sortedOngoingBookings.length > 0 ? (
-                sortedOngoingBookings.map((item) => (
-                  <BookingCard
-                    key={item.booking_id}
-                    item={item}
-                    showOngoingTag={true}
-                  />
-                ))
-              ) : (
+              ) : sortedOngoingBookings.length === 0 &&
+                membership.length === 0 ? (
                 <Text className="text-base text-slate-500">
                   No Ongoing Class
                 </Text>
+              ) : (
+                <>
+                  {sortedOngoingBookings.map((item) => (
+                    <BookingCard
+                      key={item.booking_id}
+                      item={item}
+                      showOngoingTag={true}
+                    />
+                  ))}
+
+                  {membership.map((item) => (
+                    <MembershipCard key={item.id} item={item} />
+                  ))}
+                </>
               )}
             </View>
 

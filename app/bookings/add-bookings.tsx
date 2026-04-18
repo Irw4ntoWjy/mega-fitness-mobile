@@ -69,6 +69,7 @@ export default function AddBookingModal({
     const res = await getPurchaseCombobox({
       page: 1,
       limit: -1,
+      customer_profile_id: auth.accountDetail.profile_id,
     });
 
     const map: Record<string, ComboboxItem> = {};
@@ -121,12 +122,15 @@ export default function AddBookingModal({
   const fetchTrainerSchedule = async (trainer: string) => {
     const selected = trainerMap[trainer];
     if (!selected) return;
+    const today = new Date();
+    const nextWeek = new Date(Date.now() + 7 * 86400000);
 
     const res = await getTrainerScheduleCombobox({
       trainer_id: (selected.data as any).trainer_profile_id,
       is_booked: false,
-      date_from: new Date().toISOString(),
-      date_to: new Date(Date.now() + 7 * 86400000).toISOString(),
+
+      date_from: today.toISOString().slice(0, 10),
+      date_to: nextWeek.toISOString().slice(0, 10),
     });
 
     const map: Record<string, ComboboxItem> = {};
@@ -146,11 +150,15 @@ export default function AddBookingModal({
   const [selectedSchedule, setSelectedSchedule] = useState<string | null>(null);
 
   const fetchClassSchedule = async (product: string) => {
+    const today = new Date();
+    const nextWeek = new Date(Date.now() + 7 * 86400000);
+
     const res = await getClassScheduleCombobox({
       product_id: product,
       is_full: false,
-      date_from: new Date().toISOString(),
-      date_to: new Date(Date.now() + 7 * 86400000).toISOString(),
+
+      date_from: today.toISOString().slice(0, 10),
+      date_to: nextWeek.toISOString().slice(0, 10),
     });
     console.log({
       date_from: new Date().toISOString(),
@@ -236,7 +244,7 @@ export default function AddBookingModal({
       >
         <Pressable
           onPress={(e) => e.stopPropagation()}
-          className="w-full max-w-md rounded-2xl bg-white p-6 min-h-100 shadow-lg"
+          className="w-full max-w-md rounded-2xl bg-white p-6 min-h-120 shadow-lg"
         >
           <ScrollView showsVerticalScrollIndicator={false}>
             <Text className="mb-6 text-xl font-bold text-slate-900 ">
@@ -317,19 +325,34 @@ export default function AddBookingModal({
                   </Text>
 
                   <View className="flex-row flex-wrap gap-2">
-                    {trainerSchedules.map((item, index) => (
-                      <Pressable
-                        key={`${item} ${index}`}
-                        onPress={() => setSelectedTrainerSchedule(item)}
-                        className={`rounded-full border px-4 py-2 ${
-                          selectedTrainerSchedule === item
-                            ? "border-[#0891B2] bg-[#0891B2]/10"
-                            : "border-slate-300"
-                        }`}
-                      >
-                        <Text className="text-slate-800 flex-warp">{item}</Text>
-                      </Pressable>
-                    ))}
+                    {trainerSchedules.length === 0 && selectedTrainer ? (
+                      <View>
+                        <Text className="text-red-500 text-xl">
+                          No schedule found
+                        </Text>
+                        <Text className="text-red-500">
+                          Please contact admin for more information
+                        </Text>
+                      </View>
+                    ) : (
+                      <View className="flex-row flex-wrap gap-2">
+                        {trainerSchedules.map((item, index) => (
+                          <Pressable
+                            key={`${item} ${index}`}
+                            onPress={() => setSelectedTrainerSchedule(item)}
+                            className={`rounded-full border px-4 py-2 ${
+                              selectedTrainerSchedule === item
+                                ? "border-[#0891B2] bg-[#0891B2]/10"
+                                : "border-slate-300"
+                            }`}
+                          >
+                            <Text className="text-slate-800 flex-warp">
+                              {item}
+                            </Text>
+                          </Pressable>
+                        ))}
+                      </View>
+                    )}
                   </View>
                 </View>
               </>
@@ -343,21 +366,32 @@ export default function AddBookingModal({
                     Schedule
                   </Text>
 
-                  <View className="flex-row flex-wrap gap-2">
-                    {schedules.map((item, index) => (
-                      <Pressable
-                        key={`${item} ${index}`}
-                        onPress={() => setSelectedSchedule(item)}
-                        className={`rounded-full border px-4 py-2 ${
-                          selectedSchedule === item
-                            ? "border-[#0891B2] bg-[#0891B2]/10"
-                            : "border-slate-300"
-                        }`}
-                      >
-                        <Text className="text-slate-800 flex-warp">{item}</Text>
-                      </Pressable>
-                    ))}
-                  </View>
+                  {schedules.length === 0 ? (
+                    <View>
+                      <Text className="text-red-500 text-xl">
+                        No schedule found
+                      </Text>
+                      <Text className="text-red-500">
+                        Please contact admin for more information
+                      </Text>
+                    </View>
+                  ) : (
+                    <View className="flex-row flex-wrap gap-2">
+                      {schedules.map((item, index) => (
+                        <Pressable
+                          key={`${item} ${index}`}
+                          onPress={() => setSelectedSchedule(item)}
+                          className={`rounded-full border px-4 py-2 ${
+                            selectedSchedule === item
+                              ? "border-[#0891B2] bg-[#0891B2]/10"
+                              : "border-slate-300"
+                          }`}
+                        >
+                          <Text className="text-slate-800">{item}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  )}
                 </View>
               </>
             )}

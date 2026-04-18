@@ -21,7 +21,10 @@ export function getBookingList(payload?: BookingListParams) {
   });
 }
 
-export function cancelBooking(payload: { booking_id: string }) {
+export function cancelBooking(payload: {
+  booking_id: string;
+  cancel_reason: string;
+}) {
   return fetcher("/booking/cancel", {
     method: "POST",
     body: payload,

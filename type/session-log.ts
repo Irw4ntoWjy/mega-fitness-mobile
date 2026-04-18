@@ -46,6 +46,15 @@ export type SessionLogHistoryPagination = z.infer<
   typeof sessionLogHistoryPaginationSchema
 >;
 
+export const sessionLogCountSchema = z.object({
+  active_class: z.number(),
+  total_class: z.number(),
+  active_private: z.number(),
+  total_private: z.number(),
+});
+
+export type SessionLogCount = z.infer<typeof sessionLogCountSchema>;
+
 export const trainerSessionLogMemberSchema = z.object({
   session_log_id: z.string(),
   member_profile_id: z.string(),
