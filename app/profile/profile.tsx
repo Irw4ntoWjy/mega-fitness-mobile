@@ -1,3 +1,5 @@
+import { getPurchaseList } from "@/app/api/purchase";
+import { getSessionLogCount } from "@/app/api/session-log";
 import { getWeekRange } from "@/components/dateWeekRange";
 import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
 import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
@@ -9,43 +11,25 @@ import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { useAuth } from "@/hooks/useAuth";
 import { getInitials } from "@/lib/utils";
 import { AccountSchema, TrainerSchedule } from "@/type/profile";
+import type { PurchaseItemSchema } from "@/type/purchase";
+import type { SessionLogCount } from "@/type/session-log";
 import { formatDate } from "@/utils/datetimeFormat";
 import { BackgroundGlow } from "@components/Theme/background";
 import { router } from "expo-router";
-import { Pencil } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Pencil, X } from "lucide-react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { profileDetail } from "../api/profile";
 import { getTrainerScheduleList } from "../api/schedule";
-
-const activePackagesData = {
-  activePackagesSummary: {
-    totalActive: 5,
-    completedSessions: 60,
-    totalSessions: 200,
-  },
-  packages: [
-    {
-      id: "membership-pass",
-      label: "Membership Pass",
-      currentSessions: 5,
-      totalSessions: 100,
-    },
-    {
-      id: "class-pass",
-      label: "Class Pass",
-      currentSessions: 50,
-      totalSessions: 50,
-    },
-    {
-      id: "private-training",
-      label: "Private Training",
-      currentSessions: 5,
-      totalSessions: 50,
-    },
-  ],
-};
 
 const DEFAULT_TIME_AVAILABILITY: TimeAvailabilityData = {
   days: [
@@ -100,6 +84,46 @@ const TRAINER_EXTRA_FIELDS: ProfileFieldConfig[] = [
 
 // day_of_week: 0 = Monday ... 6 = Sunday
 const DAY_KEYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const NEW_WINDOW_DAYS = 7;
+
+function parseBackendDate(value?: string | null) {
+  if (!value) return null;
+
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const [datePart, timePart] = trimmed.split(" ");
+  const [year, month, day] = datePart.split("-").map((n) => Number(n));
+
+  if (!year || !month || !day) return null;
+
+  let hours = 0;
+  let minutes = 0;
+  let seconds = 0;
+
+  if (timePart) {
+    const [h, m, s] = timePart.split(":").map((n) => Number(n));
+    hours = h ?? 0;
+    minutes = m ?? 0;
+    seconds = s ?? 0;
+  }
+
+  const dt = new Date(year, month - 1, day, hours, minutes, seconds);
+  if (Number.isNaN(dt.getTime())) return null;
+  return dt;
+}
+
+function isNewPackage(createdAt?: string | null) {
+  const created = parseBackendDate(createdAt);
+  if (!created) return false;
+
+  const today = new Date();
+  const diffMs = today.getTime() - created.getTime();
+  if (diffMs < 0) return false;
+
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+  return diffDays <= NEW_WINDOW_DAYS;
+}
 
 function mapSchedulesToTimeAvailability(
   schedules: TrainerSchedule[],
@@ -142,6 +166,20 @@ export default function Profile() {
     useState<TimeAvailabilityData>(DEFAULT_TIME_AVAILABILITY);
   const [scheduleLoading, setScheduleLoading] = useState(false);
   const isTrainer = auth?.accountDetail?.account_role === "Trainer";
+  const customerProfileId = isTrainer ? null : auth?.accountDetail?.profile_id ?? null;
+  const [activePackagesTotal, setActivePackagesTotal] = useState(0);
+  const [activePackagesTotalLoading, setActivePackagesTotalLoading] =
+    useState(true);
+  const [sessionLogCount, setSessionLogCount] = useState<SessionLogCount | null>(
+    null,
+  );
+  const [sessionLogCountLoading, setSessionLogCountLoading] = useState(true);
+  const [activePackagesPopupOpen, setActivePackagesPopupOpen] = useState(false);
+  const [activePackagesListLoading, setActivePackagesListLoading] =
+    useState(false);
+  const [activePackagesList, setActivePackagesList] = useState<
+    PurchaseItemSchema[]
+  >([]);
 
   const fetchProfile = async () => {
     try {
@@ -195,6 +233,95 @@ export default function Profile() {
     }
   };
 
+  const fetchActivePackagesTotal = useCallback(async () => {
+    if (isTrainer) return;
+    if (!customerProfileId) return;
+
+    setActivePackagesTotalLoading(true);
+    try {
+      const res = await getPurchaseList({
+        customer_profile_id: customerProfileId,
+        purchase_status_id: "2",
+      });
+
+      if (res.success && res.data) {
+        setActivePackagesTotal(
+          typeof res.data.total === "number"
+            ? res.data.total
+            : (res.data.data ?? []).length,
+        );
+      } else {
+        setActivePackagesTotal(0);
+      }
+    } catch {
+      setActivePackagesTotal(0);
+    } finally {
+      setActivePackagesTotalLoading(false);
+    }
+  }, [customerProfileId, isTrainer]);
+
+  const fetchSessionTotals = useCallback(async () => {
+    if (isTrainer) return;
+    if (!customerProfileId) return;
+
+    setSessionLogCountLoading(true);
+    try {
+      const res = await getSessionLogCount({
+        member_profile_id: customerProfileId,
+      });
+
+      if (res.success && res.data) {
+        const data: any = res.data;
+        setSessionLogCount({
+          active_class: Number(data?.active_class ?? data?.activeClass ?? 0),
+          total_class: Number(data?.total_class ?? data?.totalClass ?? 0),
+          active_private: Number(
+            data?.active_private ?? data?.activePrivate ?? 0,
+          ),
+          total_private: Number(data?.total_private ?? data?.totalPrivate ?? 0),
+        });
+      } else {
+        setSessionLogCount(null);
+      }
+    } catch {
+      setSessionLogCount(null);
+    } finally {
+      setSessionLogCountLoading(false);
+    }
+  }, [customerProfileId, isTrainer]);
+
+  const fetchActivePackagesList = useCallback(async () => {
+    if (isTrainer) return;
+    if (!customerProfileId) return;
+
+    setActivePackagesListLoading(true);
+    try {
+      const res = await getPurchaseList({
+        customer_profile_id: customerProfileId,
+        purchase_status_id: "2",
+      });
+
+      if (res.success && res.data) {
+        setActivePackagesList(res.data.data ?? []);
+      } else {
+        setActivePackagesList([]);
+      }
+    } catch {
+      setActivePackagesList([]);
+    } finally {
+      setActivePackagesListLoading(false);
+    }
+  }, [customerProfileId, isTrainer]);
+
+  const openActivePackagesPopup = useCallback(() => {
+    setActivePackagesPopupOpen(true);
+    fetchActivePackagesList();
+  }, [fetchActivePackagesList]);
+
+  const closeActivePackagesPopup = useCallback(() => {
+    setActivePackagesPopupOpen(false);
+  }, []);
+
   useEffect(() => {
     if (!auth?.accountDetail?.account_id) return;
     fetchProfile();
@@ -205,6 +332,14 @@ export default function Profile() {
     if (!auth?.accountDetail?.account_id) return;
     fetchTrainerSchedule();
   }, [isTrainer, auth?.accountDetail?.account_id]);
+
+  useEffect(() => {
+    if (isTrainer) return;
+    if (!customerProfileId) return;
+
+    fetchActivePackagesTotal();
+    fetchSessionTotals();
+  }, [customerProfileId, fetchActivePackagesTotal, fetchSessionTotals, isTrainer]);
 
   const profileValues: Record<string, string> = {
     name: profile?.profile_name ?? "-",
@@ -233,9 +368,74 @@ export default function Profile() {
   const profileFields = isTrainer
     ? [...BASE_PROFILE_FIELDS, ...TRAINER_EXTRA_FIELDS]
     : BASE_PROFILE_FIELDS;
+  const activeClassSessions = sessionLogCount?.active_class ?? 0;
+  const totalClassSessions = sessionLogCount?.total_class ?? 0;
+  const activePrivateSessions = sessionLogCount?.active_private ?? 0;
+  const totalPrivateSessions = sessionLogCount?.total_private ?? 0;
+  const completedSessions = activeClassSessions + activePrivateSessions;
+  const totalSessions = totalClassSessions + totalPrivateSessions;
+  const packagesForActiveSessionsCard = [
+    {
+      id: "class-pass",
+      label: "Class Pass",
+      currentSessions: activeClassSessions,
+      totalSessions: totalClassSessions,
+    },
+    {
+      id: "private-training",
+      label: "Private Training",
+      currentSessions: activePrivateSessions,
+      totalSessions: totalPrivateSessions,
+    },
+  ];
 
   return (
     <View className="flex-1">
+      <Modal
+        visible={activePackagesPopupOpen}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closeActivePackagesPopup}
+        statusBarTranslucent={true}
+      >
+        <View className="flex-1 bg-[rgba(0,0,0,0.45)]">
+          <View className="flex-1 justify-center px-5">
+            <View className="max-h-[80%] rounded-3xl bg-white p-6">
+              <View className="mb-4 flex-row items-center justify-between">
+                <Text className="text-2xl font-bold text-slate-800">
+                  Active Packages
+                </Text>
+
+                <Pressable
+                  onPress={closeActivePackagesPopup}
+                  className="rounded-full p-4"
+                >
+                  <X size={18} color="black" />
+                </Pressable>
+              </View>
+
+              {activePackagesListLoading ? (
+                <View className="min-h-[220px] items-center justify-center">
+                  <ActivityIndicator size="small" />
+                </View>
+              ) : activePackagesList.length === 0 ? (
+                <View className="min-h-[220px] items-center justify-center">
+                  <Text className="text-gray-500">No active packages.</Text>
+                </View>
+              ) : (
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 8, paddingVertical: 8 }}
+                >
+                  {activePackagesList.map((item) => (
+                    <ActivePackageCard key={item.id} item={item} />
+                  ))}
+                </ScrollView>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
       <BackgroundGlow />
       <HeaderNavBar />
 
@@ -303,10 +503,23 @@ export default function Profile() {
               )}
             </>
           ) : (
-            <ActivePackagesSessionsCard
-              summary={activePackagesData.activePackagesSummary}
-              packages={activePackagesData.packages}
-            />
+            <>
+              {activePackagesTotalLoading || sessionLogCountLoading ? (
+                <View className="items-center justify-center py-8">
+                  <ActivityIndicator size="small" />
+                </View>
+              ) : (
+                <ActivePackagesSessionsCard
+                  summary={{
+                    totalActive: activePackagesTotal,
+                    completedSessions,
+                    totalSessions,
+                  }}
+                  packages={packagesForActiveSessionsCard}
+                  onPress={openActivePackagesPopup}
+                />
+              )}
+            </>
           )}
         </View>
 
@@ -415,5 +628,55 @@ function SectionTitle({
     <Text className={`text-gray-800 text-2xl font-bold ${className}`}>
       {title}
     </Text>
+  );
+}
+
+function ActivePackageCard({ item }: { item: PurchaseItemSchema }) {
+  return (
+    <View className="mb-9 min-w-50 max-w-100">
+      <View className="bg-white rounded-2xl shadow-md relative">
+        <View className="flex flex-row items-center justify-start w-full h-20 rounded-t-2xl overflow-hidden bg-cyan-600 p-4 ">
+          <View className="h-full w-full flex flex-row justify-start items-center">
+            <Text
+              className="text-white font-bold text-lg"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {item.package_name.trim()}
+            </Text>
+          </View>
+        </View>
+
+        <View className="flex-row items-center justify-between px-4 py-4">
+          <View className="flex-1 pr-2">
+            {item.product_type_name ? (
+              <Text className="text-gray-500 text-xs mt-1">
+                {item.product_type_name}
+              </Text>
+            ) : null}
+            {typeof item.package_session_quota === "number" ||
+            typeof item.package_expiry === "number" ? (
+              <Text className="text-gray-500 text-xs mt-0.5">
+                {typeof item.package_session_quota === "number"
+                  ? `Quota: ${item.package_session_quota}`
+                  : null}
+                {typeof item.package_session_quota === "number" &&
+                typeof item.package_expiry === "number"
+                  ? " • "
+                  : null}
+                {typeof item.package_expiry === "number"
+                  ? `Expiry: ${item.package_expiry} days`
+                  : null}
+              </Text>
+            ) : null}
+            {item.package_trainer_name ? (
+              <Text className="text-gray-500 text-xs mt-0.5">
+                Trainer: {item.package_trainer_name}
+              </Text>
+            ) : null}
+          </View>
+        </View>
+      </View>
+    </View>
   );
 }

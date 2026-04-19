@@ -891,83 +891,14 @@ export default function Home() {
     return (
       <View className="mb-9 min-w-50 max-w-100">
         <View className="bg-white rounded-2xl shadow-md relative">
-          <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
-            {item.package_cover_image &&
-            item.package_cover_image !== "null" &&
-            item.package_cover_image !== "" ? (
-              <Image
-                source={{ uri: String(item.package_cover_image) }}
-                className="w-full h-full"
-                resizeMode="cover"
-              />
-            ) : (
-              <View className="w-full h-full bg-black" />
-            )}
-          </View>
-
-          {isNewPackage(item.requested_at) ? (
-            <View
-              style={{
-                position: "absolute",
-                top: 10,
-                right: 10,
-                backgroundColor: "#22C55E",
-                paddingHorizontal: 10,
-                paddingVertical: 5,
-                borderRadius: 10,
-                zIndex: 1000,
-                elevation: 30,
-              }}
-            >
-              <Text
-                style={{
-                  color: "white",
-                  fontSize: 10,
-                  fontWeight: "800",
-                  textTransform: "uppercase",
-                  letterSpacing: 0.8,
-                }}
-              >
-                New
-              </Text>
+          <View className="flex flex-row items-center justify-start w-full h-20 rounded-t-2xl overflow-hidden bg-cyan-600 p-4 ">
+            <View className="h-full w-full flex flex-row justify-start items-center">
+              <Text className="text-white font-bold text-lg" numberOfLines={1} ellipsizeMode="tail">{item.package_name.trim()}</Text>
             </View>
-          ) : null}
-
-          <View
-            style={{
-              position: "absolute",
-              top: -10,
-              left: -5,
-              backgroundColor: "#06B6D4",
-              paddingHorizontal: 12,
-              paddingVertical: 7,
-              borderRadius: 8,
-              zIndex: 1000,
-              elevation: 30,
-            }}
-          >
-            <Text
-              style={{
-                color: "white",
-                fontSize: 10,
-                fontWeight: "700",
-                textTransform: "uppercase",
-                letterSpacing: 0.8,
-              }}
-            >
-              {item.purchase_status_name || "Active"}
-            </Text>
           </View>
 
           <View className="flex-row items-center justify-between px-4 py-4">
             <View className="flex-1 pr-2">
-              <Text
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                className="text-black font-bold text-lg"
-              >
-                {item.package_name.trim()}
-              </Text>
               {item.product_type_name ? (
                 <Text className="text-gray-500 text-xs mt-1">
                   {item.product_type_name}
@@ -1005,44 +936,47 @@ export default function Home() {
       <BackgroundGlow showText={true} />
       <Modal
         visible={activePackagesPopupOpen}
-        transparent={false}
+        transparent={true}
         animationType="fade"
         onRequestClose={closeActivePackagesPopup}
-        presentationStyle="fullScreen"
+        statusBarTranslucent={true}
       >
-        <View className="flex-1 p-8 bg-white">
-          <View className="mb-4 flex-row items-center justify-between">
-            <Text className="text-2xl font-bold text-slate-800">
-              Active Packages
-            </Text>
+        <View className="flex-1 bg-[rgba(0,0,0,0.45)]">
+          <View className="flex-1 justify-center px-5">
+            <View className="max-h-[80%] rounded-3xl bg-white p-6">
+              <View className="mb-4 flex-row items-center justify-between">
+                <Text className="text-2xl font-bold text-slate-800">
+                  Active Packages
+                </Text>
 
-            <Pressable
-              onPress={closeActivePackagesPopup}
-              className="bg-[rgba(0,0,0,0.1)] rounded-full p-4"
-            >
-              <X size={18} color="black" />
-            </Pressable>
+                <Pressable
+                  onPress={closeActivePackagesPopup}
+                  className="rounded-full p-4"
+                >
+                  <X size={18} color="black" />
+                </Pressable>
+              </View>
+
+              {activePackagesListLoading ? (
+                <View className="min-h-[220px] items-center justify-center">
+                  <ActivityIndicator size="small" />
+                </View>
+              ) : activePackagesList.length === 0 ? (
+                <View className="min-h-[220px] items-center justify-center">
+                  <Text className="text-gray-500">No active packages.</Text>
+                </View>
+              ) : (
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 8, paddingVertical: 8 }}
+                >
+                  {activePackagesList.map((item) => (
+                    <ActivePackageCard key={item.id} item={item} />
+                  ))}
+                </ScrollView>
+              )}
+            </View>
           </View>
-
-          {activePackagesListLoading ? (
-            <View className="flex-1 items-center justify-center">
-              <ActivityIndicator size="small" />
-            </View>
-          ) : activePackagesList.length === 0 ? (
-            <View className="flex-1 items-center justify-center">
-              <Text className="text-gray-500">No active packages.</Text>
-            </View>
-          ) : (
-            <ScrollView
-              style={{ flex: 1 }}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24 }}
-            >
-              {activePackagesList.map((item) => (
-                <ActivePackageCard key={item.id} item={item} />
-              ))}
-            </ScrollView>
-          )}
         </View>
       </Modal>
       <View
