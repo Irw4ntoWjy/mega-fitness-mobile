@@ -891,83 +891,14 @@ export default function Home() {
     return (
       <View className="mb-9 min-w-50 max-w-100">
         <View className="bg-white rounded-2xl shadow-md relative">
-          <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
-            {item.package_cover_image &&
-            item.package_cover_image !== "null" &&
-            item.package_cover_image !== "" ? (
-              <Image
-                source={{ uri: String(item.package_cover_image) }}
-                className="w-full h-full"
-                resizeMode="cover"
-              />
-            ) : (
-              <View className="w-full h-full bg-black" />
-            )}
-          </View>
-
-          {isNewPackage(item.requested_at) ? (
-            <View
-              style={{
-                position: "absolute",
-                top: 10,
-                right: 10,
-                backgroundColor: "#22C55E",
-                paddingHorizontal: 10,
-                paddingVertical: 5,
-                borderRadius: 10,
-                zIndex: 1000,
-                elevation: 30,
-              }}
-            >
-              <Text
-                style={{
-                  color: "white",
-                  fontSize: 10,
-                  fontWeight: "800",
-                  textTransform: "uppercase",
-                  letterSpacing: 0.8,
-                }}
-              >
-                New
-              </Text>
+          <View className="flex flex-row items-center justify-start w-full h-20 rounded-t-2xl overflow-hidden bg-cyan-600 p-4 ">
+            <View className="h-full w-full flex flex-row justify-start items-center">
+              <Text className="text-white font-bold text-lg" numberOfLines={1} ellipsizeMode="tail">{item.package_name.trim()}</Text>
             </View>
-          ) : null}
-
-          <View
-            style={{
-              position: "absolute",
-              top: -10,
-              left: -5,
-              backgroundColor: "#06B6D4",
-              paddingHorizontal: 12,
-              paddingVertical: 7,
-              borderRadius: 8,
-              zIndex: 1000,
-              elevation: 30,
-            }}
-          >
-            <Text
-              style={{
-                color: "white",
-                fontSize: 10,
-                fontWeight: "700",
-                textTransform: "uppercase",
-                letterSpacing: 0.8,
-              }}
-            >
-              {item.purchase_status_name || "Active"}
-            </Text>
           </View>
 
           <View className="flex-row items-center justify-between px-4 py-4">
             <View className="flex-1 pr-2">
-              <Text
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                className="text-black font-bold text-lg"
-              >
-                {item.package_name.trim()}
-              </Text>
               {item.product_type_name ? (
                 <Text className="text-gray-500 text-xs mt-1">
                   {item.product_type_name}
