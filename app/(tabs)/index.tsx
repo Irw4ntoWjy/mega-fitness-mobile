@@ -936,44 +936,47 @@ export default function Home() {
       <BackgroundGlow showText={true} />
       <Modal
         visible={activePackagesPopupOpen}
-        transparent={false}
+        transparent={true}
         animationType="fade"
         onRequestClose={closeActivePackagesPopup}
-        presentationStyle="fullScreen"
+        statusBarTranslucent={true}
       >
-        <View className="flex-1 p-8 bg-white">
-          <View className="mb-4 flex-row items-center justify-between">
-            <Text className="text-2xl font-bold text-slate-800">
-              Active Packages
-            </Text>
+        <View className="flex-1 bg-[rgba(0,0,0,0.45)]">
+          <View className="flex-1 justify-center px-5">
+            <View className="max-h-[80%] rounded-3xl bg-white p-6">
+              <View className="mb-4 flex-row items-center justify-between">
+                <Text className="text-2xl font-bold text-slate-800">
+                  Active Packages
+                </Text>
 
-            <Pressable
-              onPress={closeActivePackagesPopup}
-              className="bg-[rgba(0,0,0,0.1)] rounded-full p-4"
-            >
-              <X size={18} color="black" />
-            </Pressable>
+                <Pressable
+                  onPress={closeActivePackagesPopup}
+                  className="rounded-full p-4"
+                >
+                  <X size={18} color="black" />
+                </Pressable>
+              </View>
+
+              {activePackagesListLoading ? (
+                <View className="min-h-[220px] items-center justify-center">
+                  <ActivityIndicator size="small" />
+                </View>
+              ) : activePackagesList.length === 0 ? (
+                <View className="min-h-[220px] items-center justify-center">
+                  <Text className="text-gray-500">No active packages.</Text>
+                </View>
+              ) : (
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 8, paddingVertical: 8 }}
+                >
+                  {activePackagesList.map((item) => (
+                    <ActivePackageCard key={item.id} item={item} />
+                  ))}
+                </ScrollView>
+              )}
+            </View>
           </View>
-
-          {activePackagesListLoading ? (
-            <View className="flex-1 items-center justify-center">
-              <ActivityIndicator size="small" />
-            </View>
-          ) : activePackagesList.length === 0 ? (
-            <View className="flex-1 items-center justify-center">
-              <Text className="text-gray-500">No active packages.</Text>
-            </View>
-          ) : (
-            <ScrollView
-              style={{ flex: 1 }}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 24 }}
-            >
-              {activePackagesList.map((item) => (
-                <ActivePackageCard key={item.id} item={item} />
-              ))}
-            </ScrollView>
-          )}
         </View>
       </Modal>
       <View
