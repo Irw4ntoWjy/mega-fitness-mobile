@@ -18,6 +18,11 @@ const statusConfig = {
     color: "#0891B2",
     label: "Completed",
   },
+  "2": {
+    icon: CheckCircle,
+    color: "#0891B2",
+    label: "Completed",
+  },
   "0": {
     icon: Clock,
     color: "#EAB308",
@@ -30,7 +35,7 @@ const statusConfig = {
   },
 };
 
-type Status = "1" | "0" | "-1";
+type Status = "1" | "0" | "-1" | "2";
 type StatusBadgeProps = {
   status: Status;
 };
