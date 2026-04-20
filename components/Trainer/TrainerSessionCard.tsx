@@ -73,7 +73,17 @@ export function TrainerSessionCard({
       >
         <View className="bg-white rounded-2xl shadow-md relative">
           <View className="w-full h-44 rounded-t-2xl overflow-hidden">
-            <View className="w-full h-full bg-black" />
+            {item.package_cover_image ? (
+              <Image
+                source={{
+                  uri: `${process.env.EXPO_PUBLIC_URL}${item.package_cover_image}`,
+                }}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
+            ) : (
+              <View className="w-full h-full bg-black" />
+            )}
           </View>
           <View
             style={{
