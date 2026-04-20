@@ -2,6 +2,7 @@ import { approveSessionLog } from "@/app/api/session-log";
 import { useToast } from "@/components/Toast/toast-provider";
 import { getInitials } from "@/lib/utils";
 import { TrainerSessionLogHistoryItem } from "@/type/session-log";
+import { router } from "expo-router";
 import { Check } from "lucide-react-native";
 import React, { useState } from "react";
 import { Image, Modal, Pressable, ScrollView, Text, View } from "react-native";
@@ -24,6 +25,7 @@ export function TrainerSessionCard({
     return initial;
   });
   const [loadingApprove, setLoadingApprove] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const { showToast } = useToast();
 
   const statusId = String(item.session_log_status_id);
@@ -207,7 +209,92 @@ export function TrainerSessionCard({
                         </Text>
                       </View>
                     )}
-                    <Text style={{ fontSize: 16 }}>{member.member_name}</Text>
+
+                    <View style={{ flexShrink: 1, flexGrow: 1 }}>
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          flexShrink: 1,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        {member.member_name}
+                      </Text>
+                    </View>
+                    {item.product_type_id === "3" && (
+                      <>
+                        <View style={{ marginLeft: "auto" }}>
+                          <Pressable
+                            onPress={() => {
+                              if (isNavigating) return;
+                              setIsNavigating(true);
+                              const getDurationMinutes = (
+                                start: string,
+                                end: string,
+                              ) => {
+                                const [startH, startM] = start
+                                  .split(":")
+                                  .map(Number);
+                                const [endH, endM] = end.split(":").map(Number);
+                                return Math.max(
+                                  0,
+                                  endH * 60 + endM - (startH * 60 + startM),
+                                );
+                              };
+                              const formatDurationFromMinutes = (
+                                minutes: number,
+                              ) => {
+                                if (minutes <= 0) return "-";
+                                const h = Math.floor(minutes / 60);
+                                const m = minutes % 60;
+                                return h > 0 ? `${h}h ${m}m` : `${m}m`;
+                              };
+                              const sessionDuration = formatDurationFromMinutes(
+                                getDurationMinutes(
+                                  item.time_start,
+                                  item.time_end,
+                                ),
+                              );
+                              let editable = true;
+                              if (item.schedule_date) {
+                                const sessionDate = new Date(
+                                  item.schedule_date,
+                                );
+                                const now = new Date();
+                                sessionDate.setHours(0, 0, 0, 0);
+                                now.setHours(0, 0, 0, 0);
+                                const diffMs =
+                                  now.getTime() - sessionDate.getTime();
+                                const diffDays = diffMs / (1000 * 60 * 60 * 24);
+                                editable = diffDays <= 7 && diffDays >= 0;
+                              }
+                              router.push({
+                                pathname: "/journal/journal",
+                                params: {
+                                  sessionLogId: member.session_log_id,
+                                  sessionDuration,
+                                  editable: editable ? "false" : "true",
+                                },
+                              });
+                              setTimeout(() => setIsNavigating(false), 1000);
+                            }}
+                            style={{ marginLeft: 8 }}
+                          >
+                            <Text
+                              style={{
+                                textDecorationLine: "underline",
+                                color: "#0891B2",
+                                fontSize: 14,
+                                fontWeight: "500",
+                              }}
+                            >
+                              Journal
+                            </Text>
+                          </Pressable>
+                        </View>
+                        ,
+                      </>
+                    )}
                   </Pressable>
                 ))
               )}

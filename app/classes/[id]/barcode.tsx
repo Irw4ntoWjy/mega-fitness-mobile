@@ -14,71 +14,95 @@ import { Pressable, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 
 export default function BarcodePages() {
-  const { id, trainer } = useLocalSearchParams<{
+  const { id, trainer, membership } = useLocalSearchParams<{
     id?: string;
     trainer?: string;
+    membership?: string;
   }>();
 
-  const bookingId = id ?? null;
+  const isMembership = membership === "true";
+  const bookingId = !isMembership ? (id ?? null) : null;
+  const purchaseId = isMembership ? (id ?? null) : null;
   const isTrainer = trainer === "true";
 
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [packageId, setPackageId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isRefreshed, setIsRefreshed] = useState(isTrainer);
+  const [membershipProductName, setMembershipProductName] =
+    useState<string>("-");
 
   useEffect(() => {
-    if (!bookingId) return;
-
-    let cancelled = false;
-    setLoading(true);
-
-    getBookingDetail({ booking_id: bookingId })
-      .then(async (res) => {
-        if (cancelled) return;
-        if (!res.success || !res.data) {
-          setBooking(null);
-          setPackageId(null);
-          return;
-        }
-
-        setBooking(res.data);
-
-        if (
-          res.data.booking_status_id === 2 ||
-          res.data.booking_status_name === "Selesai"
-        ) {
-          setIsRefreshed(true);
-        } else {
-          setIsRefreshed(false);
-        }
-
-        const purchaseId = res.data.purchase_id;
-        if (!purchaseId) {
-          setPackageId(null);
-          return;
-        }
-
-        const purchaseRes = await getPurchaseDetail({
-          purchase_id: purchaseId,
+    if (isMembership) {
+      if (!purchaseId) return;
+      let cancelled = false;
+      setLoading(true);
+      getPurchaseDetail({ purchase_id: purchaseId })
+        .then((res) => {
+          if (cancelled) return;
+          if (res.success && res.data) {
+            setMembershipProductName(res.data.product_name || "-");
+          } else {
+            setMembershipProductName("-");
+          }
+        })
+        .finally(() => {
+          if (cancelled) return;
+          setLoading(false);
         });
-        if (cancelled) return;
-        if (!purchaseRes.success || !purchaseRes.data) {
-          setPackageId(null);
-          return;
-        }
+      return () => {
+        cancelled = true;
+      };
+    } else {
+      if (!bookingId) return;
+      let cancelled = false;
+      setLoading(true);
+      getBookingDetail({ booking_id: bookingId })
+        .then(async (res) => {
+          if (cancelled) return;
+          if (!res.success || !res.data) {
+            setBooking(null);
+            setPackageId(null);
+            return;
+          }
 
-        setPackageId(purchaseRes.data.package_id);
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setLoading(false);
-      });
+          setBooking(res.data);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [bookingId]);
+          if (
+            res.data.booking_status_id === 2 ||
+            res.data.booking_status_name === "Selesai"
+          ) {
+            setIsRefreshed(true);
+          } else {
+            setIsRefreshed(false);
+          }
+
+          const purchaseId = res.data.purchase_id;
+          if (!purchaseId) {
+            setPackageId(null);
+            return;
+          }
+
+          const purchaseRes = await getPurchaseDetail({
+            purchase_id: purchaseId,
+          });
+          if (cancelled) return;
+          if (!purchaseRes.success || !purchaseRes.data) {
+            setPackageId(null);
+            return;
+          }
+
+          setPackageId(purchaseRes.data.package_id);
+        })
+        .finally(() => {
+          if (cancelled) return;
+          setLoading(false);
+        });
+      return () => {
+        cancelled = true;
+      };
+    }
+  }, [bookingId, purchaseId, isMembership]);
 
   const classDetail = booking?.class_schedule_detail;
   const timeRange = `${classDetail?.time_start ?? "-"} - ${classDetail?.time_end ?? "-"}`;
@@ -88,17 +112,19 @@ export default function BarcodePages() {
     if (names.length === 0) return "-";
     return names.join(", ");
   }, [classDetail]);
-  const scheduleTitle = classDetail?.product_name || "-";
+  const scheduleTitle = isMembership
+    ? membershipProductName
+    : classDetail?.product_name || "-";
 
   const qrValue = useMemo(() => {
-    if (!bookingId) {
-      return "";
+    if (isMembership) {
+      if (!purchaseId) return "";
+      return JSON.stringify({ purchase_id: purchaseId });
+    } else {
+      if (!bookingId) return "";
+      return JSON.stringify({ booking_id: bookingId });
     }
-
-    return JSON.stringify({
-      booking_id: bookingId,
-    });
-  }, [bookingId]);
+  }, [isMembership, bookingId, purchaseId]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -160,28 +186,30 @@ export default function BarcodePages() {
             </Text>
           )}
 
-          <View className="mt-2 w-full max-w-[520px] space-y-4">
-            <View className="flex-row items-center">
-              <View className="h-10 w-10 rounded-xl bg-gray-200 items-center justify-center">
-                <Clock size={20} color="#111827" />
+          {!isMembership && (
+            <View className="mt-2 w-full max-w-[520px] space-y-4">
+              <View className="flex-row items-center">
+                <View className="h-10 w-10 rounded-xl bg-gray-200 items-center justify-center">
+                  <Clock size={20} color="#111827" />
+                </View>
+                <Text className="ml-4 text-lg text-gray-800 font-semibold">
+                  {timeRange}
+                </Text>
               </View>
-              <Text className="ml-4 text-lg text-gray-800 font-semibold">
-                {timeRange}
-              </Text>
-            </View>
 
-            <View className="flex-row items-center mt-2">
-              <View className="h-10 w-10 rounded-xl bg-gray-200 items-center justify-center">
-                <UserIcon size={20} color="#111827" />
+              <View className="flex-row items-center mt-2">
+                <View className="h-10 w-10 rounded-xl bg-gray-200 items-center justify-center">
+                  <UserIcon size={20} color="#111827" />
+                </View>
+                <Text className="ml-4 text-lg text-gray-800 font-semibold">
+                  {trainerName}
+                </Text>
               </View>
-              <Text className="ml-4 text-lg text-gray-800 font-semibold">
-                {trainerName}
-              </Text>
             </View>
-          </View>
+          )}
         </View>
         <View className="h-37" />
-        {!isRefreshed && (
+        {!isMembership && !isRefreshed && (
           <View className="bottom-2 left-0 right-0 bg-zinc-100/60 px-[40px] pb-[18px] pt-2">
             <Pressable
               onPress={async () => {

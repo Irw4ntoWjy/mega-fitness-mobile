@@ -27,13 +27,6 @@ import {
   View,
 } from "react-native";
 
-function timeToMinutes(time: string) {
-  const parts = time.split(":");
-  const hours = Number(parts[0] ?? 0);
-  const minutes = Number(parts[1] ?? 0);
-  return hours * 60 + minutes;
-}
-
 function BookingCard({
   item,
   showOngoingTag,
@@ -131,16 +124,19 @@ function MembershipCard({
 }) {
   const statusBg = "#16A34A";
   return (
-    // onPress={() =>
-    //   router.push({
-    //     pathname: "/classes/[id]/barcode",
-    //     params: {
-    //       id: item.,
-    //       trainer: "false",
-    //     },
-    //   })
-    // }
-    <Pressable className="w-[48%] mb-4">
+    <Pressable
+      className="w-[48%] mb-4"
+      onPress={() =>
+        router.push({
+          pathname: "/classes/[id]/barcode",
+          params: {
+            id: item.id,
+            trainer: "false",
+            membership: "true",
+          },
+        })
+      }
+    >
       <View className="bg-white rounded-2xl shadow-md relative">
         <View className="w-full h-44 rounded-t-2xl overflow-hidden">
           {item.package_cover_image ? (
@@ -710,7 +706,7 @@ const Home = () => {
         {isTrainer ? (
           <>
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
-              Today's Sessions
+              Today&apos;s Sessions
             </Text>
             <View className="flex flex-row flex-wrap justify-between mx-5">
               {loadingTrainerSessions ? (

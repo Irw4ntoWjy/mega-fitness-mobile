@@ -11,6 +11,7 @@ import { router } from "expo-router";
 import { ChevronLeft, ChevronRight, Timer } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { getMembershipSessionLogList } from "../api/membership";
 
 type Response = {
   id: string;
@@ -47,6 +48,7 @@ function toHM(value: string) {
 }
 
 function formatTimeRange(startTime: string, endTime: string) {
+  if (!endTime) return toHM(startTime);
   return `${toHM(startTime)} - ${toHM(endTime)}`;
 }
 
@@ -124,12 +126,14 @@ function EventCard({
             </Text>
           </View>
 
-          <View className="bg-white/90 px-3 py-1 rounded-full flex-row items-center gap-1 shadow-sm shadow-neutral-400/50">
-            <Timer size={16} color="black" />
-            <Text className="text-xs font-semibold text-gray-800 leading-none">
-              {durationMinutes} mins
-            </Text>
-          </View>
+          {durationMinutes !== undefined && durationMinutes > 0 && (
+            <View className="bg-white/90 px-3 py-1 rounded-full flex-row items-center gap-1 shadow-sm shadow-neutral-400/50">
+              <Timer size={16} color="black" />
+              <Text className="text-xs font-semibold text-gray-800 leading-none">
+                {durationMinutes} mins
+              </Text>
+            </View>
+          )}
         </View>
       </View>
     </Pressable>
@@ -338,34 +342,59 @@ export default function Profile() {
           });
           setResponse(mapped);
         } else {
-          const res = await getSessionLogHistoryList({
-            page: 1,
-            limit: -1,
-            member_profile_id: profileId,
-            date_from,
-            date_to,
-          });
-          if (!res.success || !res.data) {
-            setResponse([]);
-            return;
+          const [sessionRes, membershipRes] = await Promise.all([
+            getSessionLogHistoryList({
+              page: 1,
+              limit: -1,
+              member_profile_id: profileId,
+              date_from,
+              date_to,
+            }),
+            getMembershipSessionLogList({
+              member_profile_id: profileId,
+              date_from,
+              date_to,
+            }),
+          ]);
+          let mapped: Response[] = [];
+          if (sessionRes.success && sessionRes.data) {
+            mapped = sessionRes.data.data.map((item) => {
+              const productType: SessionLogProductType = item.product_type_name;
+              return {
+                id: item.session_log_id,
+                schedule_date: item.schedule_date,
+                time_start: item.time_start,
+                time_end: item.time_end,
+                title: item.product_name,
+                coach:
+                  item.trainers[0]?.trainer_name?.trim() || "Unknown Trainer",
+                color: getCardColor(productType),
+                durationMinutes: getDurationMinutes(
+                  item.time_start,
+                  item.time_end,
+                ),
+              };
+            });
           }
-          const mapped: Response[] = res.data.data.map((item) => {
-            const productType: SessionLogProductType = item.product_type_name;
-            return {
-              id: item.session_log_id,
-              schedule_date: item.schedule_date,
-              time_start: item.time_start,
-              time_end: item.time_end,
-              title: item.product_name,
-              coach:
-                item.trainers[0]?.trainer_name?.trim() || "Unknown Trainer",
-              color: getCardColor(productType),
-              durationMinutes: getDurationMinutes(
-                item.time_start,
-                item.time_end,
-              ),
-            };
-          });
+          if (
+            membershipRes.success &&
+            membershipRes.data &&
+            membershipRes.data.data
+          ) {
+            const membershipMapped: Response[] = membershipRes.data.data.map(
+              (item: any) => ({
+                id: item.membership_session_log_id,
+                schedule_date: item.time_start.slice(0, 10),
+                time_start: item.time_start.slice(11, 16),
+                time_end: "",
+                title: item.product_name || item.package_name || "Membership",
+                coach: item.member_name || "-",
+                color: "#B5C47A",
+                durationMinutes: 0,
+              }),
+            );
+            mapped = [...mapped, ...membershipMapped];
+          }
           setResponse(mapped);
         }
       } catch (error) {
@@ -402,7 +431,11 @@ export default function Profile() {
   const [isNavigating, setIsNavigating] = useState(false);
 
   const handleEventPress = useCallback(
-    (sessionLogId: string, durationMinutes: number) => {
+    (
+      sessionLogId: string,
+      durationMinutes: number,
+      isMembershipEvent?: boolean,
+    ) => {
       if (auth?.accountDetail?.account_role === "Member") {
         if (isNavigating) return;
         setIsNavigating(true);
@@ -411,6 +444,7 @@ export default function Profile() {
           params: {
             sessionLogId,
             sessionDuration: formatDurationFromMinutes(durationMinutes),
+            ...(isMembershipEvent ? { membership: "true" } : {}),
           },
         });
         setTimeout(() => setIsNavigating(false), 1000);
@@ -522,6 +556,7 @@ export default function Profile() {
                   time: formatTimeRange(ev.time_start, ev.time_end),
                   durationMinutes: ev.durationMinutes,
                   color: ev.color,
+                  isMembership: ev.color === "#B5C47A",
                 }));
 
                 const firstEventHeight = firstEventHeightByDay[dayKey] ?? null;
@@ -544,7 +579,14 @@ export default function Profile() {
                         return { ...prev, [dayKey]: h };
                       })
                     }
-                    onEventPress={handleEventPress}
+                    onEventPress={(id, durationMinutes) => {
+                      const event = cardEvents.find((ev) => ev.id === id);
+                      handleEventPress(
+                        id,
+                        durationMinutes,
+                        event?.isMembership,
+                      );
+                    }}
                   />
                 );
               })}

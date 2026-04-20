@@ -37,11 +37,14 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Journal = () => {
-  const { sessionLogId, sessionDuration, editable } = useLocalSearchParams<{
-    sessionLogId?: string;
-    sessionDuration?: string;
-    editable?: string;
-  }>();
+  const { sessionLogId, sessionDuration, editable, membership } =
+    useLocalSearchParams<{
+      sessionLogId?: string;
+      sessionDuration?: string;
+      editable?: string;
+      membership?: string;
+    }>();
+  const isMembership = membership === "true";
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
 
@@ -694,12 +697,14 @@ const Journal = () => {
                     </Pressable>
                   ) : null}
                 </View>
-                <View className="flex-col items-center">
-                  <Text className="text-2xl">
-                    {activityGroupDuration ?? sessionDuration}
-                  </Text>
-                  <Text className="text-md font-light">Duration</Text>
-                </View>
+                {!isMembership && (
+                  <View className="flex-col items-center">
+                    <Text className="text-2xl">
+                      {activityGroupDuration ?? sessionDuration}
+                    </Text>
+                    <Text className="text-md font-light">Duration</Text>
+                  </View>
+                )}
               </View>
 
               <Pressable
