@@ -18,6 +18,7 @@ export async function getClassScheduleCombobox(payload?: {
   date_to: string;
 }): Promise<{ data: ComboboxItem[] }> {
   const res = await getClassScheduleList(payload);
+  console.log("response", res);
   return {
     data: (res?.data ?? []).map((item) => ({
       label: `${DayOfWeek[item.day_of_week ?? 0]}, ${item.schedule_date} \n(${item.time_start} - ${item.time_end})`,

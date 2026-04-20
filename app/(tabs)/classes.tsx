@@ -1,4 +1,5 @@
 import { getBookingList } from "@/app/api/booking";
+import { getPurchaseList } from "@/app/api/purchase";
 import {
   createTrainerAttendance,
   getTrainerSessionLogHistory,
@@ -14,11 +15,17 @@ import { PurchaseItemSchema } from "@/type/purchase";
 import { TrainerSessionLogHistoryItem } from "@/type/session-log";
 import * as Location from "expo-location";
 import { router } from "expo-router";
-import { LogIn, User } from "lucide-react-native";
+import { LogIn, User, X } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
-import { getPurchaseList } from "../api/purchase";
-import { profile } from "../classes/dummy_data";
+import {
+  ActivityIndicator,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 
 function BookingCard({
   item,
@@ -183,6 +190,56 @@ function MembershipCard({
   );
 }
 
+function ActivePackageCard({ item }: { item: PurchaseItemSchema }) {
+  return (
+    <View className="mb-9 min-w-50 max-w-100">
+      <View className="bg-white rounded-2xl shadow-md relative">
+        <View className="flex flex-row items-center justify-start w-full h-20 rounded-t-2xl overflow-hidden bg-cyan-600 p-4 ">
+          <View className="h-full w-full flex flex-row justify-start items-center">
+            <Text
+              className="text-white font-bold text-lg"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {item.package_name.trim()}
+            </Text>
+          </View>
+        </View>
+
+        <View className="flex-row items-center justify-between px-4 py-4">
+          <View className="flex-1 pr-2">
+            {item.product_type_name ? (
+              <Text className="text-gray-500 text-xs mt-1">
+                {item.product_type_name}
+              </Text>
+            ) : null}
+            {typeof item.package_session_quota === "number" ||
+            typeof item.package_expiry === "number" ? (
+              <Text className="text-gray-500 text-xs mt-0.5">
+                {typeof item.package_session_quota === "number"
+                  ? `Quota: ${item.package_session_quota}`
+                  : null}
+                {typeof item.package_session_quota === "number" &&
+                typeof item.package_expiry === "number"
+                  ? " • "
+                  : null}
+                {typeof item.package_expiry === "number"
+                  ? `Expiry: ${item.package_expiry} days`
+                  : null}
+              </Text>
+            ) : null}
+            {item.package_trainer_name ? (
+              <Text className="text-gray-500 text-xs mt-0.5">
+                Trainer: {item.package_trainer_name}
+              </Text>
+            ) : null}
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 const formatDate = (date: Date) => date.toISOString().slice(0, 10);
 const today = new Date();
 const todayStr = formatDate(today);
@@ -259,6 +316,15 @@ const Home = () => {
   const [ongoingBookings, setOngoingBookings] = useState<BookingSchema[]>([]);
   const [membership, setMembership] = useState<PurchaseItemSchema[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
+  const [activePackagesTotal, setActivePackagesTotal] = useState(0);
+  const [activePackagesTotalLoading, setActivePackagesTotalLoading] =
+    useState(true);
+  const [activePackagesPopupOpen, setActivePackagesPopupOpen] = useState(false);
+  const [activePackagesListLoading, setActivePackagesListLoading] =
+    useState(false);
+  const [activePackagesList, setActivePackagesList] = useState<
+    PurchaseItemSchema[]
+  >([]);
 
   const [todaySessions, setTodaySessions] = useState<
     TrainerSessionLogHistoryItem[]
@@ -290,6 +356,65 @@ const Home = () => {
       console.error(err);
     }
   };
+
+  const fetchActivePackagesTotal = useCallback(async () => {
+    if (isTrainer) return;
+    if (!memberProfileId) return;
+
+    setActivePackagesTotalLoading(true);
+    try {
+      const res = await getPurchaseList({
+        customer_profile_id: memberProfileId,
+        purchase_status_id: "2",
+      });
+
+      if (res.success && res.data) {
+        setActivePackagesTotal(
+          typeof res.data.total === "number"
+            ? res.data.total
+            : (res.data.data ?? []).length,
+        );
+      } else {
+        setActivePackagesTotal(0);
+      }
+    } catch {
+      setActivePackagesTotal(0);
+    } finally {
+      setActivePackagesTotalLoading(false);
+    }
+  }, [isTrainer, memberProfileId]);
+
+  const fetchActivePackagesList = useCallback(async () => {
+    if (isTrainer) return;
+    if (!memberProfileId) return;
+
+    setActivePackagesListLoading(true);
+    try {
+      const res = await getPurchaseList({
+        customer_profile_id: memberProfileId,
+        purchase_status_id: "2",
+      });
+
+      if (res.success && res.data) {
+        setActivePackagesList(res.data.data ?? []);
+      } else {
+        setActivePackagesList([]);
+      }
+    } catch {
+      setActivePackagesList([]);
+    } finally {
+      setActivePackagesListLoading(false);
+    }
+  }, [isTrainer, memberProfileId]);
+
+  const openActivePackagesPopup = useCallback(() => {
+    setActivePackagesPopupOpen(true);
+    fetchActivePackagesList();
+  }, [fetchActivePackagesList]);
+
+  const closeActivePackagesPopup = useCallback(() => {
+    setActivePackagesPopupOpen(false);
+  }, []);
 
   useEffect(() => {
     if (!memberProfileId) return;
@@ -338,6 +463,13 @@ const Home = () => {
       cancelled = true;
     };
   }, [memberProfileId]);
+
+  useEffect(() => {
+    if (isTrainer) return;
+    if (!memberProfileId) return;
+
+    fetchActivePackagesTotal();
+  }, [fetchActivePackagesTotal, isTrainer, memberProfileId]);
 
   const refreshTrainerSessions = useCallback(() => {
     if (!isTrainer || !trainerProfileId) return;
@@ -404,6 +536,51 @@ const Home = () => {
 
   return (
     <View className="flex-1 mb-28">
+      <Modal
+        visible={activePackagesPopupOpen}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closeActivePackagesPopup}
+        statusBarTranslucent={true}
+      >
+        <View className="flex-1 bg-[rgba(0,0,0,0.45)]">
+          <View className="flex-1 justify-center px-5">
+            <View className="max-h-[80%] rounded-3xl bg-white p-6">
+              <View className="mb-4 flex-row items-center justify-between">
+                <Text className="text-2xl font-bold text-slate-800">
+                  Active Packages
+                </Text>
+
+                <Pressable
+                  onPress={closeActivePackagesPopup}
+                  className="rounded-full p-4"
+                >
+                  <X size={18} color="black" />
+                </Pressable>
+              </View>
+
+              {activePackagesListLoading ? (
+                <View className="min-h-[220px] items-center justify-center">
+                  <ActivityIndicator size="small" />
+                </View>
+              ) : activePackagesList.length === 0 ? (
+                <View className="min-h-[220px] items-center justify-center">
+                  <Text className="text-gray-500">No active packages.</Text>
+                </View>
+              ) : (
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 8, paddingVertical: 8 }}
+                >
+                  {activePackagesList.map((item) => (
+                    <ActivePackageCard key={item.id} item={item} />
+                  ))}
+                </ScrollView>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
       <ScrollView>
         <BackgroundGlow showText={true} />
         <View className="flex flex-row justify-between gap-4 items-center mb-4 mt-20 mx-5">
@@ -508,14 +685,21 @@ const Home = () => {
               />
             </>
           ) : (
-            <View className="w-46 h-40 bg-[#FEFEFE] rounded-3xl items-center justify-center shadow-2xl">
+            <Pressable
+              onPress={openActivePackagesPopup}
+              className="w-46 h-40 bg-[#FEFEFE] rounded-3xl items-center justify-center shadow-2xl"
+            >
               <Text className="text-lg font-medium mb-2">Active Packages</Text>
-              <View className="w-20 h-20 rounded-full bg-cyan-600 items-center justify-center">
-                <Text className="text-3xl font-semibold text-white">
-                  {profile.total_activity}
-                </Text>
-              </View>
-            </View>
+              {activePackagesTotalLoading ? (
+                <ActivityIndicator size="small" />
+              ) : (
+                <View className="w-20 h-20 rounded-full bg-cyan-600 items-center justify-center">
+                  <Text className="text-3xl font-semibold text-white">
+                    {activePackagesTotal}
+                  </Text>
+                </View>
+              )}
+            </Pressable>
           )}
         </View>
 
