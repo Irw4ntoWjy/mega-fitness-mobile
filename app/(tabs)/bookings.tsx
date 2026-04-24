@@ -145,6 +145,8 @@ function CancelModal({
   setCancelReason: (val: string) => void;
 }) {
   if (!booking) return null;
+  console.log(booking);
+
   return (
     <Modal
       visible={visible}
@@ -337,10 +339,32 @@ export default function Bookings() {
   const { showToast } = useToast();
   const handleConfirmCancel = async () => {
     if (!selectedBooking) return;
+    const now = new Date();
+    const startTime = new Date(selectedBooking.time_start);
+
+    const diffMs = startTime.getTime() - now.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+
+    if (selectedBooking.schedule_type === "trainer") {
+      if (diffHours < 6) {
+        showToast({
+          message: "Bookings can't be cancelled under 6 hours.",
+          variant: "warning",
+          duration: 2500,
+        });
+      }
+    } else if (selectedBooking.schedule_type === "class") {
+      if (diffHours < 1) {
+        showToast({
+          message: "Bookings can't be cancelled under 1 hours.",
+          variant: "warning",
+          duration: 2500,
+        });
+      }
+    }
 
     try {
       setLoadingCancel(true);
-
       const res = await cancelBooking({
         booking_id: selectedBooking.booking_id,
         cancel_reason: cancelReason,
