@@ -9,8 +9,12 @@ export async function getPurchaseCombobox(payload?: {
 }): Promise<{ data: ComboboxItem[] }> {
   const res = await getPurchaseList(payload);
   const data = res.data;
+  const filteredData = data?.data.filter(
+    (item) => !item.package_name?.toLowerCase().includes("membership"),
+  );
+
   return {
-    data: (data?.data ?? []).map((item) => ({
+    data: (filteredData ?? []).map((item) => ({
       label: `${item.package_name} - ${item.product_name}\nPurchase Date: ${item.requested_at.split(" ")[0]}`,
       value: String(item.id),
       data: item,

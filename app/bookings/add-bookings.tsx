@@ -160,10 +160,6 @@ export default function AddBookingModal({
       date_from: today.toISOString().slice(0, 10),
       date_to: nextWeek.toISOString().slice(0, 10),
     });
-    console.log({
-      date_from: new Date().toISOString(),
-      date_to: new Date(Date.now() + 7 * 86400000).toISOString(),
-    });
     const map: Record<string, ComboboxItem> = {};
 
     res.data.forEach((item) => {
@@ -192,22 +188,25 @@ export default function AddBookingModal({
       } else if (selectedTrainerSchedule) {
         const data = trainerScheduleMap[selectedTrainerSchedule]
           .data as TrainerSchedule;
-        const startTime = new Date(data.time_start);
+        const startTime = new Date(`${data.schedule_date}T${data.time_start}`);
 
         const diffMs = startTime.getTime() - now.getTime();
         const diffHours = diffMs / (1000 * 60 * 60);
+
         if (diffHours >= 12) {
           showToast({
             message: "Bookings can't be created 12 Hours before session.",
             variant: "warning",
             duration: 2500,
           });
+          return;
         } else if (diffHours <= 6) {
           showToast({
             message: "Bookings can't be created 6 Hours before session.",
             variant: "warning",
             duration: 2500,
           });
+          return;
         }
       }
     } else {
@@ -223,7 +222,7 @@ export default function AddBookingModal({
         return;
       }
       const data = scheduleMap[selectedSchedule].data as ScheduleClassSchema;
-      const startTime = new Date(data.time_start!);
+      const startTime = new Date(`${data.schedule_date}T${data.time_start}`);
 
       const diffMs = startTime.getTime() - now.getTime();
       const diffHours = diffMs / (1000 * 60 * 60);
@@ -233,6 +232,7 @@ export default function AddBookingModal({
           variant: "warning",
           duration: 2500,
         });
+        return;
       }
     }
     const selectedPrivateSchedule =
@@ -301,7 +301,6 @@ export default function AddBookingModal({
                   }}
                   onSelect={(label) => {
                     setSelectedPackage(label);
-                    console.log(label, packageMap[label]);
                     setOpenPicker(null);
                     const selected = packageMap[label];
                     if (

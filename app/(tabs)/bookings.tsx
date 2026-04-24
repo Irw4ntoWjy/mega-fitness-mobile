@@ -64,6 +64,7 @@ function TabPill({
 }
 
 function BookingCard({ item, onCancel, showCancel }: any) {
+  console.log(item);
   const renderRightActions = (_progress: any, _dragX: any) => {
     if (!showCancel) return null;
     return (
@@ -123,6 +124,11 @@ function BookingCard({ item, onCancel, showCancel }: any) {
               </View>
             </View>
           </View>
+          {item.cancel_reason && (
+            <Text className="mt-2 text-red-400 mx-1 font-bold">
+              Cancel Reason: {item.cancel_reason}
+            </Text>
+          )}
         </View>
       </Animated.View>
     </ReanimatedSwipeable>
@@ -339,8 +345,19 @@ export default function Bookings() {
   const { showToast } = useToast();
   const handleConfirmCancel = async () => {
     if (!selectedBooking) return;
+
+    if (!cancelReason) {
+      showToast({
+        message: "Reason is Required",
+        variant: "warning",
+        duration: 2500,
+      });
+    }
+
     const now = new Date();
-    const startTime = new Date(selectedBooking.time_start);
+    const startTime = new Date(
+      `${selectedBooking.schedule_date}T${selectedBooking.time_start}`,
+    );
 
     const diffMs = startTime.getTime() - now.getTime();
     const diffHours = diffMs / (1000 * 60 * 60);
