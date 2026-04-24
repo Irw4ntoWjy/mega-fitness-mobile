@@ -2,6 +2,7 @@ import Combobox from "@/components/Combobox/combobox";
 import { useToast } from "@/components/Toast/toast-provider";
 import { useAuth } from "@/hooks/useAuth";
 import { ComboboxItem } from "@/type/combobox";
+import { ScheduleClassSchema, TrainerSchedule } from "@/type/schedule";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
@@ -111,7 +112,6 @@ export default function AddBookingModal({
     setTrainerMap(map);
     setTrainer(res.data.map((item) => item.label));
   };
-
   const [trainerSchedules, setTrainerSchedule] = useState<string[]>([]);
   const [trainerScheduleMap, setTrainerScheduleMap] = useState<
     Record<string, ComboboxItem>
@@ -128,7 +128,6 @@ export default function AddBookingModal({
     const res = await getTrainerScheduleCombobox({
       trainer_id: (selected.data as any).trainer_profile_id,
       is_booked: false,
-
       date_from: today.toISOString().slice(0, 10),
       date_to: nextWeek.toISOString().slice(0, 10),
     });
@@ -140,6 +139,7 @@ export default function AddBookingModal({
     });
 
     setTrainerScheduleMap(map);
+
     setTrainerSchedule(res.data.map((item) => item.label));
   };
 
@@ -179,8 +179,9 @@ export default function AddBookingModal({
   };
 
   const [openPicker, setOpenPicker] = useState<string | null>(null);
-
   const handleSubmit = async () => {
+    const now = new Date();
+
     if (isPrivate) {
       if (!selectedTrainerSchedule || !auth.accountDetail.profile_id) {
         showToast({
@@ -188,6 +189,26 @@ export default function AddBookingModal({
           variant: "error",
         });
         return;
+      } else if (selectedTrainerSchedule) {
+        const data = trainerScheduleMap[selectedTrainerSchedule]
+          .data as TrainerSchedule;
+        const startTime = new Date(data.time_start);
+
+        const diffMs = startTime.getTime() - now.getTime();
+        const diffHours = diffMs / (1000 * 60 * 60);
+        if (diffHours >= 12) {
+          showToast({
+            message: "Bookings can't be created 12 Hours before session.",
+            variant: "warning",
+            duration: 2500,
+          });
+        } else if (diffHours <= 6) {
+          showToast({
+            message: "Bookings can't be created 6 Hours before session.",
+            variant: "warning",
+            duration: 2500,
+          });
+        }
       }
     } else {
       if (
@@ -200,6 +221,18 @@ export default function AddBookingModal({
           variant: "error",
         });
         return;
+      }
+      const data = scheduleMap[selectedSchedule].data as ScheduleClassSchema;
+      const startTime = new Date(data.time_start!);
+
+      const diffMs = startTime.getTime() - now.getTime();
+      const diffHours = diffMs / (1000 * 60 * 60);
+      if (diffHours <= 1) {
+        showToast({
+          message: "Bookings can't be created 1 Hours before class.",
+          variant: "warning",
+          duration: 2500,
+        });
       }
     }
     const selectedPrivateSchedule =
@@ -308,6 +341,7 @@ export default function AddBookingModal({
                         if (!value) {
                           setTrainerSchedule([]);
                           setTrainerScheduleMap({});
+
                           setSelectedTrainer("");
                         }
                         setSelectedTrainer(value);
@@ -339,7 +373,9 @@ export default function AddBookingModal({
                         {trainerSchedules.map((item, index) => (
                           <Pressable
                             key={`${item} ${index}`}
-                            onPress={() => setSelectedTrainerSchedule(item)}
+                            onPress={() => {
+                              setSelectedTrainerSchedule(item);
+                            }}
                             className={`rounded-full border px-4 py-2 ${
                               selectedTrainerSchedule === item
                                 ? "border-[#0891B2] bg-[#0891B2]/10"
