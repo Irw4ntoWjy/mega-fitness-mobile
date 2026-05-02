@@ -40,6 +40,7 @@ export async function update_password(payload: {
 }) {
   return fetcher<LoginResponse>("/account/update-password", {
     body: payload,
+    auth: true,
   });
 }
 

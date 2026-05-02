@@ -1,5 +1,6 @@
 import { BackgroundGlow } from "@/components/Theme/background";
 import { useToast } from "@/components/Toast/toast-provider";
+import { getAuth, logout } from "@/lib/auth-storage";
 import { otpRequestSchema } from "@/type/auth";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Eye, EyeOff } from "lucide-react-native";
@@ -14,7 +15,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { requestOtp, update_password } from "../api/auth";
+import { login, requestOtp, update_password } from "../api/auth";
 // import { resetPassword } from "../api/auth"; // <-- create this API
 
 function InputBox({ children }: { children: React.ReactNode }) {
@@ -27,6 +28,7 @@ function InputBox({ children }: { children: React.ReactNode }) {
 
 export default function ResetPassword() {
   const router = useRouter();
+
   const { showToast } = useToast();
 
   const { email } = useLocalSearchParams<{ email: string }>();
@@ -73,6 +75,8 @@ export default function ResetPassword() {
   }, [email, showToast]);
 
   const handleResetPassword = async () => {
+    const auth = await getAuth();
+
     if (!isFormValid) {
       showToast({
         message: "Semua field harus valid",
@@ -97,6 +101,10 @@ export default function ResetPassword() {
         otp,
         new_password: newPassword,
       };
+      console.log(auth);
+      if (!auth) {
+        await login({ email, password: "Aa123456" });
+      }
 
       const res = await update_password(payload);
 
@@ -112,6 +120,7 @@ export default function ResetPassword() {
         message: "Password berhasil diperbarui",
         variant: "success",
       });
+      await logout();
 
       router.replace("/sign-in");
     } catch (err) {
