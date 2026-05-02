@@ -33,6 +33,16 @@ export async function login(payload: LoginPayload) {
   return loginRes;
 }
 
+export async function update_password(payload: {
+  email: string;
+  otp: string;
+  new_password: string;
+}) {
+  return fetcher<LoginResponse>("/account/update-password", {
+    body: payload,
+  });
+}
+
 export function signUp(payload: SignUpPayload) {
   return fetcher("/auth/sign-up", {
     body: payload,

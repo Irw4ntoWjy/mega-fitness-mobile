@@ -46,6 +46,9 @@ export default function SignUp() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const handleChangeEmail = (text: string) => {
+    setEmail(text.toLowerCase());
+  };
   const [password, setPassword] = useState("");
 
   const [gender, setGender] = useState<Gender>(Gender.Male);
@@ -168,7 +171,7 @@ export default function SignUp() {
                 <TextInput
                   placeholder="Masukkan email"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={handleChangeEmail}
                   autoCapitalize="none"
                   keyboardType="email-address"
                   onBlur={scheduleEmailCheck}

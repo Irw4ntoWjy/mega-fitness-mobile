@@ -28,7 +28,7 @@ export default function SignIn() {
   const router = useRouter();
   const { showToast } = useToast();
 
-  const [email, setEmail] = useState("alexjs@gmail.com");
+  const [email, setEmail] = useState("irwantowidodo0@gmail.com");
   const [password, setPassword] = useState("Aa123456");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,6 +45,18 @@ export default function SignIn() {
 
     try {
       setLoading(true);
+      if (parsed.data.password === "Aa123456") {
+        showToast({
+          message: "Password Mudah ditebak",
+          variant: "error",
+        });
+
+        router.replace({
+          pathname: "/(auth)/update-password",
+          params: { email: parsed.data.email },
+        });
+        return;
+      }
 
       const res = await login(parsed.data);
 
