@@ -23,6 +23,7 @@ export const packageSchema = z.object({
   package_name: z.string(),
   package_description: z.string().nullable(),
   package_tag: z.string().nullable(),
+  show_mobile: z.boolean().optional(),
   package_cover_image: z.string().nullable(),
   product_type_id: z.string(),
   product_type_name: z.string(),

@@ -1,3 +1,4 @@
+import { getCommissionProgress } from "@/app/api/commission";
 import { getPackageList } from "@/app/api/package";
 import { getPurchaseList, getPurchaseReminder } from "@/app/api/purchase";
 import { getSessionLogCount } from "@/app/api/session-log";
@@ -11,6 +12,7 @@ import { checkSession } from "@/lib/auth-session";
 import { getAuth, logout } from "@/lib/auth-storage";
 import { fetcher } from "@/lib/fetcher";
 import { getInitials } from "@/lib/utils";
+import type { CommissionProgressItem } from "@/type/commission";
 import type { PurchaseItemSchema, PurchaseReminder } from "@/type/purchase";
 import type { SessionLogCount } from "@/type/session-log";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -163,6 +165,22 @@ function isNewPackage(createdAt?: string | null) {
   return diffDays <= NEW_WINDOW_DAYS;
 }
 
+function pad2(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function getCurrentMonthRange() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1;
+  const lastDay = new Date(year, month, 0).getDate();
+
+  return {
+    date_from: `${year}-${pad2(month)}-01`,
+    date_to: `${year}-${pad2(month)}-${pad2(lastDay)}`,
+  };
+}
+
 async function fetchAccountDetailByCode(accountCode: string) {
   const endpoint = "/account/detail/code";
   const body = { account_code: accountCode };
@@ -216,6 +234,11 @@ export default function Home() {
   const [purchaseReminders, setPurchaseReminders] = useState<PurchaseReminder[]>(
     [],
   );
+  const [commissionProgressLoading, setCommissionProgressLoading] =
+    useState(false);
+  const [commissionProgress, setCommissionProgress] = useState<
+    CommissionProgressItem[]
+  >([]);
   const [bottomSectionLayout, setBottomSectionLayout] = useState<{
     width: number;
     height: number;
@@ -476,6 +499,37 @@ export default function Home() {
     }
   }, [customerProfileId, isTrainer]);
 
+  const fetchCommissionProgress = useCallback(async () => {
+    if (!isTrainer) {
+      setCommissionProgress([]);
+      return;
+    }
+    if (!customerProfileId) {
+      setCommissionProgress([]);
+      return;
+    }
+
+    setCommissionProgressLoading(true);
+    try {
+      const { date_from, date_to } = getCurrentMonthRange();
+      const res = await getCommissionProgress({
+        trainer_profile_id: customerProfileId,
+        date_from,
+        date_to,
+      });
+
+      if (res.success && res.data) {
+        setCommissionProgress(res.data.commissions_progress ?? []);
+      } else {
+        setCommissionProgress([]);
+      }
+    } catch {
+      setCommissionProgress([]);
+    } finally {
+      setCommissionProgressLoading(false);
+    }
+  }, [customerProfileId, isTrainer]);
+
   const openActivePackagesPopup = useCallback(() => {
     setActivePackagesPopupOpen(true);
     fetchActivePackagesList();
@@ -499,9 +553,11 @@ export default function Home() {
       fetchActivePackagesTotal();
       fetchSessionLogCount();
       fetchPurchaseReminders();
+      fetchCommissionProgress();
     }, [
       customerProfileId,
       fetchActivePackagesTotal,
+      fetchCommissionProgress,
       fetchPurchaseReminders,
       fetchSessionLogCount,
     ]),
@@ -513,9 +569,11 @@ export default function Home() {
     fetchActivePackagesTotal();
     fetchSessionLogCount();
     fetchPurchaseReminders();
+    fetchCommissionProgress();
   }, [
     customerProfileId,
     fetchActivePackagesTotal,
+    fetchCommissionProgress,
     fetchPurchaseReminders,
     fetchSessionLogCount,
     isTrainer,
@@ -1112,7 +1170,19 @@ export default function Home() {
 
                 {isTrainer ? (
                   <View>
-                    <CommisionProgressBar />
+                    {commissionProgressLoading ? (
+                      <View className="py-8 items-center justify-center">
+                        <ActivityIndicator size="small" />
+                      </View>
+                    ) : commissionProgress.length > 0 ? (
+                      <CommisionProgressBar items={commissionProgress} />
+                    ) : (
+                      <View className="py-6 items-center justify-center">
+                        <Text className="text-sm text-gray-500">
+                          No commissions yet.
+                        </Text>
+                      </View>
+                    )}
                   </View>
                 ) : (
                   <View>
