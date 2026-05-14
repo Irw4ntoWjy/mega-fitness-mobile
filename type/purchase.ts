@@ -55,9 +55,9 @@ export type PurchasePagination = z.infer<typeof purchasePaginationSchema>;
 export const purchaseReminderSchema = z.object({
   purchase_id: z.string(),
   package_name: z.string(),
-  time_remaining: z.number().nullable().optional(),
+  activation_date: z.string().nullable().optional(),
   session_remaining: z.number().nullable().optional(),
-  expiry_remaining: z.number().nullable().optional(),
+  expiry_date: z.string().nullable().optional(),
 });
 
 export type PurchaseReminder = z.infer<typeof purchaseReminderSchema>;

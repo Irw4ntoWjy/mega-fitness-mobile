@@ -7,17 +7,30 @@ type WarningCardProps = {
   loading?: boolean;
 };
 
+function parseBackendDate(value?: string | null) {
+  if (!value) return null;
+
+  const normalized = value.trim().replace(" ", "T");
+  const date = new Date(normalized);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function getRemainingDays(value?: string | null) {
+  const date = parseBackendDate(value);
+  if (!date) return null;
+
+  const diffMs = date.getTime() - Date.now();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  return diffDays > 0 ? diffDays : null;
+}
+
 export function WarningCard({ reminders, loading = false }: WarningCardProps) {
   const warningItems = reminders
     .map((item) => {
-      const timeRemaining =
-        typeof item.time_remaining === "number" && item.time_remaining > 0
-          ? item.time_remaining
-          : null;
-      const expiryRemaining =
-        typeof item.expiry_remaining === "number" && item.expiry_remaining > 0
-          ? item.expiry_remaining
-          : null;
+      const timeRemaining = getRemainingDays(item.activation_date);
+      const expiryRemaining = getRemainingDays(item.expiry_date);
 
       const messages: string[] = [];
 

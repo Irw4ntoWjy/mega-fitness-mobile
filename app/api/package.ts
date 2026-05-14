@@ -20,6 +20,16 @@ export function getPackageList(payload?: {
   return fetcher<PackagePagination>("/package/list", {
     body: buildListPayload(payload),
     auth: true,
+  }).then((res) => {
+    if (!res.success || !res.data) return res;
+
+    return {
+      ...res,
+      data: {
+        ...res.data,
+        data: res.data.data.filter((item) => item.show_mobile === true),
+      },
+    };
   });
 }
 
