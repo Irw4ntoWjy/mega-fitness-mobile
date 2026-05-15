@@ -13,18 +13,21 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { getNotificationList } from "../api/notification";
+import { getNotificationList, updateNotification } from "../api/notification";
 
 export default function NotificationPage() {
   const insets = useSafeAreaInsets();
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
+  const [updatingId, setUpdatingId] = useState<number | string | null>(null);
   const { auth, loading: loadingAuth } = useAuth();
 
   useEffect(() => {
+    if (loadingAuth) return;
+    if (!auth?.accountDetail?.profile_id) return;
     fetchNotifications();
-  }, []);
+  }, [loadingAuth, auth?.accountDetail?.profile_id]);
 
   const fetchNotifications = async () => {
     try {
@@ -48,10 +51,38 @@ export default function NotificationPage() {
     }
   };
 
+  const handlePressNotification = async (item: Notification) => {
+    if (item.is_read || updatingId === item.id) return;
+
+    try {
+      setUpdatingId(item.id);
+      const profileId = auth?.accountDetail?.profile_id;
+      if (!profileId) return;
+
+      const response = await updateNotification({
+        notification_id: item.id,
+        profile_id: profileId,
+        title: item.title,
+        body: item.body ?? "",
+        is_read: true,
+      });
+
+      if (response?.success) {
+        await fetchNotifications();
+      }
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const renderItem = ({ item }: { item: Notification }) => {
     return (
       <TouchableOpacity
         activeOpacity={0.7}
+        onPress={() => handlePressNotification(item)}
+        disabled={updatingId === item.id}
         className={`flex-row items-start gap-3 px-4 py-4 ${
           item.is_read ? "bg-white" : "bg-sky-50"
         }`}
@@ -73,6 +104,10 @@ export default function NotificationPage() {
             {new Date(item.created_at).toLocaleString()}
           </Text>
         </View>
+
+        {updatingId === item.id && (
+          <ActivityIndicator size="small" color="#0891B2" />
+        )}
       </TouchableOpacity>
     );
   };

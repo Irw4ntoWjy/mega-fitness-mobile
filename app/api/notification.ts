@@ -15,14 +15,14 @@ export function getNotificationList(payload?: {
 }
 
 export function updateNotification(payload?: {
-  id: number;
+  notification_id: number;
   profile_id: string;
   title: string;
   body: string;
   is_read: boolean;
 }) {
   return fetcher("/notification/update", {
-    body: buildListPayload(payload),
+    body: payload,
     auth: true,
   });
 }
