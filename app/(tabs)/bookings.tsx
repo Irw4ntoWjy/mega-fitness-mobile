@@ -4,9 +4,10 @@ import MemberActionList from "@/components/Trainer/member-action-list";
 import { useAuth } from "@/hooks/useAuth";
 import { BookingSchema } from "@/type/bookings";
 import { TrainerMember } from "@/type/session-log";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { Clock, Contact, UserIcon, X } from "lucide-react-native";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Animated,
   FlatList,
@@ -278,22 +279,27 @@ export default function Bookings() {
     }
   };
 
-  useEffect(() => {
-    if (loadingAuth) return;
-    fetchBookings();
-  }, [loadingAuth, auth]);
+  useFocusEffect(
+    useCallback(() => {
+      if (loadingAuth) return;
+      fetchBookings();
+    }, [loadingAuth, auth]),
+  );
 
-  useEffect(() => {
-    if (auth?.accountDetail?.account_role !== "Trainer") return;
-    if (!auth?.accountDetail?.profile_id) return;
-    setLoadingMembers(true);
-    getTrainerMembers({ trainer_profile_id: auth.accountDetail.profile_id })
-      .then((res) => {
-        setMembers(res.data ?? []);
-      })
-      .catch(() => setMembers([]))
-      .finally(() => setLoadingMembers(false));
-  }, [auth?.accountDetail?.account_role, auth?.accountDetail?.profile_id]);
+  useFocusEffect(
+    useCallback(() => {
+      if (auth?.accountDetail?.account_role !== "Trainer") return;
+      if (!auth?.accountDetail?.profile_id) return;
+
+      setLoadingMembers(true);
+      getTrainerMembers({ trainer_profile_id: auth.accountDetail.profile_id })
+        .then((res) => {
+          setMembers(res.data ?? []);
+        })
+        .catch(() => setMembers([]))
+        .finally(() => setLoadingMembers(false));
+    }, [auth?.accountDetail?.account_role, auth?.accountDetail?.profile_id]),
+  );
 
   const filteredData = useMemo(() => {
     return data.filter((item) =>

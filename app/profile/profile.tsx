@@ -166,13 +166,14 @@ export default function Profile() {
     useState<TimeAvailabilityData>(DEFAULT_TIME_AVAILABILITY);
   const [scheduleLoading, setScheduleLoading] = useState(false);
   const isTrainer = auth?.accountDetail?.account_role === "Trainer";
-  const customerProfileId = isTrainer ? null : auth?.accountDetail?.profile_id ?? null;
+  const customerProfileId = isTrainer
+    ? null
+    : (auth?.accountDetail?.profile_id ?? null);
   const [activePackagesTotal, setActivePackagesTotal] = useState(0);
   const [activePackagesTotalLoading, setActivePackagesTotalLoading] =
     useState(true);
-  const [sessionLogCount, setSessionLogCount] = useState<SessionLogCount | null>(
-    null,
-  );
+  const [sessionLogCount, setSessionLogCount] =
+    useState<SessionLogCount | null>(null);
   const [sessionLogCountLoading, setSessionLogCountLoading] = useState(true);
   const [activePackagesPopupOpen, setActivePackagesPopupOpen] = useState(false);
   const [activePackagesListLoading, setActivePackagesListLoading] =
@@ -246,8 +247,8 @@ export default function Profile() {
 
       if (res.success && res.data) {
         setActivePackagesTotal(
-          typeof res.data.total === "number"
-            ? res.data.total
+          typeof res.data.total_data === "number"
+            ? res.data.total_data
             : (res.data.data ?? []).length,
         );
       } else {
@@ -339,7 +340,12 @@ export default function Profile() {
 
     fetchActivePackagesTotal();
     fetchSessionTotals();
-  }, [customerProfileId, fetchActivePackagesTotal, fetchSessionTotals, isTrainer]);
+  }, [
+    customerProfileId,
+    fetchActivePackagesTotal,
+    fetchSessionTotals,
+    isTrainer,
+  ]);
 
   const profileValues: Record<string, string> = {
     name: profile?.profile_name ?? "-",
@@ -425,7 +431,10 @@ export default function Profile() {
               ) : (
                 <ScrollView
                   showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ paddingHorizontal: 8, paddingVertical: 8 }}
+                  contentContainerStyle={{
+                    paddingHorizontal: 8,
+                    paddingVertical: 8,
+                  }}
                 >
                   {activePackagesList.map((item) => (
                     <ActivePackageCard key={item.id} item={item} />

@@ -13,10 +13,11 @@ import { getDistanceMeters } from "@/lib/utils";
 import { BookingSchema } from "@/type/bookings";
 import { PurchaseItemSchema } from "@/type/purchase";
 import { TrainerSessionLogHistoryItem } from "@/type/session-log";
+import { useFocusEffect } from "@react-navigation/native";
 import * as Location from "expo-location";
 import { router } from "expo-router";
 import { LogIn, User, X } from "lucide-react-native";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -370,8 +371,8 @@ const Home = () => {
 
       if (res.success && res.data) {
         setActivePackagesTotal(
-          typeof res.data.total === "number"
-            ? res.data.total
+          typeof res.data.total_data === "number"
+            ? res.data.total_data
             : (res.data.data ?? []).length,
         );
       } else {
@@ -416,60 +417,71 @@ const Home = () => {
     setActivePackagesPopupOpen(false);
   }, []);
 
-  useEffect(() => {
-    if (!memberProfileId) return;
+  useFocusEffect(
+    useCallback(() => {
+      if (!memberProfileId) return;
 
-    let cancelled = false;
-    setLoadingBookings(true);
+      let cancelled = false;
+      setLoadingBookings(true);
 
-    Promise.all([
-      getBookingList({
-        page: 1,
-        limit: -1,
-        member_profile_id: memberProfileId,
-        is_not_expired: true,
-        booking_status_id: 3,
-      }),
-      getBookingList({
-        page: 1,
-        limit: -1,
-        member_profile_id: memberProfileId,
-        is_not_expired: true,
-        booking_status_id: 4,
-      }),
-    ])
-      .then(([upcomingRes, ongoingRes]) => {
-        if (cancelled) return;
+      Promise.all([
+        getBookingList({
+          page: 1,
+          limit: -1,
+          member_profile_id: memberProfileId,
+          is_not_expired: true,
+          booking_status_id: 3,
+        }),
+        getBookingList({
+          page: 1,
+          limit: -1,
+          member_profile_id: memberProfileId,
+          is_not_expired: true,
+          booking_status_id: 4,
+        }),
+      ])
+        .then(([upcomingRes, ongoingRes]) => {
+          if (cancelled) return;
 
-        setUpcomingBookings(
-          upcomingRes.success && upcomingRes.data
-            ? (upcomingRes.data.data ?? [])
-            : [],
-        );
-        setOngoingBookings(
-          ongoingRes.success && ongoingRes.data
-            ? (ongoingRes.data.data ?? [])
-            : [],
-        );
+          setUpcomingBookings(
+            upcomingRes.success && upcomingRes.data
+              ? (upcomingRes.data.data ?? [])
+              : [],
+          );
+          setOngoingBookings(
+            ongoingRes.success && ongoingRes.data
+              ? (ongoingRes.data.data ?? [])
+              : [],
+          );
 
-        fetchMembershipData({ profileId: memberProfileId });
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setLoadingBookings(false);
-      });
+          fetchMembershipData({ profileId: memberProfileId });
+        })
+        .finally(() => {
+          if (cancelled) return;
+          setLoadingBookings(false);
+        });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [memberProfileId]);
+      return () => {
+        cancelled = true;
+      };
+    }, [memberProfileId]),
+  );
 
-  useEffect(() => {
-    if (isTrainer) return;
-    if (!memberProfileId) return;
+  useFocusEffect(
+    useCallback(() => {
+      if (isTrainer) return;
+      if (!memberProfileId) return;
+    }, [isTrainer, memberProfileId]),
+  );
 
-    fetchActivePackagesTotal();
-  }, [fetchActivePackagesTotal, isTrainer, memberProfileId]);
+  useFocusEffect(
+    useCallback(() => {
+      if (isTrainer) return;
+      if (!memberProfileId) return;
+
+      fetchActivePackagesTotal();
+    }, [fetchActivePackagesTotal, isTrainer, memberProfileId]),
+  );
 
   const refreshTrainerSessions = useCallback(() => {
     if (!isTrainer || !trainerProfileId) return;
@@ -483,22 +495,24 @@ const Home = () => {
     );
   }, [isTrainer, trainerProfileId]);
 
-  useEffect(() => {
-    if (!isTrainer || !trainerProfileId) return;
-    const cancelled = { current: false };
-    fetchTrainerSessions(
-      trainerProfileId,
-      setTodaySessions,
-      setPastSessions,
-      setLoadingTrainerSessions,
-      todayStr,
-      weekAgoStr,
-      cancelled,
-    );
-    return () => {
-      cancelled.current = true;
-    };
-  }, [isTrainer, trainerProfileId]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!isTrainer || !trainerProfileId) return;
+      const cancelled = { current: false };
+      fetchTrainerSessions(
+        trainerProfileId,
+        setTodaySessions,
+        setPastSessions,
+        setLoadingTrainerSessions,
+        todayStr,
+        weekAgoStr,
+        cancelled,
+      );
+      return () => {
+        cancelled.current = true;
+      };
+    }, [isTrainer, trainerProfileId]),
+  );
 
   const classUpcomingBookings = useMemo(
     () => upcomingBookings.filter((b) => b.schedule_type === "class"),
@@ -570,7 +584,10 @@ const Home = () => {
               ) : (
                 <ScrollView
                   showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ paddingHorizontal: 8, paddingVertical: 8 }}
+                  contentContainerStyle={{
+                    paddingHorizontal: 8,
+                    paddingVertical: 8,
+                  }}
                 >
                   {activePackagesList.map((item) => (
                     <ActivePackageCard key={item.id} item={item} />

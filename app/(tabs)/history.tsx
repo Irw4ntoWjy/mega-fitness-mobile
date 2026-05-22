@@ -7,9 +7,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { SessionLogProductType } from "@/type/session-log";
 import { formatDurationFromMinutes } from "@/utils/datetimeFormat";
 import { BackgroundGlow } from "@components/Theme/background";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { ChevronLeft, ChevronRight, Timer } from "lucide-react-native";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { getMembershipSessionLogList } from "../api/membership";
 
@@ -298,117 +299,120 @@ export default function Profile() {
     [selectedDate],
   );
 
-  useEffect(() => {
-    const profileId = auth?.accountDetail?.profile_id;
-    const accountRole = auth?.accountDetail?.account_role;
-    if (!profileId || !accountRole) return;
+  useFocusEffect(
+    useCallback(() => {
+      const profileId = auth?.accountDetail?.profile_id;
+      const accountRole = auth?.accountDetail?.account_role;
+      if (!profileId || !accountRole) return;
 
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth() + 1;
-    const date_from = `${year}-${pad2(month)}-01`;
-    const lastDay = new Date(year, month, 0).getDate();
-    const date_to = `${year}-${pad2(month)}-${pad2(lastDay)}`;
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth() + 1;
+      const date_from = `${year}-${pad2(month)}-01`;
+      const lastDay = new Date(year, month, 0).getDate();
+      const date_to = `${year}-${pad2(month)}-${pad2(lastDay)}`;
 
-    const fetchSessionHistory = async () => {
-      try {
-        if (accountRole === "Trainer") {
-          const res = await getTrainerSessionLogHistory({
-            page: 1,
-            limit: -1,
-            trainer_profile_id: profileId,
-            date_from,
-            date_to,
-          });
-          if (!res.success || !res.data) {
-            setResponse([]);
-            return;
-          }
-          const mapped: Response[] = res.data.data.map((item) => {
-            return {
-              id: item.schedule_id,
-              schedule_date: item.schedule_date,
-              time_start: item.time_start,
-              time_end: item.time_end,
-              title: item.product_name,
-              coach: item.trainer_name?.trim() || "Unknown Trainer",
-              color: getCardColor(
-                item.product_type_name === "Private" ? "Private" : "Class",
-              ),
-              durationMinutes: getDurationMinutes(
-                item.time_start,
-                item.time_end,
-              ),
-            };
-          });
-          setResponse(mapped);
-        } else {
-          const [sessionRes, membershipRes] = await Promise.all([
-            getSessionLogHistoryList({
+      const fetchSessionHistory = async () => {
+        try {
+          if (accountRole === "Trainer") {
+            const res = await getTrainerSessionLogHistory({
               page: 1,
               limit: -1,
-              member_profile_id: profileId,
+              trainer_profile_id: profileId,
               date_from,
               date_to,
-            }),
-            getMembershipSessionLogList({
-              member_profile_id: profileId,
-              date_from,
-              date_to,
-            }),
-          ]);
-          let mapped: Response[] = [];
-          if (sessionRes.success && sessionRes.data) {
-            mapped = sessionRes.data.data.map((item) => {
-              const productType: SessionLogProductType = item.product_type_name;
+            });
+            if (!res.success || !res.data) {
+              setResponse([]);
+              return;
+            }
+            const mapped: Response[] = res.data.data.map((item) => {
               return {
-                id: item.session_log_id,
+                id: item.schedule_id,
                 schedule_date: item.schedule_date,
                 time_start: item.time_start,
                 time_end: item.time_end,
                 title: item.product_name,
-                coach:
-                  item.trainers[0]?.trainer_name?.trim() || "Unknown Trainer",
-                color: getCardColor(productType),
+                coach: item.trainer_name?.trim() || "Unknown Trainer",
+                color: getCardColor(
+                  item.product_type_name === "Private" ? "Private" : "Class",
+                ),
                 durationMinutes: getDurationMinutes(
                   item.time_start,
                   item.time_end,
                 ),
               };
             });
-          }
-          if (
-            membershipRes.success &&
-            membershipRes.data &&
-            membershipRes.data.data
-          ) {
-            const membershipMapped: Response[] = membershipRes.data.data.map(
-              (item: any) => ({
-                id: item.membership_session_log_id,
-                schedule_date: item.time_start.slice(0, 10),
-                time_start: item.time_start.slice(11, 16),
-                time_end: "",
-                title: item.product_name || item.package_name || "Membership",
-                coach: item.member_name || "-",
-                color: "#B5C47A",
-                durationMinutes: 0,
+            setResponse(mapped);
+          } else {
+            const [sessionRes, membershipRes] = await Promise.all([
+              getSessionLogHistoryList({
+                page: 1,
+                limit: -1,
+                member_profile_id: profileId,
+                date_from,
+                date_to,
               }),
-            );
-            mapped = [...mapped, ...membershipMapped];
+              getMembershipSessionLogList({
+                member_profile_id: profileId,
+                date_from,
+                date_to,
+              }),
+            ]);
+            let mapped: Response[] = [];
+            if (sessionRes.success && sessionRes.data) {
+              mapped = sessionRes.data.data.map((item) => {
+                const productType: SessionLogProductType =
+                  item.product_type_name;
+                return {
+                  id: item.session_log_id,
+                  schedule_date: item.schedule_date,
+                  time_start: item.time_start,
+                  time_end: item.time_end,
+                  title: item.product_name,
+                  coach:
+                    item.trainers[0]?.trainer_name?.trim() || "Unknown Trainer",
+                  color: getCardColor(productType),
+                  durationMinutes: getDurationMinutes(
+                    item.time_start,
+                    item.time_end,
+                  ),
+                };
+              });
+            }
+            if (
+              membershipRes.success &&
+              membershipRes.data &&
+              membershipRes.data.data
+            ) {
+              const membershipMapped: Response[] = membershipRes.data.data.map(
+                (item: any) => ({
+                  id: item.membership_session_log_id,
+                  schedule_date: item.time_start.slice(0, 10),
+                  time_start: item.time_start.slice(11, 16),
+                  time_end: "",
+                  title: item.product_name || item.package_name || "Membership",
+                  coach: item.member_name || "-",
+                  color: "#B5C47A",
+                  durationMinutes: 0,
+                }),
+              );
+              mapped = [...mapped, ...membershipMapped];
+            }
+            setResponse(mapped);
           }
-          setResponse(mapped);
+        } catch (error) {
+          console.error(error);
+          setResponse([]);
         }
-      } catch (error) {
-        console.error(error);
-        setResponse([]);
-      }
-    };
+      };
 
-    fetchSessionHistory();
-  }, [
-    auth?.accountDetail?.profile_id,
-    auth?.accountDetail?.account_role,
-    selectedDate,
-  ]);
+      fetchSessionHistory();
+    }, [
+      auth?.accountDetail?.profile_id,
+      auth?.accountDetail?.account_role,
+      selectedDate,
+    ]),
+  );
 
   const sessionsByDay = useMemo(() => {
     const grouped: Record<string, Response[]> = {};

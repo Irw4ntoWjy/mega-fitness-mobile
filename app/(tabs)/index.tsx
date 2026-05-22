@@ -4,7 +4,7 @@ import { getPurchaseList, getPurchaseReminder } from "@/app/api/purchase";
 import { getSessionLogCount } from "@/app/api/session-log";
 import { WarningCard } from "@/components/Member/warning-card";
 import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
-import { TimeAvailabilityData } from "@/components/Profile/time-availability";
+// import { TimeAvailabilityData } from "@/components/Profile/time-availability";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { CommisionProgressBar } from "@/components/Trainer/commision-progress-bar";
@@ -15,9 +15,10 @@ import { getInitials } from "@/lib/utils";
 import type { CommissionProgressItem } from "@/type/commission";
 import type { PurchaseItemSchema, PurchaseReminder } from "@/type/purchase";
 import type { SessionLogCount } from "@/type/session-log";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { ArrowRight, Bell, HelpCircle, LogOut, X } from "lucide-react-native";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import {
   ActivityIndicator,
@@ -26,7 +27,7 @@ import {
   Pressable,
   ScrollView,
   Text,
-  useWindowDimensions,
+  // useWindowDimensions,
   View,
 } from "react-native";
 import { CopilotStep, useCopilot, walkthroughable } from "react-native-copilot";
@@ -34,53 +35,53 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const WalkableView = walkthroughable(View);
 
-const activePackagesData = {
-  activePackagesSummary: {
-    totalActive: 0,
-    completedSessions: 0,
-    totalSessions: 0,
-  },
-  packages: [
-    {
-      id: "class-pass",
-      label: "Class Pass",
-      currentSessions: 0,
-      totalSessions: 0,
-    },
-    {
-      id: "private-training",
-      label: "Private Training",
-      currentSessions: 0,
-      totalSessions: 0,
-    },
-  ],
-};
+// const activePackagesData = {
+//   activePackagesSummary: {
+//     totalActive: 0,
+//     completedSessions: 0,
+//     totalSessions: 0,
+//   },
+//   packages: [
+//     {
+//       id: "class-pass",
+//       label: "Class Pass",
+//       currentSessions: 0,
+//       totalSessions: 0,
+//     },
+//     {
+//       id: "private-training",
+//       label: "Private Training",
+//       currentSessions: 0,
+//       totalSessions: 0,
+//     },
+//   ],
+// };
 
-const timeAvailabilityData: TimeAvailabilityData = {
-  days: [
-    { key: "Sun", label: "Sun" },
-    { key: "Mon", label: "Mon" },
-    { key: "Tue", label: "Tue" },
-    { key: "Wed", label: "Wed" },
-    { key: "Thu", label: "Thu" },
-    { key: "Fri", label: "Fri" },
-    { key: "Sat", label: "Sat" },
-  ],
-  slotsByDay: {
-    Sun: [
-      { id: "sun-1", label: "12.00 PM - 04.00 PM" },
-      { id: "sun-2", label: "12.00 PM - 04.00 PM" },
-      { id: "sun-3", label: "12.00 PM - 04.00 PM" },
-      { id: "sun-4", label: "12.00 PM - 04.00 PM" },
-    ],
-    Mon: [],
-    Tue: [],
-    Wed: [],
-    Thu: [],
-    Fri: [],
-    Sat: [],
-  },
-};
+// const timeAvailabilityData: TimeAvailabilityData = {
+//   days: [
+//     { key: "Sun", label: "Sun" },
+//     { key: "Mon", label: "Mon" },
+//     { key: "Tue", label: "Tue" },
+//     { key: "Wed", label: "Wed" },
+//     { key: "Thu", label: "Thu" },
+//     { key: "Fri", label: "Fri" },
+//     { key: "Sat", label: "Sat" },
+//   ],
+//   slotsByDay: {
+//     Sun: [
+//       { id: "sun-1", label: "12.00 PM - 04.00 PM" },
+//       { id: "sun-2", label: "12.00 PM - 04.00 PM" },
+//       { id: "sun-3", label: "12.00 PM - 04.00 PM" },
+//       { id: "sun-4", label: "12.00 PM - 04.00 PM" },
+//     ],
+//     Mon: [],
+//     Tue: [],
+//     Wed: [],
+//     Thu: [],
+//     Fri: [],
+//     Sat: [],
+//   },
+// };
 
 const HERO_H = 76;
 
@@ -202,9 +203,9 @@ async function fetchAccountDetailByCode(accountCode: string) {
 export default function Home() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const window = useWindowDimensions();
+  // const window = useWindowDimensions();
   const [loading, setLoading] = useState(true);
-  const [openNotification, setOpenNotification] = useState(false);
+  // const [openNotification, setOpenNotification] = useState(false);
   const [buyPackagesData, setBuyPackagesData] = useState<any[]>([]);
   const [promotionsData, setPromotionsData] = useState<any[]>([]);
   const [specialClassData, setSpecialClassData] = useState<any[]>([]);
@@ -215,13 +216,14 @@ export default function Home() {
     null,
   );
   const [accountRole, setAccountRole] = useState("Member");
-  const [customerProfileId, setCustomerProfileId] = useState<string | null>(null);
+  const [customerProfileId, setCustomerProfileId] = useState<string | null>(
+    null,
+  );
   const [activePackagesTotal, setActivePackagesTotal] = useState(0);
   const [activePackagesTotalLoading, setActivePackagesTotalLoading] =
     useState(true);
-  const [sessionLogCount, setSessionLogCount] = useState<SessionLogCount | null>(
-    null,
-  );
+  const [sessionLogCount, setSessionLogCount] =
+    useState<SessionLogCount | null>(null);
   const [sessionLogCountLoading, setSessionLogCountLoading] = useState(true);
   const [activePackagesPopupOpen, setActivePackagesPopupOpen] = useState(false);
   const [activePackagesListLoading, setActivePackagesListLoading] =
@@ -231,9 +233,9 @@ export default function Home() {
   >([]);
   const [purchaseRemindersLoading, setPurchaseRemindersLoading] =
     useState(false);
-  const [purchaseReminders, setPurchaseReminders] = useState<PurchaseReminder[]>(
-    [],
-  );
+  const [purchaseReminders, setPurchaseReminders] = useState<
+    PurchaseReminder[]
+  >([]);
   const [commissionProgressLoading, setCommissionProgressLoading] =
     useState(false);
   const [commissionProgress, setCommissionProgress] = useState<
@@ -284,40 +286,44 @@ export default function Home() {
     setProfileLoading(false);
   }, []);
 
-  useEffect(() => {
-    const guard = async () => {
-      const authenticated = await checkSession();
+  useFocusEffect(
+    useCallback(() => {
+      const guard = async () => {
+        const authenticated = await checkSession();
 
-      if (!authenticated) {
-        router.replace("/(auth)/sign-in");
-        return;
-      }
-
-      setLoading(false);
-      await loadAccountDetail();
-    };
-
-    guard();
-  }, [loadAccountDetail, router]);
-
-  useEffect(() => {
-    if (!isTrainer) {
-      const checkNewUser = async () => {
-        const auth = await getAuth();
-        if (!auth?.accountDetail?.created_at) return;
-
-        const createdAt = new Date(auth.accountDetail.created_at);
-        const now = new Date();
-        const diffInHours =
-          (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
-
-        if (diffInHours <= 1) {
-          setTimeout(() => start(), 500);
+        if (!authenticated) {
+          router.replace("/(auth)/sign-in");
+          return;
         }
+
+        setLoading(false);
+        await loadAccountDetail();
       };
-      checkNewUser();
-    }
-  }, []);
+
+      guard();
+    }, [loadAccountDetail, router]),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!isTrainer) {
+        const checkNewUser = async () => {
+          const auth = await getAuth();
+          if (!auth?.accountDetail?.created_at) return;
+
+          const createdAt = new Date(auth.accountDetail.created_at);
+          const now = new Date();
+          const diffInHours =
+            (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+
+          if (diffInHours <= 1) {
+            setTimeout(() => start(), 500);
+          }
+        };
+        checkNewUser();
+      }
+    }, []),
+  );
 
   const fetchBuyPackages = useCallback(async () => {
     try {
@@ -382,9 +388,11 @@ export default function Home() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchBuyPackages();
-  }, [fetchBuyPackages]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchBuyPackages();
+    }, [fetchBuyPackages]),
+  );
 
   const fetchActivePackagesTotal = useCallback(async () => {
     if (isTrainer) return;
@@ -441,9 +449,7 @@ export default function Home() {
           active_private: Number(
             data?.active_private ?? data?.activePrivate ?? 0,
           ),
-          total_private: Number(
-            data?.total_private ?? data?.totalPrivate ?? 0,
-          ),
+          total_private: Number(data?.total_private ?? data?.totalPrivate ?? 0),
         };
         setSessionLogCount(normalized);
       } else {
@@ -563,21 +569,23 @@ export default function Home() {
     ]),
   );
 
-  useEffect(() => {
-    if (isTrainer) return;
-    if (!customerProfileId) return;
-    fetchActivePackagesTotal();
-    fetchSessionLogCount();
-    fetchPurchaseReminders();
-    fetchCommissionProgress();
-  }, [
-    customerProfileId,
-    fetchActivePackagesTotal,
-    fetchCommissionProgress,
-    fetchPurchaseReminders,
-    fetchSessionLogCount,
-    isTrainer,
-  ]);
+  useFocusEffect(
+    useCallback(() => {
+      if (isTrainer) return;
+      if (!customerProfileId) return;
+      fetchActivePackagesTotal();
+      fetchSessionLogCount();
+      fetchPurchaseReminders();
+      fetchCommissionProgress();
+    }, [
+      customerProfileId,
+      fetchActivePackagesTotal,
+      fetchCommissionProgress,
+      fetchPurchaseReminders,
+      fetchSessionLogCount,
+      isTrainer,
+    ]),
+  );
 
   const scrollRef = useRef<ScrollView>(null);
   const stepPositions = useRef<Record<string, number>>({});
@@ -951,7 +959,13 @@ export default function Home() {
         <View className="bg-white rounded-2xl shadow-md relative">
           <View className="flex flex-row items-center justify-start w-full h-20 rounded-t-2xl overflow-hidden bg-cyan-600 p-4 ">
             <View className="h-full w-full flex flex-row justify-start items-center">
-              <Text className="text-white font-bold text-lg" numberOfLines={1} ellipsizeMode="tail">{item.package_name.trim()}</Text>
+              <Text
+                className="text-white font-bold text-lg"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.package_name.trim()}
+              </Text>
             </View>
           </View>
 
@@ -1026,7 +1040,10 @@ export default function Home() {
               ) : (
                 <ScrollView
                   showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ paddingHorizontal: 8, paddingVertical: 8 }}
+                  contentContainerStyle={{
+                    paddingHorizontal: 8,
+                    paddingVertical: 8,
+                  }}
                 >
                   {activePackagesList.map((item) => (
                     <ActivePackageCard key={item.id} item={item} />

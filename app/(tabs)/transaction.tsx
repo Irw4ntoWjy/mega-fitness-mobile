@@ -4,9 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { getInitials } from "@/lib/utils";
 import { PurchaseItemSchema } from "@/type/purchase";
 import { formatDurationFromMinutes } from "@/utils/datetimeFormat";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { CheckCircle, Clock, XCircle } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { FlatList, Image, Pressable, Text, View } from "react-native";
 import { getPurchaseList } from "../api/purchase";
 import { getTrainerSessionLogHistory } from "../api/session-log";
@@ -150,48 +151,53 @@ export default function Transactions() {
   const [sessionLogs, setSessionLogs] = useState<any[]>([]);
   const [loadingSessionLogs, setLoadingSessionLogs] = useState(false);
 
-  useEffect(() => {
-    if (loadingAuth) return;
+  useFocusEffect(
+    useCallback(() => {
+      if (loadingAuth) return;
 
-    const profileId = auth?.accountDetail?.profile_id;
-    if (!profileId) return;
+      const profileId = auth?.accountDetail?.profile_id;
+      if (!profileId) return;
 
-    if (auth?.accountDetail?.account_role !== "Trainer") {
-      const fetchData = async () => {
-        try {
-          setLoading(true);
-          const res = await getPurchaseList({
-            customer_profile_id: profileId,
-          });
-          const data = res.data;
-          if (data) setData(data.data ?? []);
-        } catch (err) {
-          console.error(err);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchData();
-    }
-  }, [loadingAuth, auth]);
+      if (auth?.accountDetail?.account_role !== "Trainer") {
+        const fetchData = async () => {
+          try {
+            setLoading(true);
+            const res = await getPurchaseList({
+              customer_profile_id: profileId,
+            });
+            const data = res.data;
+            if (data) setData(data.data ?? []);
+          } catch (err) {
+            console.error(err);
+          } finally {
+            setLoading(false);
+          }
+        };
+        fetchData();
+      }
+    }, [loadingAuth, auth]),
+  );
 
-  useEffect(() => {
-    if (loadingAuth) return;
-    if (auth?.accountDetail?.account_role !== "Trainer") return;
-    if (!auth?.accountDetail?.profile_id) return;
-    setLoadingSessionLogs(true);
-    getTrainerSessionLogHistory({
-      page: 1,
-      limit: 100,
-      trainer_profile_id: auth.accountDetail.profile_id,
-      product_type_id: "3",
-    })
-      .then((res) => {
-        setSessionLogs(res?.data?.data ?? []);
+  useFocusEffect(
+    useCallback(() => {
+      if (loadingAuth) return;
+      if (auth?.accountDetail?.account_role !== "Trainer") return;
+      if (!auth?.accountDetail?.profile_id) return;
+
+      setLoadingSessionLogs(true);
+      getTrainerSessionLogHistory({
+        page: 1,
+        limit: 100,
+        trainer_profile_id: auth.accountDetail.profile_id,
+        product_type_id: "3",
       })
-      .catch(() => setSessionLogs([]))
-      .finally(() => setLoadingSessionLogs(false));
-  }, [loadingAuth, auth]);
+        .then((res) => {
+          setSessionLogs(res?.data?.data ?? []);
+        })
+        .catch(() => setSessionLogs([]))
+        .finally(() => setLoadingSessionLogs(false));
+    }, [loadingAuth, auth]),
+  );
 
   const filteredData =
     tab === "All"
