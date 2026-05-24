@@ -13,8 +13,16 @@ export const bookingSchema = z.object({
 
   schedule_date: z.string(),
 
-  trainer_id: z.string().optional(),
-  trainer_name: z.string().optional(),
+  // trainer_id: z.string().optional(),
+  // trainer_name: z.string().optional(),
+
+  trainers: z.array(
+    z.object({
+      trainer_id: z.string(),
+      trainer_name: z.string(),
+      trainer_picture_url: z.string().optional(),
+    }),
+  ),
 
   product_name: z.string(),
   location: z.string().optional(),
@@ -76,7 +84,6 @@ export const bookingDetailSchema = z.object({
       deleted_at: z.string().optional(),
       deleted_by: z.string().optional(),
     })
-    .optional()
     .optional(),
 
   trainer_schedule_detail: z
@@ -96,7 +103,6 @@ export const bookingDetailSchema = z.object({
       deleted_at: z.string().optional(),
       deleted_by: z.string().optional(),
     })
-    .optional()
     .optional(),
 
   member_profile_id: z.string(),

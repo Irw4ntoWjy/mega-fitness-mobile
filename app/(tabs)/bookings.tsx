@@ -65,7 +65,7 @@ function TabPill({
 }
 
 function BookingCard({ item, onCancel, showCancel }: any) {
-  console.log(item);
+  // console.log(item);
   const renderRightActions = (_progress: any, _dragX: any) => {
     if (!showCancel) return null;
     return (
@@ -119,7 +119,11 @@ function BookingCard({ item, onCancel, showCancel }: any) {
                 <View className="flex-row items-center">
                   <UserIcon size={12} color="#111827" />
                   <Text className="ml-1.5 font-semibold text-slate-900">
-                    {item.trainer_name ?? "-"}
+                    {item.trainers && item.trainers.length > 0
+                      ? item.trainers
+                          .map((t: { trainer_name: string }) => t.trainer_name)
+                          .join(", ")
+                      : "-"}
                   </Text>
                 </View>
               </View>
@@ -205,7 +209,9 @@ function CancelModal({
                 <View className="mt-1 flex-row items-center gap-3">
                   <Contact size={22} color="#111" />
                   <Text className="text-xl text-gray-900">
-                    {booking.trainer_name ?? "-"}
+                    {booking.trainers && booking.trainers.length > 0
+                      ? booking.trainers.map((t) => t.trainer_name).join(", ")
+                      : "-"}
                   </Text>
                 </View>
 

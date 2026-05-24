@@ -105,16 +105,34 @@ export default function BarcodePages() {
   }, [bookingId, purchaseId, isMembership]);
 
   const classDetail = booking?.class_schedule_detail;
-  const timeRange = `${classDetail?.time_start ?? "-"} - ${classDetail?.time_end ?? "-"}`;
+  const trainerScheduleDetail = booking?.trainer_schedule_detail;
+  const classTimeStart = classDetail?.time_start?.trim();
+  const classTimeEnd = classDetail?.time_end?.trim();
+  const trainerTimeStart = trainerScheduleDetail?.time_start?.trim();
+  const trainerTimeEnd = trainerScheduleDetail?.time_end?.trim();
+  const timeRange =
+    classTimeStart && classTimeEnd
+      ? `${classTimeStart} - ${classTimeEnd}`
+      : trainerTimeStart && trainerTimeEnd
+        ? `${trainerTimeStart} - ${trainerTimeEnd}`
+        : "-";
   const trainerName = useMemo(() => {
-    const names =
-      classDetail?.trainers?.map((t) => t.trainer_profile_name) || [];
-    if (names.length === 0) return "-";
-    return names.join(", ");
-  }, [classDetail]);
+    const classTrainerNames =
+      classDetail?.trainers?.map(
+        (t: { trainer_profile_name: string }) => t.trainer_profile_name,
+      ) || [];
+    const trainerScheduleName = booking?.trainer_schedule_detail?.trainer_name;
+    if (classTrainerNames.length > 0) {
+      return classTrainerNames.join(", ");
+    } else if (trainerScheduleName) {
+      return trainerScheduleName;
+    } else {
+      return "-";
+    }
+  }, [classDetail, booking]);
   const scheduleTitle = isMembership
     ? membershipProductName
-    : classDetail?.product_name || "-";
+    : classDetail?.product_name || booking?.booking_name || "-";
 
   const qrValue = useMemo(() => {
     if (isMembership) {

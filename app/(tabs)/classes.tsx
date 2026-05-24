@@ -107,7 +107,9 @@ function BookingCard({
               {item.schedule_date} • {item.time_start} - {item.time_end}
             </Text>
             <Text className="text-black text-xs mt-1">
-              {item.trainer_name ?? "-"}
+              {item.trainers && item.trainers.length > 0
+                ? item.trainers.map((t) => t.trainer_name).join(", ")
+                : "-"}
             </Text>
           </View>
         </View>
@@ -515,12 +517,18 @@ const Home = () => {
   );
 
   const classUpcomingBookings = useMemo(
-    () => upcomingBookings.filter((b) => b.schedule_type === "class"),
+    () =>
+      upcomingBookings.filter(
+        (b) => b.schedule_type === "class" || b.schedule_type === "trainer",
+      ),
     [upcomingBookings],
   );
 
   const classOngoingBookings = useMemo(
-    () => ongoingBookings.filter((b) => b.schedule_type === "class"),
+    () =>
+      ongoingBookings.filter(
+        (b) => b.schedule_type === "class" || b.schedule_type === "trainer",
+      ),
     [ongoingBookings],
   );
 
