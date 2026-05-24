@@ -67,6 +67,10 @@ export default function EditProfile() {
     address: "",
     birth_date: new Date(),
     gender: "",
+    instagram: "",
+    whatsapp: "",
+    tiktok: "",
+    facebook: "",
   });
   const { auth, loading: loadingAuth } = useAuth();
 
@@ -102,6 +106,10 @@ export default function EditProfile() {
           address: data.address ?? "",
           birth_date: resolveDate(data.birth_date, new Date()),
           gender: data.gender ?? "",
+          instagram: data.member_detail?.instagram ?? "",
+          whatsapp: data.member_detail?.whatsapp ?? "",
+          tiktok: data.member_detail?.tiktok ?? "",
+          facebook: data.member_detail?.facebook ?? "",
         });
       } catch (err) {
         console.error("Failed to fetch profile:", err);
@@ -174,6 +182,9 @@ export default function EditProfile() {
           contentContainerStyle={{ paddingBottom: insets.bottom }}
           showsVerticalScrollIndicator={false}
         >
+          <Text className={`text-gray-800 text-2xl font-bold my-2`}>
+            Your Info
+          </Text>
           {/* Full Name */}
           <View className="mb-4">
             <Label>Full Name</Label>
@@ -267,6 +278,64 @@ export default function EditProfile() {
               </View>
             )}
           </View>
+
+          {!isTrainer && (
+            <>
+              <Text className={`text-gray-800 text-2xl font-bold my-2`}>
+                Social Media
+              </Text>
+              <View className="mb-4">
+                <Label>Instagram</Label>
+                <InputBox>
+                  <TextInput
+                    value={form.instagram}
+                    placeholder="@username"
+                    onChangeText={(v) => setForm({ ...form, instagram: v })}
+                    className="text-gray-900 w-full py-3"
+                  />
+                </InputBox>
+              </View>
+
+              <View className="mb-4">
+                <Label>WhatsApp</Label>
+                <InputBox>
+                  <TextInput
+                    value={form.whatsapp}
+                    placeholder="08xxxxxxxxxx"
+                    onChangeText={(v) =>
+                      setForm({ ...form, whatsapp: v.replace(/[^0-9]/g, "") })
+                    }
+                    keyboardType="numeric"
+                    className="text-gray-900 w-full py-3"
+                  />
+                </InputBox>
+              </View>
+
+              <View className="mb-4">
+                <Label>TikTok</Label>
+                <InputBox>
+                  <TextInput
+                    value={form.tiktok}
+                    placeholder="@username"
+                    onChangeText={(v) => setForm({ ...form, tiktok: v })}
+                    className="text-gray-900 w-full py-3"
+                  />
+                </InputBox>
+              </View>
+
+              <View className="mb-4">
+                <Label>Facebook</Label>
+                <InputBox>
+                  <TextInput
+                    value={form.facebook}
+                    placeholder="username or profile URL"
+                    onChangeText={(v) => setForm({ ...form, facebook: v })}
+                    className="text-gray-900 w-full py-3"
+                  />
+                </InputBox>
+              </View>
+            </>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
 

@@ -216,7 +216,7 @@ export default function ResetPassword() {
                   placeholder="Masukkan OTP"
                   value={otp}
                   onChangeText={setOtp}
-                  keyboardType="number-pad"
+                  keyboardType="numeric"
                   className="text-gray-900"
                 />
               </InputBox>
