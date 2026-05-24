@@ -279,15 +279,18 @@ export default function AddBookingModal({
           onPress={(e) => e.stopPropagation()}
           className="w-full max-w-md rounded-2xl bg-white p-6 min-h-120 shadow-lg"
         >
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <Text className="mb-6 text-xl font-bold text-slate-900 ">
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            scrollEnabled={openPicker === null}
+            nestedScrollEnabled
+          >
+            <Text className="mb-6 text-xl font-bold text-slate-900">
               Add Booking
             </Text>
 
             {/* PACKAGE */}
             <View className="mb-5">
               <Text className="mb-2 font-semibold text-slate-700">Package</Text>
-
               <View className="rounded-lg border border-slate-300">
                 <Combobox
                   value={selectedPackage}
@@ -296,7 +299,6 @@ export default function AddBookingModal({
                   open={openPicker === "package"}
                   onOpenChange={(nextOpen) => {
                     setOpenPicker(nextOpen ? "package" : null);
-
                     if (nextOpen) fetchPackages();
                   }}
                   onSelect={(label) => {
@@ -313,6 +315,7 @@ export default function AddBookingModal({
                       fetchClassSchedule((selected.data as any)?.product_id);
                     }
                   }}
+                  dropdownPortal
                 />
               </View>
             </View>
@@ -324,7 +327,6 @@ export default function AddBookingModal({
                   <Text className="mb-2 font-semibold text-slate-700">
                     Trainer
                   </Text>
-
                   <View className="rounded-lg border border-slate-300">
                     <Combobox
                       value={selectedTrainer}
@@ -333,30 +335,28 @@ export default function AddBookingModal({
                       open={openPicker === "trainer"}
                       onOpenChange={(nextOpen) => {
                         setOpenPicker(nextOpen ? "trainer" : null);
-
                         if (nextOpen) fetchTrainer();
                       }}
                       onSelect={(value) => {
                         if (!value) {
                           setTrainerSchedule([]);
                           setTrainerScheduleMap({});
-
                           setSelectedTrainer("");
                         }
                         setSelectedTrainer(value);
                         fetchTrainerSchedule(value);
                         setOpenPicker(null);
                       }}
+                      dropdownPortal
                     />
                   </View>
                 </View>
 
-                {/* SCHEDULE */}
+                {/* TRAINER SCHEDULE */}
                 <View className="mb-6">
                   <Text className="mb-3 font-semibold text-slate-700">
                     Schedule
                   </Text>
-
                   <View className="flex-row flex-wrap gap-2">
                     {trainerSchedules.length === 0 && selectedTrainer ? (
                       <View>
@@ -372,16 +372,14 @@ export default function AddBookingModal({
                         {trainerSchedules.map((item, index) => (
                           <Pressable
                             key={`${item} ${index}`}
-                            onPress={() => {
-                              setSelectedTrainerSchedule(item);
-                            }}
+                            onPress={() => setSelectedTrainerSchedule(item)}
                             className={`rounded-full border px-4 py-2 ${
                               selectedTrainerSchedule === item
                                 ? "border-[#0891B2] bg-[#0891B2]/10"
                                 : "border-slate-300"
                             }`}
                           >
-                            <Text className="text-slate-800 flex-warp">
+                            <Text className="text-slate-800 flex-wrap">
                               {item}
                             </Text>
                           </Pressable>
@@ -394,45 +392,41 @@ export default function AddBookingModal({
             )}
 
             {selectedPackage && !isPrivate && (
-              <>
-                {/* SCHEDULE */}
-                <View className="mb-6">
-                  <Text className="mb-3 font-semibold text-slate-700">
-                    Schedule
-                  </Text>
-
-                  {schedules.length === 0 ? (
-                    <View>
-                      <Text className="text-red-500 text-xl">
-                        No schedule found
-                      </Text>
-                      <Text className="text-red-500">
-                        Please contact admin for more information
-                      </Text>
-                    </View>
-                  ) : (
-                    <View className="flex-row flex-wrap gap-2">
-                      {schedules.map((item, index) => (
-                        <Pressable
-                          key={`${item} ${index}`}
-                          onPress={() => setSelectedSchedule(item)}
-                          className={`rounded-full border px-4 py-2 ${
-                            selectedSchedule === item
-                              ? "border-[#0891B2] bg-[#0891B2]/10"
-                              : "border-slate-300"
-                          }`}
-                        >
-                          <Text className="text-slate-800">{item}</Text>
-                        </Pressable>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </>
+              <View className="mb-6">
+                <Text className="mb-3 font-semibold text-slate-700">
+                  Schedule
+                </Text>
+                {schedules.length === 0 ? (
+                  <View>
+                    <Text className="text-red-500 text-xl">
+                      No schedule found
+                    </Text>
+                    <Text className="text-red-500">
+                      Please contact admin for more information
+                    </Text>
+                  </View>
+                ) : (
+                  <View className="flex-row flex-wrap gap-2">
+                    {schedules.map((item, index) => (
+                      <Pressable
+                        key={`${item} ${index}`}
+                        onPress={() => setSelectedSchedule(item)}
+                        className={`rounded-full border px-4 py-2 ${
+                          selectedSchedule === item
+                            ? "border-[#0891B2] bg-[#0891B2]/10"
+                            : "border-slate-300"
+                        }`}
+                      >
+                        <Text className="text-slate-800">{item}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
+              </View>
             )}
-
-            {/* BUTTONS */}
           </ScrollView>
+
+          {/* BUTTONS */}
           <View className="flex-row justify-end gap-3">
             <Pressable
               onPress={handleClose}
@@ -440,7 +434,6 @@ export default function AddBookingModal({
             >
               <Text className="font-semibold text-slate-700">Cancel</Text>
             </Pressable>
-
             <Pressable
               onPress={handleSubmit}
               className="rounded-lg bg-[#0891B2] px-8 py-4"

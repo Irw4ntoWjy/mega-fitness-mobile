@@ -13,6 +13,7 @@ import TermsModal from "../auth/terms-and-condition-modal";
 type HeaderNavBarProps = {
   title?: string;
   backOnly?: boolean;
+  route?: string;
   showSave?: boolean;
   onSave?: () => void;
   saveLabel?: string;
@@ -22,6 +23,7 @@ type HeaderNavBarProps = {
 export default function HeaderNavBar({
   title,
   backOnly = false,
+  route,
   showSave = false,
   onSave,
   saveLabel = "Save",
@@ -42,7 +44,7 @@ export default function HeaderNavBar({
       }}
     >
       <Pressable
-        onPress={onBack ?? (() => router.push("/(tabs)"))}
+        onPress={onBack ?? (() => router.push((route ?? "/(tabs)") as any))}
         className="w-10 h-10 items-center justify-center"
       >
         <ChevronLeft size={22} color="#000" />
