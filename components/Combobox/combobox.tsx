@@ -124,7 +124,7 @@ export default function Combobox({
       return options;
     }
     return options.filter((option) =>
-      option.toLowerCase().includes(normalizedQuery)
+      option.toLowerCase().includes(normalizedQuery),
     );
   }, [options, query]);
 
