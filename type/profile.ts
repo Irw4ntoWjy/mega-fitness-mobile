@@ -1,5 +1,18 @@
 import { z } from "zod";
 
+export const memberDetail = z.object({
+  id: z.string(),
+  profile_id: z.string(),
+  instagram: z.string(),
+  whatsapp: z.string(),
+  tiktok: z.string(),
+  facebook: z.string(),
+  action_at: z.string(),
+  action_by: z.string(),
+});
+
+export type MemberDetail = z.infer<typeof memberDetail>;
+
 export const accountSchema = z.object({
   account_id: z.string(),
   account_code: z.string(),
@@ -26,6 +39,7 @@ export const accountSchema = z.object({
 
   employee_detail: z.unknown().optional(),
   trainer_detail: z.unknown().optional(),
+  member_detail: memberDetail.optional(),
 
   created_at: z.string(),
   created_by: z.string(),

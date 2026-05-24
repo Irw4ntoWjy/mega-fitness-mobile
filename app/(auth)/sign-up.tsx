@@ -300,7 +300,7 @@ export default function SignUp() {
                   placeholder="08xxxxxxxxxx"
                   value={contactNumber}
                   onChangeText={setContactNumber}
-                  keyboardType="phone-pad"
+                  keyboardType="numeric"
                   className="text-gray-900"
                 />
               </View>

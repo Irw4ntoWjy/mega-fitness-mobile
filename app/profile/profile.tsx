@@ -76,6 +76,13 @@ const ACCOUNT_INFO_FIELDS: ProfileFieldConfig[] = [
   { key: "email", label: "Email" },
 ];
 
+const MEMBER_DETAIL_FIELDS: ProfileFieldConfig[] = [
+  { key: "instagram", label: "Instagram" },
+  { key: "whatsapp", label: "WhatsApp" },
+  { key: "tiktok", label: "TikTok" },
+  { key: "facebook", label: "Facebook" },
+];
+
 const TRAINER_EXTRA_FIELDS: ProfileFieldConfig[] = [
   { key: "certification", label: "Certification" },
   { key: "experience", label: "Experience" },
@@ -359,6 +366,12 @@ export default function Profile() {
     certification: "-",
     experience: "-",
     availability: "-",
+
+    // Member detail — blank if null/undefined
+    instagram: profile?.member_detail?.instagram ?? "",
+    whatsapp: profile?.member_detail?.whatsapp ?? "",
+    tiktok: profile?.member_detail?.tiktok ?? "",
+    facebook: profile?.member_detail?.facebook ?? "",
   };
 
   if (loadingAuth) return;
@@ -538,6 +551,13 @@ export default function Profile() {
             fields={profileFields}
             values={profileValues}
           />
+          {!isTrainer && (
+            <ProfileInfoSection
+              title="Social Media"
+              fields={MEMBER_DETAIL_FIELDS}
+              values={profileValues}
+            />
+          )}
           {isTrainer ? (
             <ProfileInfoSection
               title="Body Info"
