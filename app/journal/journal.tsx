@@ -9,6 +9,7 @@ import Combobox from "@/components/Combobox/combobox";
 import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
 import ConfirmModal from "@/components/Journal/ConfirmModal";
 import FeedbackModal from "@/components/Journal/FeedbackModal";
+import { useAuth } from "@/hooks/useAuth";
 import { ComboboxItem } from "@/type/combobox";
 import { BackgroundGlow } from "@components/Theme/background";
 import { useFocusEffect } from "@react-navigation/native";
@@ -37,14 +38,18 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Journal = () => {
-  const { sessionLogId, sessionDuration, editable, membership } =
+  const { sessionLogId, sessionDuration, editable, membership, eventType } =
     useLocalSearchParams<{
       sessionLogId?: string;
       sessionDuration?: string;
       editable?: string;
       membership?: string;
+      eventType?: "Class" | "Private" | "Member";
     }>();
-  const isMembership = membership === "true";
+  const { auth } = useAuth();
+  const isTrainer = auth?.accountDetail?.account_role === "Trainer";
+  const isMembership = membership === "true" || eventType === "Member";
+  const isPrivateEvent = eventType === "Private";
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
 
@@ -63,7 +68,10 @@ const Journal = () => {
   const [activityGroupDuration, setActivityGroupDuration] = useState<
     string | null
   >(null);
-  const [isEditMode, setIsEditMode] = useState(editable !== "false");
+  const [isEditMode, setIsEditMode] = useState(
+    (editable !== "false" || (isTrainer && isPrivateEvent)) &&
+      (!isPrivateEvent || isTrainer),
+  );
   const [currentJournalId, setCurrentJournalId] = useState<
     number | string | null
   >(null);
@@ -109,7 +117,10 @@ const Journal = () => {
     setIndex: number;
   } | null>(null);
 
-  const isReadOnlyMode = currentJournalId != null && !isEditMode;
+  const isForcedReadOnly =
+    (!isTrainer && editable === "false") || (isPrivateEvent && !isTrainer);
+  const isReadOnlyMode =
+    isForcedReadOnly || (currentJournalId != null && !isEditMode);
 
   const createEmptyGroup = () => ({
     title: "",
@@ -322,12 +333,21 @@ const Journal = () => {
   };
 
   const handleHeaderAction = () => {
+    if (isForcedReadOnly) {
+      return;
+    }
     if (isReadOnlyMode) {
       setIsEditMode(true);
       return;
     }
     void handleSaveJournal();
   };
+
+  useEffect(() => {
+    if (isPrivateEvent && !isTrainer) {
+      setIsEditMode(false);
+    }
+  }, [isPrivateEvent, isTrainer]);
 
   const buildJournalJson = useCallback(
     () => ({
@@ -601,7 +621,7 @@ const Journal = () => {
       setLoading(true);
       if (!sessionLogId) {
         setCurrentJournalId(null);
-        setIsEditMode(true);
+        setIsEditMode(isForcedReadOnly ? false : true);
         setLoading(false);
         return;
       }
@@ -614,7 +634,7 @@ const Journal = () => {
         const journalItem = res.data;
         if (!res.success || !journalItem?.journal_json) {
           setCurrentJournalId(null);
-          setIsEditMode(true);
+          setIsEditMode(isForcedReadOnly ? false : true);
           setLoading(false);
           return;
         }
@@ -641,20 +661,20 @@ const Journal = () => {
         setCurrentJournalId(journalItem.journal_id);
 
         savedSnapshot.current = JSON.stringify(journalJson);
-        setIsEditMode(false);
+        setIsEditMode(isForcedReadOnly ? false : true);
 
         void loadActivitiesByGroupId(journalJson.activity_group_id);
       } catch (error) {
         console.error(error);
         setCurrentJournalId(null);
-        setIsEditMode(true);
+        setIsEditMode(isForcedReadOnly ? false : true);
       } finally {
         setLoading(false);
       }
     };
 
     fetchJournalData();
-  }, [loadActivitiesByGroupId, sessionLogId]);
+  }, [isForcedReadOnly, loadActivitiesByGroupId, sessionLogId]);
 
   useEffect(() => {
     if (!shouldFocusOnAdd.current) {
@@ -675,9 +695,9 @@ const Journal = () => {
       <HeaderNavBar
         backOnly
         title="Journal"
-        showSave={Boolean(activityGroupTitle)}
+        showSave={!isForcedReadOnly && Boolean(activityGroupTitle)}
         onSave={handleHeaderAction}
-        saveLabel={editable === "false" ? "" : isReadOnlyMode ? "Edit" : "Save"}
+        saveLabel={isForcedReadOnly ? "" : isReadOnlyMode ? "Edit" : "Save"}
         onBack={handleBackPress}
       />
 
@@ -903,6 +923,23 @@ const Journal = () => {
               <Text className="text-md text-gray-500 text-center mt-2">
                 Loading...
               </Text>
+            </View>
+          </View>
+        ) : isForcedReadOnly ? (
+          <View className="flex-1 items-center justify-center px-6">
+            <View className="w-full p-6 items-center gap-4">
+              <View className="w-16 h-16 rounded-full bg-cyan-50 items-center justify-center">
+                <Frown size={28} color="#0891B2" />
+              </View>
+              <View className="items-center gap-2">
+                <Text className="text-2xl text-gray-900 text-center">
+                  Journal Belum Diisi Trainer
+                </Text>
+                <Text className="text-md text-gray-500 text-center">
+                  Journal untuk sesi ini masih kosong. Harap menunggu trainer
+                  mengisi journal setelah sesi selesai.
+                </Text>
+              </View>
             </View>
           </View>
         ) : (

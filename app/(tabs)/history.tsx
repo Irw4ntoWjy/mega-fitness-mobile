@@ -23,6 +23,7 @@ type Response = {
   coach: string;
   color: string;
   durationMinutes: number;
+  eventType: "Class" | "Private" | "Member";
 };
 
 function pad2(n: number) {
@@ -340,6 +341,8 @@ export default function Profile() {
                   item.time_start,
                   item.time_end,
                 ),
+                eventType:
+                  item.product_type_name === "Private" ? "Private" : "Class",
               };
             });
             setResponse(mapped);
@@ -376,6 +379,7 @@ export default function Profile() {
                     item.time_start,
                     item.time_end,
                   ),
+                  eventType: productType === "Private" ? "Private" : "Class",
                 };
               });
             }
@@ -394,6 +398,7 @@ export default function Profile() {
                   coach: item.member_name || "-",
                   color: "#B5C47A",
                   durationMinutes: 0,
+                  eventType: "Member",
                 }),
               );
               mapped = [...mapped, ...membershipMapped];
@@ -438,7 +443,7 @@ export default function Profile() {
     (
       sessionLogId: string,
       durationMinutes: number,
-      isMembershipEvent?: boolean,
+      eventType: Response["eventType"],
     ) => {
       if (auth?.accountDetail?.account_role === "Member") {
         if (isNavigating) return;
@@ -448,7 +453,9 @@ export default function Profile() {
           params: {
             sessionLogId,
             sessionDuration: formatDurationFromMinutes(durationMinutes),
-            ...(isMembershipEvent ? { membership: "true" } : {}),
+            eventType,
+            ...(eventType === "Private" ? { editable: "false" } : {}),
+            ...(eventType === "Member" ? { membership: "true" } : {}),
           },
         });
         setTimeout(() => setIsNavigating(false), 1000);
@@ -560,7 +567,7 @@ export default function Profile() {
                   time: formatTimeRange(ev.time_start, ev.time_end),
                   durationMinutes: ev.durationMinutes,
                   color: ev.color,
-                  isMembership: ev.color === "#B5C47A",
+                  eventType: ev.eventType,
                 }));
 
                 const firstEventHeight = firstEventHeightByDay[dayKey] ?? null;
@@ -588,7 +595,7 @@ export default function Profile() {
                       handleEventPress(
                         id,
                         durationMinutes,
-                        event?.isMembership,
+                        (event?.eventType as Response["eventType"]) ?? "Class",
                       );
                     }}
                   />

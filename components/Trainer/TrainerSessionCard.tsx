@@ -283,6 +283,7 @@ export function TrainerSessionCard({
                                 params: {
                                   sessionLogId: member.session_log_id,
                                   sessionDuration,
+                                  eventType: "Private",
                                   editable: editable ? "false" : "true",
                                 },
                               });
@@ -302,7 +303,6 @@ export function TrainerSessionCard({
                             </Text>
                           </Pressable>
                         </View>
-                        ,
                       </>
                     )}
                   </Pressable>
