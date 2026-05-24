@@ -165,7 +165,7 @@ export default function EditProfile() {
   return (
     <View className="flex-1 bg-[#F3F3F3]">
       <BackgroundGlow />
-      <HeaderNavBar title="Edit Info" backOnly />
+      <HeaderNavBar title="Edit Info" backOnly route="profile/profile" />
 
       {loading && (
         <Text className="text-center mt-4 text-gray-500">
