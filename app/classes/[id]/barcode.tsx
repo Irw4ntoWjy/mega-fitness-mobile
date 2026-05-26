@@ -130,9 +130,12 @@ export default function BarcodePages() {
       return "-";
     }
   }, [classDetail, booking]);
+
   const scheduleTitle = isMembership
     ? membershipProductName
-    : classDetail?.product_name || booking?.booking_name || "-";
+    : booking?.schedule_name;
+
+  const productName = isMembership ? undefined : booking?.product_name;
 
   const qrValue = useMemo(() => {
     if (isMembership) {
@@ -199,13 +202,19 @@ export default function BarcodePages() {
               Loading...
             </Text>
           ) : (
-            <Text className="text-xl font-semibold text-gray-900">
-              {scheduleTitle}
-            </Text>
+            <>
+              <Text className="text-xl font-semibold text-gray-900">
+                {productName}
+              </Text>
+
+              <Text className="mt-2 text-xl font-normal text-gray-900">
+                {scheduleTitle}
+              </Text>
+            </>
           )}
 
           {!isMembership && (
-            <View className="mt-2 w-full max-w-[520px] space-y-4">
+            <View className="mt-4 w-full max-w-[520px] space-y-4">
               <View className="flex-row items-center">
                 <View className="h-10 w-10 rounded-xl bg-gray-200 items-center justify-center">
                   <Clock size={20} color="#111827" />
@@ -237,8 +246,8 @@ export default function BarcodePages() {
                   const res = await getBookingDetail({ booking_id: bookingId });
                   if (res.success && res.data) {
                     if (
-                      res.data.booking_status_id === 2 ||
-                      res.data.booking_status_name === "Selesai"
+                      res.data.booking_status_id === 4 ||
+                      res.data.booking_status_name === "Sedang Berlangsung"
                     ) {
                       setIsRefreshed(true);
                     }

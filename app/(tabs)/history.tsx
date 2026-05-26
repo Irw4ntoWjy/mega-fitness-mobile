@@ -17,6 +17,7 @@ import { getMembershipSessionLogList } from "../api/membership";
 type Response = {
   id: string;
   schedule_date: string;
+  schedule_name?: string;
   time_start: string;
   time_end: string;
   title: string;
@@ -70,19 +71,21 @@ function getCardColor(productType: SessionLogProductType) {
 
 function EventCard({
   title,
+  scheduleName,
   coach,
   time,
   bgColor,
-  status,
+  // status,
   durationMinutes,
   onFirstLayout,
   onPress,
 }: {
   title: string;
+  scheduleName?: string;
   coach: string;
   time: string;
   bgColor: string;
-  status?: "completed" | "upcoming";
+  // status?: "completed" | "upcoming";
   durationMinutes?: number;
   onFirstLayout?: (height: number) => void;
   onPress?: () => void;
@@ -107,6 +110,15 @@ function EventCard({
                   {title}
                 </Text>
 
+                {scheduleName ? (
+                  <Text
+                    className="text-white/90 text-sm mt-1"
+                    numberOfLines={1}
+                  >
+                    {scheduleName}
+                  </Text>
+                ) : null}
+
                 <View className="flex-row justify-between w-full">
                   <Text className="text-white/90 text-sm" numberOfLines={1}>
                     {coach}
@@ -122,11 +134,11 @@ function EventCard({
         </View>
 
         <View className="flex-row gap-2 mt-3">
-          <View className="bg-white/90 px-3 py-1 rounded-full flex-row items-center shadow-sm shadow-neutral-400/50">
+          {/* <View className="bg-white/90 px-3 py-1 rounded-full flex-row items-center shadow-sm shadow-neutral-400/50">
             <Text className="text-xs font-semibold text-gray-800 leading-none">
               {status === "completed" ? "Completed" : "Upcoming"}
             </Text>
-          </View>
+          </View> */}
 
           {durationMinutes !== undefined && durationMinutes > 0 && (
             <View className="bg-white/90 px-3 py-1 rounded-full flex-row items-center gap-1 shadow-sm shadow-neutral-400/50">
@@ -157,6 +169,7 @@ function DayRow({
   events: {
     id: string;
     title: string;
+    scheduleName?: string;
     coach: string;
     time: string;
     durationMinutes: number;
@@ -230,10 +243,11 @@ function DayRow({
             <EventCard
               key={ev.id}
               title={ev.title}
+              scheduleName={ev.scheduleName}
               coach={ev.coach}
               time={ev.time}
               bgColor={ev.color}
-              status="completed"
+              // status="completed"
               durationMinutes={ev.durationMinutes}
               onFirstLayout={idx === 0 ? onFirstCardHeight : undefined}
               onPress={() => onEventPress(ev.id, ev.durationMinutes)}
@@ -333,7 +347,8 @@ export default function Profile() {
                 time_start: item.time_start,
                 time_end: item.time_end,
                 title: item.product_name,
-                coach: item.trainer_name?.trim() || "Unknown Trainer",
+                schedule_name: item.schedule_name,
+                coach: item.trainer_name,
                 color: getCardColor(
                   item.product_type_name === "Private" ? "Private" : "Class",
                 ),
@@ -369,6 +384,7 @@ export default function Profile() {
                 return {
                   id: item.session_log_id,
                   schedule_date: item.schedule_date,
+                  schedule_name: item.schedule_name,
                   time_start: item.time_start,
                   time_end: item.time_end,
                   title: item.product_name,
@@ -563,6 +579,7 @@ export default function Profile() {
                 const cardEvents = dayEvents.map((ev) => ({
                   id: ev.id,
                   title: ev.title,
+                  scheduleName: ev.schedule_name,
                   coach: ev.coach,
                   time: formatTimeRange(ev.time_start, ev.time_end),
                   durationMinutes: ev.durationMinutes,

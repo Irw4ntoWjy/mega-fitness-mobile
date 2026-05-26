@@ -75,7 +75,14 @@ export default function AddBookingModal({
 
     const map: Record<string, ComboboxItem> = {};
 
-    res.data.forEach((item) => {
+    const list = (res.data ?? []).filter((item) => {
+      const status =
+        (item.data as { purchase_status_id?: string })?.purchase_status_id ??
+        "";
+      return String(status) !== "-1";
+    });
+
+    list.forEach((item) => {
       map[item.label] = {
         label: item.label,
         value: item.value,
@@ -84,7 +91,7 @@ export default function AddBookingModal({
     });
 
     setPackageMap(map);
-    setPackages(res.data.map((item) => item.label));
+    setPackages(list.map((item) => item.label));
   };
 
   const [trainers, setTrainer] = useState<string[]>([]);
@@ -407,19 +414,33 @@ export default function AddBookingModal({
                   </View>
                 ) : (
                   <View className="flex-row flex-wrap gap-2">
-                    {schedules.map((item, index) => (
-                      <Pressable
-                        key={`${item} ${index}`}
-                        onPress={() => setSelectedSchedule(item)}
-                        className={`rounded-full border px-4 py-2 ${
-                          selectedSchedule === item
-                            ? "border-[#0891B2] bg-[#0891B2]/10"
-                            : "border-slate-300"
-                        }`}
-                      >
-                        <Text className="text-slate-800">{item}</Text>
-                      </Pressable>
-                    ))}
+                    {schedules.map((item, index) => {
+                      const entry = scheduleMap[item];
+                      const sched =
+                        (entry?.data as ScheduleClassSchema) || null;
+                      const scheduleName = sched?.name;
+                      const isSelected = selectedSchedule === item;
+                      return (
+                        <Pressable
+                          key={`${item} ${index}`}
+                          onPress={() => setSelectedSchedule(item)}
+                          className={`rounded-xl border px-4 py-2 mb-2 ${
+                            isSelected
+                              ? "border-[#0891B2] bg-[#0891B2]/10"
+                              : "border-slate-300"
+                          }`}
+                        >
+                          <Text className="text-slate-800 font-semibold">
+                            {item}
+                          </Text>
+                          {scheduleName ? (
+                            <Text className="text-sm text-gray-500 mt-1">
+                              {scheduleName}
+                            </Text>
+                          ) : null}
+                        </Pressable>
+                      );
+                    })}
                   </View>
                 )}
               </View>

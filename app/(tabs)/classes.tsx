@@ -28,6 +28,27 @@ import {
   View,
 } from "react-native";
 
+function usePendingNavigation(timeout = 800) {
+  const pendingRef = React.useRef(false);
+
+  const navigate = React.useCallback(
+    (target: Parameters<typeof router.push>[0]) => {
+      if (pendingRef.current) return;
+      pendingRef.current = true;
+      try {
+        router.push(target as any);
+      } finally {
+        setTimeout(() => {
+          pendingRef.current = false;
+        }, timeout);
+      }
+    },
+    [timeout],
+  );
+
+  return { navigate };
+}
+
 function BookingCard({
   item,
   showOngoingTag,
@@ -35,6 +56,7 @@ function BookingCard({
   item: BookingSchema;
   showOngoingTag?: boolean;
 }) {
+  const { navigate } = usePendingNavigation();
   const statusId = String(item.booking_status_id);
   const statusBg =
     statusId === "3"
@@ -47,7 +69,7 @@ function BookingCard({
   return (
     <Pressable
       onPress={() =>
-        router.push({
+        navigate({
           pathname: "/classes/[id]/barcode",
           params: {
             id: item.booking_id,
@@ -101,8 +123,9 @@ function BookingCard({
         <View className="flex-row items-center justify-between px-4 py-4">
           <View>
             <Text className="text-black font-bold text-lg">
-              {item.product_name}
+              {item.schedule_name ? item.schedule_name : `Private`}
             </Text>
+            <Text className="text-black text-sm mt-1">{item.product_name}</Text>
             <Text className="text-black text-xs mt-1">
               {item.schedule_date} • {item.time_start} - {item.time_end}
             </Text>
@@ -125,12 +148,13 @@ function MembershipCard({
   item: PurchaseItemSchema;
   showOngoingTag?: boolean;
 }) {
+  const { navigate } = usePendingNavigation();
   const statusBg = "#16A34A";
   return (
     <Pressable
       className="w-[48%] mb-4"
       onPress={() =>
-        router.push({
+        navigate({
           pathname: "/classes/[id]/barcode",
           params: {
             id: item.id,

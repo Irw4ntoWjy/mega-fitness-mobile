@@ -5,6 +5,7 @@ export const bookingSchema = z.object({
   booking_id: z.string(),
   schedule_id: z.string(),
   schedule_type: z.string(),
+  schedule_name: z.string().optional(),
 
   day_of_week: z.number(),
 
@@ -48,6 +49,8 @@ export const bookingDetailSchema = z.object({
   booking_id: z.string(),
   booking_name: z.string(),
   schedule_type: z.string(),
+  schedule_name: z.string().optional(),
+  product_name: z.string(),
 
   class_schedule_detail: z
     .object({

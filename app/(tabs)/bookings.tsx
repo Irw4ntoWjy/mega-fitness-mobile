@@ -105,6 +105,10 @@ function BookingCard({ item, onCancel, showCancel }: any) {
 
             <View className="ml-3 flex-1">
               <Text className="text-lg font-bold text-slate-900">
+                {item.schedule_name ? item.schedule_name : `Private`}
+              </Text>
+
+              <Text className="text-md text-slate-500">
                 {item.product_name}
               </Text>
 
