@@ -380,7 +380,7 @@ export default function AddBookingModal({
                           <Pressable
                             key={`${item} ${index}`}
                             onPress={() => setSelectedTrainerSchedule(item)}
-                            className={`rounded-full border px-4 py-2 ${
+                            className={`rounded-xl border px-4 py-2 mb-2 ${
                               selectedTrainerSchedule === item
                                 ? "border-[#0891B2] bg-[#0891B2]/10"
                                 : "border-slate-300"
