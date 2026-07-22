@@ -1,23 +1,29 @@
 {
   "expo": {
     "name": "mega-fitness-mobile",
-    "slug": "mega-fitness-mobile",
+    "slug": "mega-fitness",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/png/mega-fitness-logo.png",
     "scheme": "megafitnessmobile",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.successsoft.megafitness",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#000000"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.iewwei.megafitnessmobile"
+      "package": "com.iewwei.megafitnessmobile",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "output": "static",
@@ -51,6 +57,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5a1647fa-7820-4800-8d54-a7c0ef88aa10"
+      }
+    },
+    "owner": "success-soft"
   }
 }
