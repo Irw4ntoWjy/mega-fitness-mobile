@@ -28,10 +28,16 @@
   "submit": {
     "production": {
       "android": {
-        "serviceAccountKeyPath": "./google-service-account.json",
+        "serviceAccountKeyPath": "./mega-fitness-503203-388939de96a2.json",
         "track": "internal"
       },
-      "ios": {}
+      "ios": {
+        "ascAppId": "6793956139",
+        "ascApiKeyPath": "./AuthKey_LRRPNA5MBV.p8",
+        "ascApiKeyId": "LRRPNA5MBV",
+        "ascApiKeyIssuerId": "978e3be7-2e07-42f4-9e8e-9277be7844bf",
+        "appleTeamId": "5U2V9P5NA4"
+      }
     }
   }
 }
