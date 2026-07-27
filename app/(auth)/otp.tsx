@@ -90,10 +90,10 @@ export default function OtpVerification() {
     <KeyboardAvoidingView className="flex-1" behavior={"padding"}>
       <SafeAreaView style={{ flex: 1 }}>
         <BackgroundGlow showText={true} />
-        <TouchableOpacity className="mx-4" onPress={() => router.back()}>
+        <TouchableOpacity className="mx-4">
           <Pressable
             className="w-10 h-10 items-center justify-center"
-            onPress={() => router.back()}
+            onPress={() => router.push("/(auth)/sign-in")}
           >
             <ChevronLeft size={22} />
           </Pressable>
