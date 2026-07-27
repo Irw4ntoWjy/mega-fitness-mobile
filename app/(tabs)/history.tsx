@@ -2,7 +2,6 @@ import {
   getSessionLogHistoryList,
   getTrainerSessionLogHistory,
 } from "@/app/api/session-log";
-import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
 import { useAuth } from "@/hooks/useAuth";
 import { SessionLogProductType } from "@/type/session-log";
 import { formatDurationFromMinutes } from "@/utils/datetimeFormat";
@@ -483,9 +482,8 @@ export default function Profile() {
   return (
     <View className="flex-1">
       <BackgroundGlow />
-      <HeaderNavBar backOnly title="History" />
 
-      <View className="mx-6 mt-2 mb-4">
+      <View className="mx-6 mt-20 mb-4">
         <Pressable
           className="bg-white shadow-neutral-400/50 shadow-sm rounded-2xl p-4"
           onPress={() => setPickerOpen(true)}

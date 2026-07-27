@@ -79,7 +79,7 @@ export default function HeaderNavBar({
             <FileText size={18} color="black" />
           </HeaderIcon>
 
-          <HeaderIcon>
+          <HeaderIcon onPress={() => router.push("/notification/notification")}>
             <Bell size={18} color="black" />
           </HeaderIcon>
 
