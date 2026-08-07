@@ -292,7 +292,7 @@ export default function Home() {
         const authenticated = await checkSession();
 
         if (!authenticated) {
-          router.replace("/(auth)/sign-in");
+          router.push("/(auth)/sign-in");
           return;
         }
 
@@ -1105,7 +1105,7 @@ export default function Home() {
             <HeaderIcon
               onPress={async () => {
                 await logout();
-                router.replace("/(auth)/sign-in");
+                router.push("/(auth)/sign-in");
               }}
             >
               <LogOut size={18} color="black" />
@@ -1175,9 +1175,7 @@ export default function Home() {
                 <InnerShadowOverlay height={25} />
                 <View className="absolute right-4 top-4 z-40">
                   <View
-                    className={`px-5 py-2 rounded-xl border shadow-sm ${
-                      roleTheme.container
-                    }`}
+                    className={`px-5 py-2 rounded-xl border shadow-sm ${roleTheme.container}`}
                   >
                     <Text className={`text-sm font-semibold ${roleTheme.text}`}>
                       {accountRole}

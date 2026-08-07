@@ -69,15 +69,12 @@ function isNewPackage(createdAt?: string | null) {
   return diffDays <= NEW_WINDOW_DAYS;
 }
 
-
-
 type Props = {
   navigation?: { goBack: () => void };
   route?: { params?: { id?: number; orderNo?: string } };
 };
 
 function PackageCard({ item }: { item: Package }) {
-
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
 
@@ -92,14 +89,11 @@ function PackageCard({ item }: { item: Package }) {
         from: "list-package",
       },
     });
-    setTimeout(() => setIsNavigating(false), 1000); 
+    setTimeout(() => setIsNavigating(false), 1000);
   };
 
   return (
-    <Pressable
-      className="w-[48%] mb-4"
-      onPress={handlePress}
-    >
+    <Pressable className="w-[48%] mb-4" onPress={handlePress}>
       <View className="bg-white rounded-2xl shadow-md relative">
         <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
           {item.image && item.image !== "null" && item.image !== "" ? (
@@ -280,7 +274,7 @@ export default function ListPackages({ navigation, route }: Props) {
       <View className="mt-20 h-14 px-4 justify-center">
         <Pressable
           onPress={() =>
-            router.replace({
+            router.push({
               pathname: "/",
               params: { refresh: Date.now().toString() },
             })

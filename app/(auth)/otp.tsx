@@ -169,8 +169,12 @@ export default function OtpVerification() {
                 });
                 return;
               }
-
-              router.replace("/(auth)/sign-in");
+              showToast({
+                message: res.message,
+                variant: "success",
+                duration: 2500,
+              });
+              router.push("/(auth)/sign-in");
             }}
           >
             <Text className="text-white text-lg font-semibold">Verify OTP</Text>

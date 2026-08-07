@@ -55,7 +55,7 @@ export default function AddBookingModal({
     // finally close modal
     onClose();
 
-    router.replace("/(tabs)/bookings");
+    router.push("/(tabs)/bookings");
   };
   const { auth, loading: loadingAuth } = useAuth();
   const { showToast } = useToast();

@@ -313,16 +313,17 @@ export default function SignUp() {
               onPress={async () => {
                 setError(null);
                 setFieldErrors({});
-                setPayload({
+
+                const nextPayload = {
                   email: email.trim(),
                   password,
                   name: name.trim(),
                   birth_date: birthDate.toISOString(),
                   gender,
                   contact_number: contactNumber.trim() || undefined,
-                });
+                };
 
-                const parsed = signUpSchema.safeParse(payload);
+                const parsed = signUpSchema.safeParse(nextPayload);
                 if (!parsed.success) {
                   const flattened = parsed.error.flatten().fieldErrors;
                   setFieldErrors({
@@ -335,6 +336,8 @@ export default function SignUp() {
                   });
                   return;
                 }
+
+                setPayload(parsed.data);
                 setShowTnc(true);
               }}
             >
@@ -383,7 +386,7 @@ export default function SignUp() {
                 return;
               }
 
-              router.replace({
+              router.push({
                 pathname: "/(auth)/otp",
                 params: { email: parsed.data.email },
               });

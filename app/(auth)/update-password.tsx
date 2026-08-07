@@ -4,7 +4,7 @@ import { getAuth, logout } from "@/lib/auth-storage";
 import { otpRequestSchema } from "@/type/auth";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Eye, EyeOff } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -70,6 +70,12 @@ export default function ResetPassword() {
       });
       return false;
     }
+
+    showToast({
+      message: res.message,
+      variant: "success",
+      duration: 2500,
+    });
     setCooldownSeconds(60);
     return true;
   }, [email, showToast]);
@@ -122,7 +128,7 @@ export default function ResetPassword() {
       });
       await logout();
 
-      router.replace("/sign-in");
+      router.push("/sign-in");
     } catch (err) {
       showToast({
         message: "Terjadi kesalahan",
@@ -132,6 +138,16 @@ export default function ResetPassword() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+
+    const id = setInterval(() => {
+      setCooldownSeconds((s) => (s <= 1 ? 0 : s - 1));
+    }, 1000);
+
+    return () => clearInterval(id);
+  }, [cooldownSeconds]);
 
   return (
     <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
@@ -226,8 +242,14 @@ export default function ResetPassword() {
                 onPress={requestOtpOnce}
                 className="mt-2"
               >
-                <Text className="text-[#259AAA] font-bold underline">
-                  Kirim OTP
+                <Text
+                  className={`font-bold underline ${
+                    cooldownSeconds > 0 ? "text-gray-400" : "text-[#259AAA]"
+                  }`}
+                >
+                  {cooldownSeconds > 0
+                    ? `Kirim ulang dalam ${cooldownSeconds}s`
+                    : "Kirim OTP"}
                 </Text>
               </TouchableOpacity>
             </View>

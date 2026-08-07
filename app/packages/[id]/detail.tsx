@@ -96,14 +96,14 @@ export default function ProductDetail() {
         <Pressable
           onPress={() => {
             if (from === "list-package") {
-              router.replace({
+              router.push({
                 pathname: "/packages/list-package",
                 params: { refresh: Date.now().toString() },
               });
               return;
             }
 
-            router.replace({
+            router.push({
               pathname: "/",
               params: { refresh: Date.now().toString() },
             });

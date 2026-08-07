@@ -45,29 +45,34 @@ export default function SignIn() {
 
     try {
       setLoading(true);
-      if (parsed.data.password === "Aa123456") {
-        showToast({
-          message: "Password Mudah ditebak",
-          variant: "error",
-        });
-
-        router.replace({
-          pathname: "/(auth)/update-password",
-          params: { email: parsed.data.email },
-        });
-        return;
-      }
 
       const res = await login(parsed.data);
 
       if (!res.success) {
+        console.log(res.message);
+        if (
+          parsed.data.password === "Aa123456" &&
+          res.message?.toLowerCase() === "username atau password salah"
+        ) {
+          showToast({
+            message: "Password Mudah ditebak",
+            variant: "error",
+          });
+
+          router.push({
+            pathname: "/(auth)/update-password",
+            params: { email: parsed.data.email },
+          });
+          return;
+        }
+
         showToast({
           message: res.message || "Login gagal",
           variant: "error",
         });
 
         if (res.message === "Akun tidak aktif") {
-          router.replace({
+          router.push({
             pathname: "/(auth)/otp",
             params: { email: parsed.data.email },
           });
@@ -79,7 +84,7 @@ export default function SignIn() {
         message: "Sign in berhasil",
         variant: "success",
       });
-      router.replace("/");
+      router.push("/");
     } catch (err) {
       showToast({
         message: "Terjadi kesalahan yang tidak terduga",
