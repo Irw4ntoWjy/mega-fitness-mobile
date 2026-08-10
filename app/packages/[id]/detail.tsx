@@ -45,7 +45,7 @@ export default function ProductDetail() {
 
   const openWhatsApp = async () => {
     try {
-      const url = "https://wa.me/6282167661122";
+      const url = "https://wa.me/628116328789";
       await Linking.openURL(url);
     } catch (err) {
       console.log("WhatsApp open error:", err);

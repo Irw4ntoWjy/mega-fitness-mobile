@@ -13,7 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { AnswerValue, SectionSchema } from "@/type/assessment";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { QUESTION_META } from "./dummy_question";
 
@@ -29,6 +29,7 @@ export default function AssessmentDetail() {
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [currentStep, setCurrentStep] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const currentSection = data[currentStep];
   const isReadOnlySection = (section?: number) =>
@@ -136,6 +137,10 @@ export default function AssessmentDetail() {
 
     fetchData();
   }, [loadingAuth, auth, memberProfileId]);
+
+  useEffect(() => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+  }, [currentStep]);
 
   const isCurrentStepValid = () => {
     if (isTrainerReadOnlySection) {
@@ -353,7 +358,11 @@ export default function AssessmentDetail() {
         />
       )}
 
-      <ScrollView className="flex-1 mb-30" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollViewRef}
+        className="flex-1 mb-30"
+        showsVerticalScrollIndicator={false}
+      >
         <View className="px-6 mt-6">
           {currentSection?.data?.map((q: any, index: number) => {
             const key = `${currentSection.section}-${q.key.en}`;
