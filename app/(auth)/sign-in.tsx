@@ -49,23 +49,6 @@ export default function SignIn() {
       const res = await login(parsed.data);
 
       if (!res.success) {
-        console.log(res.message);
-        if (
-          parsed.data.password === "Aa123456" &&
-          res.message?.toLowerCase() === "username atau password salah"
-        ) {
-          showToast({
-            message: "Password Mudah ditebak",
-            variant: "error",
-          });
-
-          router.push({
-            pathname: "/(auth)/update-password",
-            params: { email: parsed.data.email },
-          });
-          return;
-        }
-
         showToast({
           message: res.message || "Login gagal",
           variant: "error",
@@ -77,6 +60,19 @@ export default function SignIn() {
             params: { email: parsed.data.email },
           });
         }
+        return;
+      }
+
+      if (parsed.data.password === "Aa123456") {
+        showToast({
+          message: "Password mudah ditebak",
+          variant: "error",
+        });
+
+        router.push({
+          pathname: "/(auth)/update-password",
+          params: { email: parsed.data.email },
+        });
         return;
       }
 
