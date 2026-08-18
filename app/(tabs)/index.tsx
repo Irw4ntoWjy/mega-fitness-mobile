@@ -1105,7 +1105,7 @@ export default function Home() {
             <HeaderIcon
               onPress={async () => {
                 await logout();
-                router.push("/(auth)/sign-in");
+                router.replace("/(auth)/sign-in");
               }}
             >
               <LogOut size={18} color="black" />

@@ -1,4 +1,4 @@
-import { getAuth } from "@/lib/auth-storage";
+import { getAuth, subscribeAuthChange } from "@/lib/auth-storage";
 import { useEffect, useState } from "react";
 
 export function useAuth() {
@@ -6,13 +6,23 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     const loadAuth = async () => {
       const data = await getAuth();
-      setAuth(data);
-      setLoading(false);
+      if (mounted) {
+        setAuth(data);
+        setLoading(false);
+      }
     };
 
     loadAuth();
+    const unsubscribe = subscribeAuthChange(loadAuth);
+
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, []);
 
   return { auth, loading };

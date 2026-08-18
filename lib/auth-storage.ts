@@ -5,6 +5,18 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export const AUTH_KEY = "auth_data";
 export const ACCOUNT_DETAIL_KEY = "account_detail_data";
 
+type AuthChangeListener = () => void;
+const authChangeListeners = new Set<AuthChangeListener>();
+
+export function subscribeAuthChange(listener: AuthChangeListener) {
+  authChangeListeners.add(listener);
+  return () => authChangeListeners.delete(listener);
+}
+
+function notifyAuthChange() {
+  authChangeListeners.forEach((listener) => listener());
+}
+
 const assetBaseUrl =
   process.env.EXPO_PUBLIC_ASSET_BASE_URL ?? "http://164.152.166.4:9000";
 
@@ -15,6 +27,7 @@ export async function getAuth(): Promise<StoredAuth | null> {
 
 export async function clearAuth() {
   await AsyncStorage.multiRemove([AUTH_KEY, ACCOUNT_DETAIL_KEY]);
+  notifyAuthChange();
 }
 
 export async function isAuthenticated(): Promise<boolean> {
@@ -34,6 +47,7 @@ export async function isAuthenticated(): Promise<boolean> {
 
 export async function saveAuth(auth: StoredAuth) {
   await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(auth));
+  notifyAuthChange();
 }
 
 export async function getStoredAccountDetail(): Promise<AccountDetail | null> {

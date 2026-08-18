@@ -80,7 +80,7 @@ export default function SignIn() {
         message: "Sign in berhasil",
         variant: "success",
       });
-      router.push("/");
+      router.replace("/");
     } catch (err) {
       showToast({
         message: "Terjadi kesalahan yang tidak terduga",
