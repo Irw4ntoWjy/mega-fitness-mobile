@@ -120,8 +120,10 @@ export default function ProductDetail() {
         <View className="h-[210px] rounded-[18px] overflow-hidden bg-black mt-1">
           {packageData.package_cover_image ? (
             <Image
-              source={{ uri: packageData.package_cover_image }}
-              className="h-full w-full"
+              source={{
+                uri: `${process.env.EXPO_PUBLIC_URL}${packageData.package_cover_image}`,
+              }}
+              className="w-full h-full"
               resizeMode="cover"
             />
           ) : (
