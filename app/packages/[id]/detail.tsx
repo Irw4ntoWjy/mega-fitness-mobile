@@ -14,6 +14,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type PersonalTrainer = {
   id: string;
@@ -42,6 +43,7 @@ export default function ProductDetail() {
     [],
   );
   const { id, from } = useLocalSearchParams<{ id: string; from?: string }>();
+  const insets = useSafeAreaInsets();
 
   const openWhatsApp = async () => {
     try {
@@ -159,18 +161,27 @@ export default function ProductDetail() {
             </View>
           </ScrollView>
         </View> */}
+
+        <View style={{ height: insets.bottom + 96 }} />
       </ScrollView>
 
       {/* <Pressable className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[80%] h-14 rounded-xl items-center justify-center bg-cyan-600 pb-2 pt-2">
         <Text className="text-white text-xl font-semibold">Buy Package</Text>
       </Pressable> */}
 
-      <Pressable
-        onPress={openWhatsApp}
-        className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[80%] h-14 rounded-xl items-center justify-center bg-cyan-600 pb-2 pt-2"
+      <View
+        style={{
+          bottom: insets.bottom + 16,
+          alignItems: "center",
+        }}
       >
-        <Text className="text-white text-xl font-semibold">Buy Package</Text>
-      </Pressable>
+        <Pressable
+          onPress={openWhatsApp}
+          className="w-[80%] h-14 rounded-xl items-center justify-center bg-cyan-600"
+        >
+          <Text className="text-white text-xl font-semibold">Buy Package</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
