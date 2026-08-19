@@ -114,7 +114,7 @@ function TransactionCard({ item }: { item: PurchaseItemSchema }) {
         {item.package_cover_image ? (
           <Image
             source={{
-              uri: `${process.env.EXPO_PUBLIC_URL}${item.package_cover_image}`,
+              uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${item.package_cover_image}`,
             }}
             className="h-24 w-24 rounded-xl"
             resizeMode="cover"
@@ -238,7 +238,9 @@ export default function Transactions() {
                     <View className="flex-row items-center gap-3 bg-cyan-600 rounded-t-2xl px-4 py-3">
                       {item.members[0].member_picture_url ? (
                         <Image
-                          source={{ uri: item.members[0].member_picture_url }}
+                          source={{
+                            uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${item.members[0].member_picture_url}`,
+                          }}
                           className="w-12 h-12 rounded-full border-2 border-white bg-white"
                           resizeMode="cover"
                         />

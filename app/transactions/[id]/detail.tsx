@@ -119,7 +119,9 @@ export default function Transaction({ navigation, route }: Props) {
         <View className="px-6 mt-2">
           <View className="rounded-2xl overflow-hidden bg-zinc-100">
             <Image
-              source={{ uri: tx.image }}
+              source={{
+                uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${tx.image}`,
+              }}
               className="w-full h-60"
               resizeMode="cover"
             />

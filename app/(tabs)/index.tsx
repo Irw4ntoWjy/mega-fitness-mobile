@@ -655,7 +655,9 @@ export default function Home() {
           <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
             {item.image && item.image !== "null" && item.image !== "" ? (
               <Image
-                source={{ uri: String(item.image) }}
+                source={{
+                  uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${String(item.image)}`,
+                }}
                 className="w-full h-full"
                 resizeMode="cover"
               />
@@ -761,7 +763,9 @@ export default function Home() {
           <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
             {item.image && item.image !== "null" && item.image !== "" ? (
               <Image
-                source={{ uri: String(item.image) }}
+                source={{
+                  uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${String(item.image)}`,
+                }}
                 className="w-full h-full"
                 resizeMode="cover"
               />
@@ -875,7 +879,9 @@ export default function Home() {
           <View className="w-full h-44 rounded-t-2xl overflow-hidden bg-black">
             {item.image && item.image !== "null" && item.image !== "" ? (
               <Image
-                source={{ uri: String(item.image) }}
+                source={{
+                  uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${String(item.image)}`,
+                }}
                 className="w-full h-full"
                 resizeMode="cover"
               />

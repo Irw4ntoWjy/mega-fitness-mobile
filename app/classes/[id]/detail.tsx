@@ -360,7 +360,9 @@ export default function ClassesDetailScreen() {
       <ScrollView className="flex-1 mx-6" showsVerticalScrollIndicator={false}>
         <View className="h-[210px] rounded-[18px] overflow-hidden bg-zinc-300 mt-1">
           <Image
-            source={{ uri: activity.image }}
+            source={{
+              uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${String(activity.image)}`,
+            }}
             className="h-full w-full"
             resizeMode="cover"
           />

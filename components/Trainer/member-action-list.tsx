@@ -56,7 +56,9 @@ export default function MemberActionList({
                   <View className="h-14 w-14 items-center justify-center rounded-full bg-cyan-100 overflow-hidden">
                     {memberItem.picture_url ? (
                       <Image
-                        source={{ uri: memberItem.picture_url }}
+                        source={{
+                          uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${memberItem.picture_url}`,
+                        }}
                         className="h-14 w-14 rounded-full"
                         resizeMode="cover"
                       />

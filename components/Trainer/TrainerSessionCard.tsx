@@ -76,7 +76,7 @@ export function TrainerSessionCard({
             {item.package_cover_image ? (
               <Image
                 source={{
-                  uri: `${process.env.EXPO_PUBLIC_URL}${item.package_cover_image}`,
+                  uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${item.package_cover_image}`,
                 }}
                 className="w-full h-full"
                 resizeMode="cover"
