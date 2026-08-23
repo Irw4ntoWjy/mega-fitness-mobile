@@ -40,7 +40,7 @@ export default function MultiFieldCard({
           <View className="flex-row flex-wrap justify-between">
             {fields.map((f) => {
               const fieldKey = `${baseKey}-${f.key}`;
-              const value = answers[fieldKey]?.value || "";
+              const value = answers[fieldKey]?.desc || "";
 
               return (
                 <View key={f.key} className="w-[48%] mb-3">
@@ -54,7 +54,7 @@ export default function MultiFieldCard({
                         ...prev,
                         [fieldKey]: {
                           type: "TEXT",
-                          value: text,
+                          desc: text,
                         },
                       }));
                     }}

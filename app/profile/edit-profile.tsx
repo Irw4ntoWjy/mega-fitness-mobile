@@ -48,6 +48,12 @@ function InputBox({ children }: { children: React.ReactNode }) {
   );
 }
 
+const genderLabels: Record<string, string> = {
+  "Laki-laki": "Laki-laki",
+  Perempuan: "Perempuan",
+  lainnya: "Rather not to say",
+};
+
 export default function EditProfile() {
   const insets = useSafeAreaInsets();
 
@@ -130,6 +136,7 @@ export default function EditProfile() {
         account_id: resolvedAccountId,
         email: auth.accountDetail.account_email,
         birth_date: form.birth_date.toISOString(),
+        gender: form.gender || "lainnya",
       };
 
       const res = await updateProfile(payload);
@@ -254,7 +261,7 @@ export default function EditProfile() {
               <InputBox>
                 <View className="flex-row justify-between items-center">
                   <Text className="text-gray-900 py-3 px-1">
-                    {form.gender || "Select gender"}
+                    {form.gender ? genderLabels[form.gender] ?? form.gender : "Select gender"}
                   </Text>
                   <ChevronDown size={16} color="#9CA3AF" />
                 </View>
@@ -263,16 +270,20 @@ export default function EditProfile() {
 
             {openGender && (
               <View className="mt-2 bg-white border rounded-lg">
-                {["Male", "Female"].map((g) => (
+                {[
+                  { label: "Laki-laki", value: "Laki-laki" },
+                  { label: "Perempuan", value: "Perempuan" },
+                  { label: "Rather not to say", value: "lainnya" },
+                ].map((g) => (
                   <Pressable
-                    key={g}
+                    key={g.value}
                     onPress={() => {
-                      setForm({ ...form, gender: g });
+                      setForm({ ...form, gender: g.value });
                       setOpenGender(false);
                     }}
                     className="px-4 py-3 border-b last:border-b-0"
                   >
-                    <Text>{g}</Text>
+                    <Text>{g.label}</Text>
                   </Pressable>
                 ))}
               </View>

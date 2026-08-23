@@ -220,6 +220,34 @@ export default function AssessmentDetail() {
 
     for (const section of QUESTION_META) {
       const data = section.data.map((q) => {
+        const config = PARSE_CONFIG[q.key.en];
+
+        if (config) {
+          const baseKey = `${section.section}-${q.key.en}`;
+          const isFilled = config.every((f) => {
+            const val = (answers[`${baseKey}-${f.key}`] as any)?.desc;
+            return typeof val === "string" && val.trim() !== "";
+          });
+
+          const desc = config
+            .map(
+              (f) =>
+                `${f.label}: ${(answers[`${baseKey}-${f.key}`] as any)?.desc ?? ""}`,
+            )
+            .join(", ");
+
+          const answer: AnswerValue = {
+            type: "TEXT",
+            desc: isFilled ? desc : "",
+          };
+
+          return {
+            key: q.key,
+            value: mapValue(q.value.type, answer),
+            rawAnswer: answer,
+          };
+        }
+
         const answerEntry = Object.entries(answers).find(
           ([key]) => cleanKey(key) === q.key.en,
         );
@@ -258,7 +286,6 @@ export default function AssessmentDetail() {
       if ((section.section === 1 || section.section === 2) && !isTrainer) {
         for (const q of data) {
           const answer = q.rawAnswer;
-          console.log(q.key, answer);
           let isValid = true;
 
           if (!answer) {

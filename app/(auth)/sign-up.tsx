@@ -24,6 +24,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 import { Gender } from "../models/auth";
 
+const genderLabels: Record<Gender, string> = {
+  [Gender.Male]: "Laki-laki",
+  [Gender.Female]: "Perempuan",
+  [Gender.Other]: "Rather not to say",
+};
+
 function resolveDate(value: unknown, fallback: Date) {
   if (value instanceof Date && !Number.isNaN(value.getTime())) {
     return value;
@@ -51,7 +57,7 @@ export default function SignUp() {
   };
   const [password, setPassword] = useState("");
 
-  const [gender, setGender] = useState<Gender>(Gender.Male);
+  const [gender, setGender] = useState<Gender | undefined>(undefined);
   const [birthDate, setBirthDate] = useState(new Date());
   const [contactNumber, setContactNumber] = useState("");
 
@@ -222,7 +228,7 @@ export default function SignUp() {
                 >
                   <View className="flex-row items-center justify-between">
                     <Text className="text-gray-900 py-1 px-1">
-                      {gender || "Pilih gender"}
+                      {gender ? genderLabels[gender] : "Pilih gender"}
                     </Text>
                     <ChevronDown size={16} color="#9CA3AF" />
                   </View>
@@ -239,7 +245,7 @@ export default function SignUp() {
                       }}
                       className="px-4 py-3 border-b last:border-b-0 border-gray-200"
                     >
-                      <Text className="text-gray-900">{g}</Text>
+                      <Text className="text-gray-900">{genderLabels[g]}</Text>
                     </Pressable>
                   ))}
                 </View>
@@ -319,7 +325,7 @@ export default function SignUp() {
                   password,
                   name: name.trim(),
                   birth_date: birthDate.toISOString(),
-                  gender,
+                  gender: gender ?? Gender.Other,
                   contact_number: contactNumber.trim() || undefined,
                 };
 

@@ -35,7 +35,7 @@ export const signUpSchema = z.object({
   password: z.string().min(1, "Password wajib diisi"),
   name: z.string().min(1, "Nama wajib diisi"),
   birth_date: z.string().min(1, "Tanggal lahir wajib diisi"),
-  gender: z.string().min(1, "Gender wajib diisi"),
+  gender: z.string().optional(),
   contact_number: z.string().optional(),
 });
 export type SignUpPayload = z.infer<typeof signUpSchema>;

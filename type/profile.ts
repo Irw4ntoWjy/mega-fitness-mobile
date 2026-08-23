@@ -29,7 +29,7 @@ export const accountSchema = z.object({
 
   birth_date: z.string(),
 
-  gender: z.enum(["Laki-laki", "Perempuan"]),
+  gender: z.enum(["Laki-laki", "Perempuan", "lainnya"]).optional(),
 
   identity_no: z.string(),
 
@@ -57,7 +57,7 @@ export const accountForm = z.object({
   account_id: z.string(),
   member_name: z.string(),
   birth_date: z.string(),
-  gender: z.string(),
+  gender: z.string().optional(),
   contact_number: z.string().optional(),
   address: z.string().optional(),
 });
