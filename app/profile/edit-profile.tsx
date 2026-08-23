@@ -1,4 +1,5 @@
 import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
+import { useToast } from "@/components/Toast/toast-provider";
 import { useAuth } from "@/hooks/useAuth";
 import { BackgroundGlow } from "@components/Theme/background";
 import DateTimePicker, {
@@ -51,11 +52,12 @@ function InputBox({ children }: { children: React.ReactNode }) {
 const genderLabels: Record<string, string> = {
   "Laki-laki": "Laki-laki",
   Perempuan: "Perempuan",
-  lainnya: "Rather not to say",
+  Lainnya: "Rather not to say",
 };
 
 export default function EditProfile() {
   const insets = useSafeAreaInsets();
+  const { showToast } = useToast();
 
   const { role, accountId } = useLocalSearchParams<{
     role?: string;
@@ -63,6 +65,7 @@ export default function EditProfile() {
   }>();
 
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [openGender, setOpenGender] = useState(false);
   const [openDate, setOpenDate] = useState(false);
 
@@ -98,7 +101,11 @@ export default function EditProfile() {
         });
 
         if (!res.success || !res.data) {
-          console.error(res.message);
+          showToast({
+            message: res.message || "Gagal mengambil data profil",
+            variant: "error",
+            duration: 2500,
+          });
           return;
         }
 
@@ -118,7 +125,11 @@ export default function EditProfile() {
           facebook: data.member_detail?.facebook ?? "",
         });
       } catch (err) {
-        console.error("Failed to fetch profile:", err);
+        showToast({
+          message: "Gagal mengambil data profil",
+          variant: "error",
+          duration: 2500,
+        });
       } finally {
         setLoading(false);
       }
@@ -130,7 +141,9 @@ export default function EditProfile() {
   const handleSave = async () => {
     try {
       if (!resolvedAccountId) return;
-      console.log(auth.accountDetail);
+
+      setSaving(true);
+
       const payload = {
         ...form,
         account_id: resolvedAccountId,
@@ -142,15 +155,29 @@ export default function EditProfile() {
       const res = await updateProfile(payload);
 
       if (!res.success) {
-        console.error("Update failed:", res.message);
+        showToast({
+          message: res.message || "Gagal memperbarui profil",
+          variant: "error",
+          duration: 2500,
+        });
         return;
       }
 
-      console.log("Update success:", res.data);
+      showToast({
+        message: "Profil berhasil diperbarui",
+        variant: "success",
+        duration: 2500,
+      });
 
       router.push("/profile/profile");
     } catch (err) {
-      console.error("Update error:", err);
+      showToast({
+        message: "Terjadi kesalahan",
+        variant: "error",
+        duration: 2500,
+      });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -261,7 +288,9 @@ export default function EditProfile() {
               <InputBox>
                 <View className="flex-row justify-between items-center">
                   <Text className="text-gray-900 py-3 px-1">
-                    {form.gender ? genderLabels[form.gender] ?? form.gender : "Select gender"}
+                    {form.gender
+                      ? (genderLabels[form.gender] ?? form.gender)
+                      : "Select gender"}
                   </Text>
                   <ChevronDown size={16} color="#9CA3AF" />
                 </View>
@@ -273,7 +302,7 @@ export default function EditProfile() {
                 {[
                   { label: "Laki-laki", value: "Laki-laki" },
                   { label: "Perempuan", value: "Perempuan" },
-                  { label: "Rather not to say", value: "lainnya" },
+                  { label: "Rather not to say", value: "Lainnya" },
                 ].map((g) => (
                   <Pressable
                     key={g.value}
@@ -359,6 +388,7 @@ export default function EditProfile() {
       >
         <Pressable
           onPress={handleSave}
+          disabled={saving}
           className="w-full h-12 rounded-lg bg-[#0E8BAA] items-center justify-center"
         >
           <Text className="text-white font-semibold text-xl">Save</Text>
