@@ -2,7 +2,7 @@
 export enum Gender {
   Male = "Laki-laki",
   Female = "Perempuan",
-  Other = "lainnya",
+  Other = "Lainnya",
 }
 
 export interface User {

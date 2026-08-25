@@ -149,7 +149,7 @@ export default function EditProfile() {
         account_id: resolvedAccountId,
         email: auth.accountDetail.account_email,
         birth_date: form.birth_date.toISOString(),
-        gender: form.gender || "lainnya",
+        gender: form.gender || "Lainnya",
       };
 
       const res = await updateProfile(payload);
@@ -289,7 +289,7 @@ export default function EditProfile() {
                 <View className="flex-row justify-between items-center">
                   <Text className="text-gray-900 py-3 px-1">
                     {form.gender
-                      ? (genderLabels[form.gender] ?? form.gender)
+                      ? genderLabels[form.gender] ?? form.gender
                       : "Select gender"}
                   </Text>
                   <ChevronDown size={16} color="#9CA3AF" />

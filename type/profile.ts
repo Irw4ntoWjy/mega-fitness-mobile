@@ -29,7 +29,7 @@ export const accountSchema = z.object({
 
   birth_date: z.string(),
 
-  gender: z.enum(["Laki-laki", "Perempuan", "lainnya"]).optional(),
+  gender: z.enum(["Laki-laki", "Perempuan", "Lainnya"]).optional(),
 
   identity_no: z.string(),
 

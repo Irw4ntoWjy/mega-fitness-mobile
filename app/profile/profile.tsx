@@ -1,3 +1,4 @@
+import { deleteAccount } from "@/app/api/auth";
 import { getPurchaseList } from "@/app/api/purchase";
 import { getSessionLogCount } from "@/app/api/session-log";
 import { getWeekRange } from "@/components/dateWeekRange";
@@ -9,6 +10,7 @@ import {
 } from "@/components/Profile/time-availability";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
 import { useAuth } from "@/hooks/useAuth";
+import { logout } from "@/lib/auth-storage";
 import { getInitials } from "@/lib/utils";
 import { AccountSchema, TrainerSchedule } from "@/type/profile";
 import type { PurchaseItemSchema } from "@/type/purchase";
@@ -25,6 +27,7 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -175,7 +178,7 @@ export default function Profile() {
   const isTrainer = auth?.accountDetail?.account_role === "Trainer";
   const customerProfileId = isTrainer
     ? null
-    : (auth?.accountDetail?.profile_id ?? null);
+    : auth?.accountDetail?.profile_id ?? null;
   const [activePackagesTotal, setActivePackagesTotal] = useState(0);
   const [activePackagesTotalLoading, setActivePackagesTotalLoading] =
     useState(true);
@@ -188,6 +191,10 @@ export default function Profile() {
   const [activePackagesList, setActivePackagesList] = useState<
     PurchaseItemSchema[]
   >([]);
+  const [deleteAccountModalOpen, setDeleteAccountModalOpen] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const isDeleteConfirmValid = deleteConfirmText === "CONFIRM";
 
   const fetchProfile = async () => {
     try {
@@ -330,6 +337,41 @@ export default function Profile() {
     setActivePackagesPopupOpen(false);
   }, []);
 
+  const openDeleteAccountModal = useCallback(() => {
+    setDeleteAccountModalOpen(true);
+  }, []);
+
+  const closeDeleteAccountModal = useCallback(() => {
+    if (deletingAccount) return;
+    setDeleteAccountModalOpen(false);
+    setDeleteConfirmText("");
+  }, [deletingAccount]);
+
+  const confirmDeleteAccount = useCallback(async () => {
+    if (!auth?.accountDetail?.account_id) return;
+    if (deleteConfirmText !== "CONFIRM") return;
+
+    setDeletingAccount(true);
+    try {
+      const res = await deleteAccount({
+        account_id: auth.accountDetail.account_id,
+      });
+
+      if (res.success) {
+        setDeleteAccountModalOpen(false);
+        setDeleteConfirmText("");
+        await logout();
+        router.replace("/(auth)/sign-in");
+      } else {
+        console.error(res.message);
+      }
+    } catch (err) {
+      console.error("Delete account error:", err);
+    } finally {
+      setDeletingAccount(false);
+    }
+  }, [auth?.accountDetail?.account_id, deleteConfirmText]);
+
   useEffect(() => {
     if (!auth?.accountDetail?.account_id) return;
     fetchProfile();
@@ -458,6 +500,70 @@ export default function Profile() {
           </View>
         </View>
       </Modal>
+
+      <Modal
+        visible={deleteAccountModalOpen}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closeDeleteAccountModal}
+        statusBarTranslucent={true}
+      >
+        <View className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.45)] px-6">
+          <View className="w-full rounded-2xl bg-white p-6">
+            <Text className="text-xl font-bold text-slate-800">
+              Delete Account
+            </Text>
+            <Text className="mt-2 text-md text-gray-600">
+              Are you sure you want to delete this account? This action cannot
+              be reversed.
+            </Text>
+
+            <Text className="mt-4 text-sm text-gray-500">
+              Type <Text className="font-bold text-slate-800">CONFIRM</Text> to
+              proceed account deletion.
+            </Text>
+
+            <TextInput
+              value={deleteConfirmText}
+              onChangeText={(text) => setDeleteConfirmText(text.toUpperCase())}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              editable={!deletingAccount}
+              placeholder="CONFIRM"
+              className="mt-2 rounded-xl border border-gray-300 px-3 py-3 text-md text-black"
+            />
+
+            <View className="mt-6 flex-row justify-end gap-3">
+              <Pressable
+                onPress={closeDeleteAccountModal}
+                disabled={deletingAccount}
+                className="rounded-xl px-4 py-3"
+              >
+                <Text className="text-md font-semibold text-gray-600">
+                  Cancel
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={confirmDeleteAccount}
+                disabled={deletingAccount || !isDeleteConfirmValid}
+                className={`items-center justify-center rounded-xl px-4 py-3 min-w-[90px] ${
+                  isDeleteConfirmValid ? "bg-red-600" : "bg-red-300"
+                }`}
+              >
+                {deletingAccount ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text className="text-md font-semibold text-white">
+                    Confirm
+                  </Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <BackgroundGlow />
       <HeaderNavBar />
 
@@ -570,6 +676,17 @@ export default function Profile() {
             fields={ACCOUNT_INFO_FIELDS}
             values={profileValues}
           />
+
+          <View className="px-2 pt-2">
+            <Pressable
+              onPress={openDeleteAccountModal}
+              className="items-center justify-center rounded-xl border border-red-300 bg-red-50 py-3"
+            >
+              <Text className="text-red-600 font-semibold text-md">
+                Delete Account
+              </Text>
+            </Pressable>
+          </View>
         </View>
       </ScrollView>
 

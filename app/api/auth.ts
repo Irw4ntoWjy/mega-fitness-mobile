@@ -62,6 +62,13 @@ export function verifyAccount(payload: VerifyAccountPayload) {
   });
 }
 
+export function deleteAccount(payload: { account_id: string }) {
+  return fetcher("/account/delete-member", {
+    body: payload,
+    auth: true,
+  });
+}
+
 /**
  * Refresh token API
  * NOTE: NO auth header (access token already invalid)
