@@ -1,6 +1,7 @@
 import { deleteAccount } from "@/app/api/auth";
 import { getPurchaseList } from "@/app/api/purchase";
 import { getSessionLogCount } from "@/app/api/session-log";
+import { useToast } from "@/components/Toast/toast-provider";
 import { getWeekRange } from "@/components/dateWeekRange";
 import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
 import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
@@ -170,6 +171,7 @@ function mapSchedulesToTimeAvailability(
 export default function Profile() {
   const insets = useSafeAreaInsets();
   const { auth, loading: loadingAuth } = useAuth();
+  const { showToast } = useToast();
 
   const [profile, setProfile] = useState<AccountSchema | null>(null);
   const [trainerScheduleData, setTrainerScheduleData] =
@@ -360,17 +362,30 @@ export default function Profile() {
       if (res.success) {
         setDeleteAccountModalOpen(false);
         setDeleteConfirmText("");
+        showToast({
+          message: "Account has been deleted",
+          variant: "success",
+          duration: 2500,
+        });
         await logout();
         router.replace("/(auth)/sign-in");
       } else {
-        console.error(res.message);
+        showToast({
+          message: res.message || "Failed to delete account",
+          variant: "error",
+          duration: 2500,
+        });
       }
     } catch (err) {
-      console.error("Delete account error:", err);
+      showToast({
+        message: "Failed to delete account",
+        variant: "error",
+        duration: 2500,
+      });
     } finally {
       setDeletingAccount(false);
     }
-  }, [auth?.accountDetail?.account_id, deleteConfirmText]);
+  }, [auth?.accountDetail?.account_id, deleteConfirmText, showToast]);
 
   useEffect(() => {
     if (!auth?.accountDetail?.account_id) return;
