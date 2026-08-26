@@ -10,7 +10,9 @@ export async function getPurchaseCombobox(payload?: {
   const res = await getPurchaseList(payload);
   const data = res.data;
   const filteredData = data?.data.filter(
-    (item) => !item.package_name?.toLowerCase().includes("membership"),
+    (item) =>
+      !item.package_name?.toLowerCase().includes("membership") &&
+      ["1", "2"].includes(item.purchase_status_id),
   );
 
   return {
