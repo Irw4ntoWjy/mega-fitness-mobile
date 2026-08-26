@@ -122,6 +122,7 @@ export default function ProductDetail() {
             <Image
               source={{
                 uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${packageData.package_cover_image}`,
+                cache: "reload",
               }}
               className="w-full h-full"
               resizeMode="cover"

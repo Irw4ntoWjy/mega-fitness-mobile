@@ -115,6 +115,7 @@ function TransactionCard({ item }: { item: PurchaseItemSchema }) {
           <Image
             source={{
               uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${item.package_cover_image}`,
+              cache: "reload",
             }}
             className="h-24 w-24 rounded-xl"
             resizeMode="cover"
@@ -240,6 +241,7 @@ export default function Transactions() {
                         <Image
                           source={{
                             uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${item.members[0].member_picture_url}`,
+                            cache: "reload",
                           }}
                           className="w-12 h-12 rounded-full border-2 border-white bg-white"
                           resizeMode="cover"

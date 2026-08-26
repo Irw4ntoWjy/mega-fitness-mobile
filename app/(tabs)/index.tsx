@@ -327,7 +327,12 @@ export default function Home() {
 
   const fetchBuyPackages = useCallback(async () => {
     try {
-      const res = await getPackageList({ page: 1, limit: 100 });
+      const res = await getPackageList({
+        page: 1,
+        limit: 100,
+        show_mobile: true,
+        is_full: false,
+      });
 
       if (res.success && res.data) {
         const formatted = res.data.data.map((item: any) => ({
@@ -657,6 +662,7 @@ export default function Home() {
               <Image
                 source={{
                   uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${String(item.image)}`,
+                  cache: "reload",
                 }}
                 className="w-full h-full"
                 resizeMode="cover"
@@ -765,6 +771,7 @@ export default function Home() {
               <Image
                 source={{
                   uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${String(item.image)}`,
+                  cache: "reload",
                 }}
                 className="w-full h-full"
                 resizeMode="cover"
@@ -881,6 +888,7 @@ export default function Home() {
               <Image
                 source={{
                   uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${String(item.image)}`,
+                  cache: "reload",
                 }}
                 className="w-full h-full"
                 resizeMode="cover"
@@ -1155,6 +1163,7 @@ export default function Home() {
                                 uri:
                                   process.env.EXPO_PUBLIC_ASSET_BASE_URL +
                                   profilePictureUrl,
+                                cache: "reload",
                               }}
                               className="w-full h-full"
                               resizeMode="cover"

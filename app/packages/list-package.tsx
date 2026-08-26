@@ -100,6 +100,7 @@ function PackageCard({ item }: { item: Package }) {
             <Image
               source={{
                 uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${String(item.image)}`,
+                cache: "reload",
               }}
               className="w-full h-full"
               resizeMode="cover"
@@ -208,7 +209,12 @@ export default function ListPackages({ navigation, route }: Props) {
 
       const map = new Map<string, Package>();
 
-      const tryAll = await getPackageList({ page: 1, limit: -1 });
+      const tryAll = await getPackageList({
+        page: 1,
+        limit: -1,
+        show_mobile: true,
+        is_full: false,
+      });
       if (tryAll.success && tryAll.data && tryAll.data.total_page === 1) {
         tryAll.data.data.forEach((item: any) => {
           const id = String(item.package_id);
@@ -227,7 +233,12 @@ export default function ListPackages({ navigation, route }: Props) {
         return;
       }
 
-      const first = await getPackageList({ page: 1, limit: 50 });
+      const first = await getPackageList({
+        page: 1,
+        limit: 50,
+        show_mobile: true,
+        is_full: false,
+      });
       if (!first.success || !first.data) {
         setPackages([]);
         return;
@@ -252,7 +263,12 @@ export default function ListPackages({ navigation, route }: Props) {
       applyPage(first.data.data ?? []);
 
       for (let pageNumber = 2; pageNumber <= totalPages; pageNumber++) {
-        const res = await getPackageList({ page: pageNumber, limit: 50 });
+        const res = await getPackageList({
+          page: pageNumber,
+          limit: 50,
+          show_mobile: true,
+          is_full: false,
+        });
         if (!res.success || !res.data) break;
         applyPage(res.data.data ?? []);
       }

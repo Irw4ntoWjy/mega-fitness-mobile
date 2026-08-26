@@ -121,6 +121,7 @@ export default function Transaction({ navigation, route }: Props) {
             <Image
               source={{
                 uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${tx.image}`,
+                cache: "reload",
               }}
               className="w-full h-60"
               resizeMode="cover"
