@@ -599,6 +599,7 @@ export default function Profile() {
                 <Image
                   source={{
                     uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${auth.accountDetail.picture_url}`,
+                    cache: "reload",
                   }}
                   className="w-full h-full"
                   resizeMode="cover"

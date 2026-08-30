@@ -16,6 +16,8 @@ export function getPackageList(payload?: {
   q?: string | null;
   page?: number;
   limit?: number;
+  show_mobile?: boolean;
+  is_full?: boolean;
 }) {
   return fetcher<PackagePagination>("/package/list", {
     body: buildListPayload(payload),
@@ -27,7 +29,7 @@ export function getPackageList(payload?: {
       ...res,
       data: {
         ...res.data,
-        data: res.data.data.filter((item) => item.show_mobile === true),
+        // data: res.data.data.filter((item) => item.show_mobile === true),
       },
     };
   });

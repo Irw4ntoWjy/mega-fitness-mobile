@@ -77,6 +77,7 @@ export function TrainerSessionCard({
               <Image
                 source={{
                   uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${item.package_cover_image}`,
+                  cache: "reload",
                 }}
                 className="w-full h-full"
                 resizeMode="cover"
@@ -193,6 +194,7 @@ export function TrainerSessionCard({
                       <Image
                         source={{
                           uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${member.member_picture_url}`,
+                          cache: "reload",
                         }}
                         style={{
                           width: 32,

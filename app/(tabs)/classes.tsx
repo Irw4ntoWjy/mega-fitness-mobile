@@ -85,6 +85,7 @@ function BookingCard({
             <Image
               source={{
                 uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${item.package_cover_image}`,
+                cache: "reload",
               }}
               className="w-full h-full"
               resizeMode="cover"
@@ -170,6 +171,7 @@ function MembershipCard({
             <Image
               source={{
                 uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${item.package_cover_image}`,
+                cache: "reload",
               }}
               className="w-full h-full"
               resizeMode="cover"

@@ -58,6 +58,7 @@ export default function MemberActionList({
                       <Image
                         source={{
                           uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${memberItem.picture_url}`,
+                          cache: "reload",
                         }}
                         className="h-14 w-14 rounded-full"
                         resizeMode="cover"

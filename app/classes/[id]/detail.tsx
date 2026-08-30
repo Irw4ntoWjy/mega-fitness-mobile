@@ -362,6 +362,7 @@ export default function ClassesDetailScreen() {
           <Image
             source={{
               uri: `${process.env.EXPO_PUBLIC_ASSET_BASE_URL}${String(activity.image)}`,
+              cache: "reload",
             }}
             className="h-full w-full"
             resizeMode="cover"
