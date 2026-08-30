@@ -58,7 +58,7 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
 
   const [gender, setGender] = useState<Gender | undefined>(undefined);
-  const [birthDate, setBirthDate] = useState(new Date());
+  const [birthDate, setBirthDate] = useState<Date | null>(null);
   const [contactNumber, setContactNumber] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
@@ -83,7 +83,7 @@ export default function SignUp() {
   const [showTnc, setShowTnc] = useState(false);
 
   const initialBirthDate = useMemo(
-    () => resolveDate(birthDate, new Date()),
+    () => birthDate || new Date(),
     [birthDate],
   );
 
@@ -320,11 +320,12 @@ export default function SignUp() {
                 setError(null);
                 setFieldErrors({});
 
+                const birthdateValue = birthDate ? birthDate.toISOString() : new Date("0001-01-01").toISOString();
                 const nextPayload = {
                   email: email.trim(),
                   password,
                   name: name.trim(),
-                  birth_date: birthDate.toISOString(),
+                  birth_date: birthdateValue,
                   gender: gender ?? Gender.Other,
                   contact_number: contactNumber.trim() || undefined,
                 };

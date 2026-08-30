@@ -148,7 +148,7 @@ export default function EditProfile() {
         ...form,
         account_id: resolvedAccountId,
         email: auth.accountDetail.account_email,
-        birth_date: form.birth_date.toISOString(),
+        birth_date: form.birth_date?.toISOString() || new Date("0001-01-01").toISOString(),
         gender: form.gender || "Lainnya",
       };
 

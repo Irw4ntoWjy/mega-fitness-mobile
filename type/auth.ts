@@ -34,7 +34,7 @@ export const signUpSchema = z.object({
   email: z.string().min(1, "Email wajib diisi"),
   password: z.string().min(1, "Password wajib diisi"),
   name: z.string().min(1, "Nama wajib diisi"),
-  birth_date: z.string().min(1, "Tanggal lahir wajib diisi"),
+  birth_date: z.string().optional(),
   gender: z.string().optional(),
   contact_number: z.string().optional(),
 });
