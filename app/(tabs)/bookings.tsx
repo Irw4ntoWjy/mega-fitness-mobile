@@ -441,7 +441,7 @@ export default function Bookings() {
           router.push({
             pathname: "/assessment/detail",
             params: {
-              memberId: memberItem.id,
+              memberProfileId: memberItem.id,
               memberName: memberItem.name,
             },
           });

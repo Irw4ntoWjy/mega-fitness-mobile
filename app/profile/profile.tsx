@@ -1,7 +1,6 @@
 import { deleteAccount } from "@/app/api/auth";
 import { getPurchaseList } from "@/app/api/purchase";
 import { getSessionLogCount } from "@/app/api/session-log";
-import { useToast } from "@/components/Toast/toast-provider";
 import { getWeekRange } from "@/components/dateWeekRange";
 import HeaderNavBar from "@/components/HeaderNavBar/header-nav-bar";
 import { ActivePackagesSessionsCard } from "@/components/Profile/active-package-session";
@@ -10,6 +9,7 @@ import {
   TimeAvailabilitySection,
 } from "@/components/Profile/time-availability";
 import { InnerShadowOverlay } from "@/components/Theme/inner-shadow";
+import { useToast } from "@/components/Toast/toast-provider";
 import { useAuth } from "@/hooks/useAuth";
 import { logout } from "@/lib/auth-storage";
 import { getInitials } from "@/lib/utils";
@@ -93,8 +93,9 @@ const TRAINER_EXTRA_FIELDS: ProfileFieldConfig[] = [
   { key: "availability", label: "Availability" },
 ];
 
-// day_of_week: 0 = Monday ... 6 = Sunday
-const DAY_KEYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+// day_of_week: 0 = Sunday ... 6 = Saturday
+const DAY_KEYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const NEW_WINDOW_DAYS = 7;
 
 function parseBackendDate(value?: string | null) {
@@ -163,7 +164,7 @@ function mapSchedulesToTimeAvailability(
   });
 
   return {
-    days: DAY_KEYS.map((k) => ({ key: k, label: k })),
+    days: DAY_ORDER.map((k) => ({ key: k, label: k })),
     slotsByDay,
   };
 }
@@ -180,7 +181,7 @@ export default function Profile() {
   const isTrainer = auth?.accountDetail?.account_role === "Trainer";
   const customerProfileId = isTrainer
     ? null
-    : auth?.accountDetail?.profile_id ?? null;
+    : (auth?.accountDetail?.profile_id ?? null);
   const [activePackagesTotal, setActivePackagesTotal] = useState(0);
   const [activePackagesTotalLoading, setActivePackagesTotalLoading] =
     useState(true);

@@ -12,6 +12,7 @@ import {
 import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function BarcodePages() {
   const { id, trainer, membership } = useLocalSearchParams<{
@@ -148,7 +149,7 @@ export default function BarcodePages() {
   }, [isMembership, bookingId, purchaseId]);
 
   return (
-    <View style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1 }}>
       <BackgroundGlow showText={true} />
       <View className="px-6 pt-2 mt-20">
         <Pressable
@@ -162,8 +163,8 @@ export default function BarcodePages() {
       </View>
 
       <View
-        className="flex-1 "
         style={{
+          flex: 1,
           paddingTop: isRefreshed ? 48 : 0,
           paddingHorizontal: 24,
         }}
@@ -235,35 +236,35 @@ export default function BarcodePages() {
             </View>
           )}
         </View>
-        <View className="h-37" />
-        {!isMembership && !isRefreshed && (
-          <View className="bottom-2 left-0 right-0 bg-zinc-100/60 px-[40px] pb-[18px] pt-2">
-            <Pressable
-              onPress={async () => {
-                if (!bookingId) return;
-                setLoading(true);
-                try {
-                  const res = await getBookingDetail({ booking_id: bookingId });
-                  if (res.success && res.data) {
-                    if (
-                      res.data.booking_status_id === 4 ||
-                      res.data.booking_status_name === "Sedang Berlangsung"
-                    ) {
-                      setIsRefreshed(true);
-                    }
-                    setBooking(res.data);
-                  }
-                } finally {
-                  setLoading(false);
-                }
-              }}
-              className={`w-full h-14 rounded-xl items-center justify-center bg-cyan-600`}
-            >
-              <Text className="text-white text-xl font-semibold">Refresh</Text>
-            </Pressable>
-          </View>
-        )}
       </View>
-    </View>
+
+      {!isMembership && !isRefreshed && (
+        <View className="bg-zinc-100/60 px-[40px] pt-2 pb-[18px]">
+          <Pressable
+            onPress={async () => {
+              if (!bookingId) return;
+              setLoading(true);
+              try {
+                const res = await getBookingDetail({ booking_id: bookingId });
+                if (res.success && res.data) {
+                  if (
+                    res.data.booking_status_id === 4 ||
+                    res.data.booking_status_name === "Sedang Berlangsung"
+                  ) {
+                    setIsRefreshed(true);
+                  }
+                  setBooking(res.data);
+                }
+              } finally {
+                setLoading(false);
+              }
+            }}
+            className={`w-full h-14 rounded-xl items-center justify-center bg-cyan-600`}
+          >
+            <Text className="text-white text-xl font-semibold">Refresh</Text>
+          </Pressable>
+        </View>
+      )}
+    </SafeAreaView>
   );
 }
