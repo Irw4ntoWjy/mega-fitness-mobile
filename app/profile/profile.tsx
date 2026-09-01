@@ -416,7 +416,10 @@ export default function Profile() {
     name: profile?.profile_name ?? "-",
     phone: profile?.contact_number ?? "-",
     address: profile?.address ?? "-",
-    birth: formatDate(profile?.birth_date) ?? "-",
+    birth:
+      !profile?.birth_date || profile.birth_date.startsWith("1900-01-01")
+        ? "-"
+        : formatDate(profile.birth_date) ?? "-",
     gender: profile?.gender ?? "-",
     weight: "-",
     height: "-",

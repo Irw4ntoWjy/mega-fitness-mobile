@@ -6,7 +6,7 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronDown } from "lucide-react-native";
+import { ChevronDown, X } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -74,7 +74,7 @@ export default function EditProfile() {
     member_name: "",
     contact_number: "",
     address: "",
-    birth_date: new Date(),
+    birth_date: null as Date | null,
     gender: "",
     instagram: "",
     whatsapp: "",
@@ -117,7 +117,9 @@ export default function EditProfile() {
           member_name: data.profile_name ?? "",
           contact_number: data.contact_number ?? "",
           address: data.address ?? "",
-          birth_date: resolveDate(data.birth_date, new Date()),
+          birth_date: data.birth_date?.startsWith("1900-01-01")
+            ? null
+            : resolveDate(data.birth_date, new Date()),
           gender: data.gender ?? "",
           instagram: data.member_detail?.instagram ?? "",
           whatsapp: data.member_detail?.whatsapp ?? "",
@@ -148,7 +150,7 @@ export default function EditProfile() {
         ...form,
         account_id: resolvedAccountId,
         email: auth.accountDetail.account_email,
-        birth_date: form.birth_date?.toISOString() || new Date("0001-01-01").toISOString(),
+        birth_date: (form.birth_date ?? new Date("1900-01-01")).toISOString(),
         gender: form.gender || "Lainnya",
       };
 
@@ -263,16 +265,30 @@ export default function EditProfile() {
               <InputBox>
                 <View className="flex-row justify-between items-center">
                   <Text className="text-gray-900 py-3 px-1">
-                    {formatDate(form.birth_date)}
+                    {form.birth_date
+                      ? formatDate(form.birth_date)
+                      : "Select date"}
                   </Text>
-                  <ChevronDown size={16} color="#9CA3AF" />
+                  {form.birth_date ? (
+                    <Pressable
+                      onPress={() => {
+                        setForm({ ...form, birth_date: null });
+                        setOpenDate(false);
+                      }}
+                      hitSlop={8}
+                    >
+                      <X size={16} color="#9CA3AF" />
+                    </Pressable>
+                  ) : (
+                    <ChevronDown size={16} color="#9CA3AF" />
+                  )}
                 </View>
               </InputBox>
             </Pressable>
 
             {openDate && (
               <DateTimePicker
-                value={form.birth_date}
+                value={form.birth_date ?? new Date()}
                 mode="date"
                 display={Platform.OS === "ios" ? "spinner" : "default"}
                 onChange={handlebirth_dateChange}
@@ -289,7 +305,7 @@ export default function EditProfile() {
                 <View className="flex-row justify-between items-center">
                   <Text className="text-gray-900 py-3 px-1">
                     {form.gender
-                      ? genderLabels[form.gender] ?? form.gender
+                      ? (genderLabels[form.gender] ?? form.gender)
                       : "Select gender"}
                   </Text>
                   <ChevronDown size={16} color="#9CA3AF" />

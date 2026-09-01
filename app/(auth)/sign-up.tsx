@@ -8,7 +8,7 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
-import { ChevronDown, ChevronLeft, Eye, EyeOff } from "lucide-react-native";
+import { ChevronDown, ChevronLeft, Eye, EyeOff, X } from "lucide-react-native";
 import { useMemo, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -82,10 +82,7 @@ export default function SignUp() {
 
   const [showTnc, setShowTnc] = useState(false);
 
-  const initialBirthDate = useMemo(
-    () => birthDate || new Date(),
-    [birthDate],
-  );
+  const initialBirthDate = useMemo(() => birthDate || new Date(), [birthDate]);
 
   const handleBirthDateChange = (
     event: DateTimePickerEvent,
@@ -269,9 +266,23 @@ export default function SignUp() {
                 >
                   <View className="flex-row items-center justify-between">
                     <Text className="text-gray-900 py-1 px-1">
-                      {initialBirthDate.toLocaleDateString("en-GB")}
+                      {birthDate
+                        ? birthDate.toLocaleDateString("en-GB")
+                        : "Pilih tanggal lahir"}
                     </Text>
-                    <ChevronDown size={16} color="#9CA3AF" />
+                    {birthDate ? (
+                      <Pressable
+                        onPress={() => {
+                          setBirthDate(null);
+                          setOpenDate(false);
+                        }}
+                        hitSlop={8}
+                      >
+                        <X size={16} color="#9CA3AF" />
+                      </Pressable>
+                    ) : (
+                      <ChevronDown size={16} color="#9CA3AF" />
+                    )}
                   </View>
                 </View>
               </Pressable>
@@ -320,7 +331,9 @@ export default function SignUp() {
                 setError(null);
                 setFieldErrors({});
 
-                const birthdateValue = birthDate ? birthDate.toISOString() : new Date("0001-01-01").toISOString();
+                const birthdateValue = (
+                  birthDate ?? new Date("1900-01-01")
+                ).toISOString();
                 const nextPayload = {
                   email: email.trim(),
                   password,
