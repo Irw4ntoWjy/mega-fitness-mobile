@@ -49,6 +49,7 @@ export default function MultiFieldCard({
                   <TextInput
                     value={value}
                     editable={isEditMode && !isTrainerReadOnlySection}
+                    keyboardType="decimal-pad"
                     onChangeText={(text) => {
                       setAnswers((prev: any) => ({
                         ...prev,
