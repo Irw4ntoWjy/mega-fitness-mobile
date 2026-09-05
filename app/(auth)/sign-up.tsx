@@ -4,6 +4,7 @@ import { FormField } from "@/components/Form/form-field";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { mapFieldErrors } from "@/lib/api-error";
 import { signUpSchema } from "@/type/auth";
+import { toYmd } from "@/utils/datetimeFormat";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
@@ -292,6 +293,7 @@ export default function SignUp() {
                     value={initialBirthDate}
                     mode="date"
                     display={Platform.OS === "ios" ? "spinner" : "default"}
+                    maximumDate={new Date()}
                     onChange={handleBirthDateChange}
                     textColor="#000"
                   />
@@ -331,9 +333,9 @@ export default function SignUp() {
                 setError(null);
                 setFieldErrors({});
 
-                const birthdateValue = (
-                  birthDate ?? new Date("1900-01-01")
-                ).toISOString();
+                const birthdateValue = birthDate
+                  ? toYmd(birthDate)
+                  : "1900-01-01";
                 const nextPayload = {
                   email: email.trim(),
                   password,
