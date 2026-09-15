@@ -1,6 +1,6 @@
 import { refreshToken as refreshTokenApi } from "@/app/api/auth";
-import { clearAuth, getAuth, saveAuth } from "@/lib/auth-storage";
 import { syncAccountDetailFromAuth } from "@/lib/auth-session";
+import { clearAuth, getAuth, saveAuth } from "@/lib/auth-storage";
 import { parseJwt } from "@/lib/jwt";
 import { logger } from "@/lib/logger";
 import { ApiResponse } from "@/type/api";
@@ -8,7 +8,7 @@ import { ApiResponse } from "@/type/api";
 let isRefreshing = false;
 let refreshPromise: Promise<boolean> | null = null;
 
-async function tryRefreshToken(): Promise<boolean> {
+export async function tryRefreshToken(): Promise<boolean> {
   if (isRefreshing && refreshPromise) {
     return refreshPromise;
   }

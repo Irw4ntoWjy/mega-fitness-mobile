@@ -30,19 +30,16 @@ export async function clearAuth() {
   notifyAuthChange();
 }
 
-export async function isAuthenticated(): Promise<boolean> {
+export async function isAccessTokenValid(): Promise<boolean> {
   const auth = await getAuth();
-  if (!auth?.accessPayload?.exp) return false;
-
   const now = Math.floor(Date.now() / 1000);
+  return Boolean(auth?.accessPayload?.exp && auth.accessPayload.exp > now);
+}
 
-  // token expired
-  if (auth.accessPayload.exp < now) {
-    await clearAuth();
-    return false;
-  }
-
-  return true;
+export async function isRefreshTokenValid(): Promise<boolean> {
+  const auth = await getAuth();
+  const now = Math.floor(Date.now() / 1000);
+  return Boolean(auth?.refreshPayload?.exp && auth.refreshPayload.exp > now);
 }
 
 export async function saveAuth(auth: StoredAuth) {
