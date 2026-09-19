@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "mega-fitness-mobile",
+    "name": "MFC Fitness",
     "slug": "mega-fitness",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -51,9 +51,7 @@
         }
       ]
     ],
-    "permissions": [
-      "location"
-    ],
+    "permissions": ["location"],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
