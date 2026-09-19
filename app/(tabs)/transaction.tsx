@@ -13,42 +13,36 @@ import { getPurchaseList } from "../api/purchase";
 import { getTrainerSessionLogHistory } from "../api/session-log";
 import { transactions } from "../transactions/dummy_data";
 
-const statusConfig = {
-  "1": {
-    icon: CheckCircle,
-    color: "#0891B2",
-    label: "Completed",
-  },
-  "2": {
-    icon: CheckCircle,
-    color: "#0891B2",
-    label: "Completed",
-  },
-  "0": {
-    icon: Clock,
-    color: "#EAB308",
-    label: "Pending",
-  },
-  "-1": {
-    icon: XCircle,
-    color: "#E11D48",
-    label: "Rejected",
-  },
+const statusToTab = {
+  "1": "Completed",
+  "2": "Completed",
+  "3": "Completed",
+  "4": "Completed",
+  "0": "Pending",
+  "-1": "Rejected",
+} as const;
+
+const tabConfig = {
+  Completed: { icon: CheckCircle, color: "#0891B2" },
+  Pending: { icon: Clock, color: "#EAB308" },
+  Rejected: { icon: XCircle, color: "#E11D48" },
 };
 
-type Status = "1" | "0" | "-1" | "2";
+type Status = keyof typeof statusToTab;
 type StatusBadgeProps = {
   status: Status;
 };
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
-  const { icon: Icon, color, label } = statusConfig[status];
+  const tab = statusToTab[status];
+  if (!tab) return null;
+  const { icon: Icon, color } = tabConfig[tab];
 
   return (
     <View className="flex-row items-center gap-1">
       <Icon size={14} color={color} />
       <Text className="text-[12px]" style={{ color }}>
-        {label}
+        {tab}
       </Text>
     </View>
   );
@@ -56,12 +50,6 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
 
 type TabKey = "All" | "Completed" | "Pending" | "Rejected";
 const TABS: TabKey[] = ["All", "Completed", "Pending", "Rejected"];
-
-const tabToStatus: Record<Exclude<TabKey, "All">, Status> = {
-  Completed: "1",
-  Pending: "0",
-  Rejected: "-1",
-};
 
 type Transaction = (typeof transactions)[number];
 
@@ -164,7 +152,7 @@ export default function Transactions() {
           try {
             setLoading(true);
             const res = await getPurchaseList({
-              customer_profile_id: profileId,
+              // customer_profile_id: profileId,
             });
             const data = res.data;
             if (data) setData(data.data ?? []);
@@ -203,7 +191,9 @@ export default function Transactions() {
   const filteredData =
     tab === "All"
       ? data
-      : data.filter((item) => item.purchase_status_id === tabToStatus[tab]);
+      : data.filter(
+          (item) => statusToTab[item.purchase_status_id as Status] === tab,
+        );
 
   if (loadingAuth) return null;
 

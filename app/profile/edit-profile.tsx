@@ -18,6 +18,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { toYmd } from "@/utils/datetimeFormat";
 import { profileDetail, updateProfile } from "../api/profile";
 
 function formatDate(date: Date) {
@@ -150,7 +151,7 @@ export default function EditProfile() {
         ...form,
         account_id: resolvedAccountId,
         email: auth.accountDetail.account_email,
-        birth_date: (form.birth_date ?? new Date("1900-01-01")).toISOString(),
+        birth_date: form.birth_date ? toYmd(form.birth_date) : "1900-01-01",
         gender: form.gender || "Lainnya",
       };
 
@@ -291,6 +292,7 @@ export default function EditProfile() {
                 value={form.birth_date ?? new Date()}
                 mode="date"
                 display={Platform.OS === "ios" ? "spinner" : "default"}
+                maximumDate={new Date()}
                 onChange={handlebirth_dateChange}
               />
             )}

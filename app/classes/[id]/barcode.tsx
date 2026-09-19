@@ -10,7 +10,7 @@ import {
   User as UserIcon,
 } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -162,12 +162,14 @@ export default function BarcodePages() {
         </Pressable>
       </View>
 
-      <View
-        style={{
-          flex: 1,
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
           paddingTop: isRefreshed ? 48 : 0,
           paddingHorizontal: 24,
+          paddingBottom: 24,
         }}
+        showsVerticalScrollIndicator={false}
       >
         <View className="mt-10 items-center">
           <View className="w-full max-w-[520px]  rounded-3xl bg-white shadow-lg px-8 py-9">
@@ -236,7 +238,7 @@ export default function BarcodePages() {
             </View>
           )}
         </View>
-      </View>
+      </ScrollView>
 
       {!isMembership && !isRefreshed && (
         <View className="bg-zinc-100/60 px-[40px] pt-2 pb-[18px]">

@@ -1,9 +1,12 @@
 import {
+  clearAuth,
   getAuth,
   getStoredAccountDetail,
-  isAuthenticated,
+  isAccessTokenValid,
+  isRefreshTokenValid,
   saveStoredAccountDetail,
 } from "@/lib/auth-storage";
+import { tryRefreshToken } from "@/lib/fetcher";
 import { AccountDetail } from "@/type/detail-account";
 
 type AccountDetailApiResponse<T> = {
@@ -68,9 +71,14 @@ export async function syncAccountDetailFromAuth(force = false) {
 }
 
 export async function checkSession() {
-  const authenticated = await isAuthenticated();
-  if (!authenticated) {
-    return false;
+  if (!(await isAccessTokenValid())) {
+    if (!(await isRefreshTokenValid())) {
+      await clearAuth();
+      return false;
+    }
+    if (!(await tryRefreshToken())) {
+      return false;
+    }
   }
 
   await syncAccountDetailFromAuth();

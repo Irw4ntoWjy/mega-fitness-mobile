@@ -24,14 +24,14 @@ export type RefreshTokenPayload = {
 };
 
 export const signInSchema = z.object({
-  email: z.string().min(1, "Email is required"),
+  email: z.string().trim().min(1, "Email is required"),
   password: z.string().min(1, "Password is required"),
 });
 
 export type LoginPayload = z.infer<typeof signInSchema>;
 
 export const signUpSchema = z.object({
-  email: z.string().min(1, "Email wajib diisi"),
+  email: z.string().trim().min(1, "Email wajib diisi"),
   password: z.string().min(1, "Password wajib diisi"),
   name: z.string().min(1, "Nama wajib diisi"),
   birth_date: z.string().optional(),
