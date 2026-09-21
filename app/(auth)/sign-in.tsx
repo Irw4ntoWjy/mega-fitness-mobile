@@ -147,6 +147,20 @@ export default function SignIn() {
                   </Pressable>
                 </View>
               </InputBox>
+
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({
+                    pathname: "/(auth)/update-password-email",
+                    params: email ? { email } : undefined,
+                  })
+                }
+                className="self-start"
+              >
+                <Text className="text-sm text-blue-600 underline">
+                  Lupa password?
+                </Text>
+              </TouchableOpacity>
             </View>
 
             <TouchableOpacity
