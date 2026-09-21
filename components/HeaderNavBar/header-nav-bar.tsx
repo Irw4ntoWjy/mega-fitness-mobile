@@ -2,8 +2,8 @@ import { router } from "expo-router";
 import {
   Bell,
   ChevronLeft,
-  FileQuestionMark,
   FileText,
+  NotebookPenIcon,
 } from "lucide-react-native";
 import { ReactNode, useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -73,7 +73,7 @@ export default function HeaderNavBar({
               })
             }
           >
-            <FileQuestionMark size={18} color="black" />
+            <NotebookPenIcon size={18} color="black" />
           </HeaderIcon>
           <HeaderIcon onPress={() => setTermsVisible(true)}>
             <FileText size={18} color="black" />
