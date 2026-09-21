@@ -47,6 +47,11 @@ export default function OtpVerification() {
       });
       return false;
     }
+    showToast({
+      message: `${res.message}\nPlease check your email`,
+      variant: "success",
+      duration: 2500,
+    });
     setCooldownSeconds(60);
     return true;
   }, [email, showToast]);

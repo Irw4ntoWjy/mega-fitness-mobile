@@ -66,7 +66,7 @@ export default function UpdatePasswordEmail() {
     }
 
     showToast({
-      message: res.message,
+      message: `${res.message}\nPlease check your email`,
       variant: "success",
       duration: 2500,
     });

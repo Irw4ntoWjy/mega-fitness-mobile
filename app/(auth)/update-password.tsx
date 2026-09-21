@@ -72,7 +72,7 @@ export default function ResetPassword() {
     }
 
     showToast({
-      message: res.message,
+      message: `${res.message}\nPlease check your email`,
       variant: "success",
       duration: 2500,
     });
