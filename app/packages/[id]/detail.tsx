@@ -1,4 +1,5 @@
 import { getPackageDetail } from "@/app/api/package";
+import { getVariableDetail } from "@/app/api/variable";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { getInitials } from "@/lib/utils";
 import { Package } from "@/type/package";
@@ -47,8 +48,13 @@ export default function ProductDetail() {
 
   const openWhatsApp = async () => {
     try {
-      const url = "https://wa.me/628116328789";
-      await Linking.openURL(url);
+      const res = await getVariableDetail({ variable: "Whatsapp" });
+      const number = res.data?.value_string;
+      if (!res.success || !number) {
+        console.log("WhatsApp number not found");
+        return;
+      }
+      await Linking.openURL(`https://wa.me/${number}`);
     } catch (err) {
       console.log("WhatsApp open error:", err);
     }
