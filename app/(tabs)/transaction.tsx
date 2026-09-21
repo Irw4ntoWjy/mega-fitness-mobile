@@ -152,7 +152,7 @@ export default function Transactions() {
           try {
             setLoading(true);
             const res = await getPurchaseList({
-              // customer_profile_id: profileId,
+              customer_profile_id: profileId,
             });
             const data = res.data;
             if (data) setData(data.data ?? []);
