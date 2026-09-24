@@ -18,9 +18,13 @@ export function getPackageList(payload?: {
   limit?: number;
   show_mobile?: boolean;
   is_full?: boolean;
+  is_active?: boolean;
 }) {
   return fetcher<PackagePagination>("/package/list", {
-    body: buildListPayload(payload),
+    body: buildListPayload({
+      ...payload,
+      is_active: payload?.is_active !== false ? true : false,
+    }),
     auth: true,
   }).then((res) => {
     if (!res.success || !res.data) return res;
