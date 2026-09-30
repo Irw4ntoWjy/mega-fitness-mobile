@@ -311,7 +311,24 @@ export default function AddBookingModal({
                   onSelect={(label) => {
                     setSelectedPackage(label);
                     setOpenPicker(null);
+
+                    // reset dependent selections
+                    setTrainer([]);
+                    setTrainerMap({});
+                    setSelectedTrainer("");
+                    setTrainerSchedule([]);
+                    setTrainerScheduleMap({});
+                    setSelectedTrainerSchedule(null);
+                    setSchedule([]);
+                    setScheduleMap({});
+                    setSelectedSchedule(null);
+
                     const selected = packageMap[label];
+                    if (!selected) {
+                      // package was cleared
+                      setIsPrivate(false);
+                      return;
+                    }
                     if (
                       selected &&
                       (selected.data as any)?.product_type_name === "Private"
