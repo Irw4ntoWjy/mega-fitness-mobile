@@ -57,7 +57,7 @@ export default function AddBookingModal({
 
     router.push("/(tabs)/bookings");
   };
-  const { auth, loading: loadingAuth } = useAuth();
+  const { auth } = useAuth();
   const { showToast } = useToast();
   const [isPrivate, setIsPrivate] = useState<boolean>(false);
 
@@ -255,7 +255,7 @@ export default function AddBookingModal({
         ? String((selectedPrivateSchedule.data as any).id)
         : String((selectedClassSchedule.data as any).id),
       purchase_id: String((selectedPurchase.data as any).id),
-      member_profile_id: auth!.accountDetail.profile_id,
+      member_profile_id: auth?.accountDetail?.profile_id,
       schedule_type: isPrivate ? "trainer" : "class",
     });
 
