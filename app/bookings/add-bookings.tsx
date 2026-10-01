@@ -57,7 +57,7 @@ export default function AddBookingModal({
 
     router.push("/(tabs)/bookings");
   };
-  const { auth, loading: loadingAuth } = useAuth();
+  const { auth } = useAuth();
   const { showToast } = useToast();
   const [isPrivate, setIsPrivate] = useState<boolean>(false);
 
@@ -67,10 +67,13 @@ export default function AddBookingModal({
   );
   const [selectedPackage, setSelectedPackage] = useState("");
   const fetchPackages = async () => {
+    const profileId = auth?.accountDetail?.profile_id;
+    if (!profileId) return;
+
     const res = await getPurchaseCombobox({
       page: 1,
       limit: -1,
-      customer_profile_id: auth.accountDetail.profile_id,
+      customer_profile_id: profileId,
     });
 
     const map: Record<string, ComboboxItem> = {};
@@ -186,7 +189,7 @@ export default function AddBookingModal({
     const now = new Date();
 
     if (isPrivate) {
-      if (!selectedTrainerSchedule || !auth.accountDetail.profile_id) {
+      if (!selectedTrainerSchedule || !auth?.accountDetail?.profile_id) {
         showToast({
           message: "Mohon untuk memilih jadwal booking yang ada",
           variant: "error",
@@ -220,7 +223,7 @@ export default function AddBookingModal({
       if (
         !selectedSchedule ||
         !selectedPackage ||
-        !auth.accountDetail.profile_id
+        !auth?.accountDetail?.profile_id
       ) {
         showToast({
           message: "Mohon untuk memilih jadwal booking yang ada",
@@ -252,7 +255,7 @@ export default function AddBookingModal({
         ? String((selectedPrivateSchedule.data as any).id)
         : String((selectedClassSchedule.data as any).id),
       purchase_id: String((selectedPurchase.data as any).id),
-      member_profile_id: auth.accountDetail.profile_id,
+      member_profile_id: auth?.accountDetail?.profile_id,
       schedule_type: isPrivate ? "trainer" : "class",
     });
 
@@ -268,7 +271,7 @@ export default function AddBookingModal({
     if (visible) {
       fetchPackages();
     }
-  }, [visible]);
+  }, [visible, auth?.accountDetail?.profile_id]);
 
   return (
     <Modal visible={visible} transparent animationType="fade">
