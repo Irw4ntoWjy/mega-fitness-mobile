@@ -368,9 +368,9 @@ export default function AssessmentDetail() {
               setIsEditMode(true);
             }
           }}
-          className="px-3 h-10 items-center justify-center"
+          className="px-4 h-10 items-center justify-center rounded-xl bg-[#0E8BAA]"
         >
-          <Text className="text-[#0E8BAA] text-xl underline">
+          <Text className="text-white text-base font-semibold">
             {isEditMode ? "Done" : "Edit"}
           </Text>
         </Pressable>

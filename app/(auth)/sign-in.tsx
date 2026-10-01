@@ -1,5 +1,6 @@
 import { BackgroundGlow } from "@/components/Theme/background";
 import { useToast } from "@/components/Toast/toast-provider";
+import { clearAuth } from "@/lib/auth-storage";
 import { signInSchema } from "@/type/auth";
 import { useRouter } from "expo-router";
 import { Eye, EyeOff } from "lucide-react-native";
@@ -68,6 +69,11 @@ export default function SignIn() {
           message: "Password mudah ditebak",
           variant: "error",
         });
+
+        // login() already stored the session, which flips the root guard to
+        // the logged-in stack and unmounts (auth). Clear it so the user stays
+        // in (auth); update-password logs in again by itself when needed.
+        await clearAuth();
 
         router.push({
           pathname: "/(auth)/update-password",

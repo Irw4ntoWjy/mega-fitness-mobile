@@ -463,8 +463,11 @@ export default function Bookings() {
               BOOKINGS
             </Text>
 
-            <Pressable onPress={handleAddBooking}>
-              <Text className="underline">ADD BOOKINGS</Text>
+            <Pressable
+              onPress={handleAddBooking}
+              className="px-4 py-2 rounded-xl bg-[#259AAA] items-center justify-center"
+            >
+              <Text className="text-white font-semibold">ADD BOOKINGS</Text>
             </Pressable>
           </View>
 

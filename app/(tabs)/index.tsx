@@ -1,5 +1,6 @@
 import { getCommissionProgress } from "@/app/api/commission";
 import { getPackageList } from "@/app/api/package";
+import { getActivePeriod } from "@/app/api/combobox/purchase";
 import { getPurchaseList, getPurchaseReminder } from "@/app/api/purchase";
 import { getSessionLogCount } from "@/app/api/session-log";
 import { WarningCard } from "@/components/Member/warning-card";
@@ -17,7 +18,14 @@ import type { PurchaseItemSchema, PurchaseReminder } from "@/type/purchase";
 import type { SessionLogCount } from "@/type/session-log";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { ArrowRight, Bell, HelpCircle, LogOut, X } from "lucide-react-native";
+import {
+  ArrowRight,
+  Bell,
+  HelpCircle,
+  LogOut,
+  Settings,
+  X,
+} from "lucide-react-native";
 import { useCallback, useRef, useState } from "react";
 
 import {
@@ -472,16 +480,22 @@ export default function Home() {
     if (!customerProfileId) return;
     setActivePackagesListLoading(true);
     try {
-      const res = await getPurchaseList({
-        customer_profile_id: customerProfileId,
-        purchase_status_id: "2",
-      });
+      // "2" = active, "1" = accepted but waiting for activation
+      const [activeRes, waitingRes] = await Promise.all([
+        getPurchaseList({
+          customer_profile_id: customerProfileId,
+          purchase_status_id: "2",
+        }),
+        getPurchaseList({
+          customer_profile_id: customerProfileId,
+          purchase_status_id: "1",
+        }),
+      ]);
 
-      if (res.success && res.data) {
-        setActivePackagesList(res.data.data ?? []);
-      } else {
-        setActivePackagesList([]);
-      }
+      setActivePackagesList([
+        ...(activeRes.success ? (activeRes.data?.data ?? []) : []),
+        ...(waitingRes.success ? (waitingRes.data?.data ?? []) : []),
+      ]);
     } catch {
       setActivePackagesList([]);
     } finally {
@@ -968,15 +982,23 @@ export default function Home() {
   }
 
   function ActivePackageCard({ item }: { item: PurchaseItemSchema }) {
+    const isWaiting = String(item.purchase_status_id) === "1";
     return (
       <View className="mb-9 min-w-50 max-w-100">
         <View className="bg-white rounded-2xl shadow-md relative">
-          <View className="flex flex-row items-center justify-start w-full h-20 rounded-t-2xl overflow-hidden bg-cyan-600 p-4 ">
-            <View className="h-full w-full flex flex-row justify-start items-center">
+          <View className="flex flex-row items-center justify-start w-full min-h-20 rounded-t-2xl overflow-hidden bg-cyan-600 p-4 ">
+            <View className="w-full flex flex-row justify-start items-center">
+              <View
+                className={`mr-2 rounded-full px-2 py-1 ${
+                  isWaiting ? "bg-amber-400" : "bg-emerald-400"
+                }`}
+              >
+                <Text className="text-xs font-bold text-white">
+                  {isWaiting ? "Waiting" : "Active"}
+                </Text>
+              </View>
               <Text
-                className="text-white font-bold text-lg"
-                numberOfLines={1}
-                ellipsizeMode="tail"
+                className="flex-1 text-white font-bold text-lg"
               >
                 {item.package_name.trim()}
               </Text>
@@ -1010,6 +1032,9 @@ export default function Home() {
                   Trainer: {item.package_trainer_name}
                 </Text>
               ) : null}
+              <Text className="text-gray-500 text-xs mt-0.5">
+                Active Date: {getActivePeriod(item)}
+              </Text>
             </View>
           </View>
         </View>
@@ -1032,7 +1057,7 @@ export default function Home() {
             <View className="max-h-[80%] rounded-3xl bg-white p-6">
               <View className="mb-4 flex-row items-center justify-between">
                 <Text className="text-2xl font-bold text-slate-800">
-                  Active Packages
+                  Packages
                 </Text>
 
                 <Pressable
@@ -1049,7 +1074,7 @@ export default function Home() {
                 </View>
               ) : activePackagesList.length === 0 ? (
                 <View className="min-h-[220px] items-center justify-center">
-                  <Text className="text-gray-500">No active packages.</Text>
+                  <Text className="text-gray-500">No packages.</Text>
                 </View>
               ) : (
                 <ScrollView
@@ -1115,6 +1140,10 @@ export default function Home() {
                 </HeaderIcon>
               </WalkableView>
             </CopilotStep>
+
+            <HeaderIcon onPress={() => router.push("/profile/profile")}>
+              <Settings size={18} color="black" />
+            </HeaderIcon>
 
             <HeaderIcon
               onPress={async () => {

@@ -67,10 +67,13 @@ export default function AddBookingModal({
   );
   const [selectedPackage, setSelectedPackage] = useState("");
   const fetchPackages = async () => {
+    const profileId = auth?.accountDetail?.profile_id;
+    if (!profileId) return;
+
     const res = await getPurchaseCombobox({
       page: 1,
       limit: -1,
-      customer_profile_id: auth.accountDetail.profile_id,
+      customer_profile_id: profileId,
     });
 
     const map: Record<string, ComboboxItem> = {};
@@ -186,7 +189,7 @@ export default function AddBookingModal({
     const now = new Date();
 
     if (isPrivate) {
-      if (!selectedTrainerSchedule || !auth.accountDetail.profile_id) {
+      if (!selectedTrainerSchedule || !auth?.accountDetail?.profile_id) {
         showToast({
           message: "Mohon untuk memilih jadwal booking yang ada",
           variant: "error",
@@ -220,7 +223,7 @@ export default function AddBookingModal({
       if (
         !selectedSchedule ||
         !selectedPackage ||
-        !auth.accountDetail.profile_id
+        !auth?.accountDetail?.profile_id
       ) {
         showToast({
           message: "Mohon untuk memilih jadwal booking yang ada",
@@ -252,7 +255,7 @@ export default function AddBookingModal({
         ? String((selectedPrivateSchedule.data as any).id)
         : String((selectedClassSchedule.data as any).id),
       purchase_id: String((selectedPurchase.data as any).id),
-      member_profile_id: auth.accountDetail.profile_id,
+      member_profile_id: auth!.accountDetail.profile_id,
       schedule_type: isPrivate ? "trainer" : "class",
     });
 
@@ -265,10 +268,10 @@ export default function AddBookingModal({
   };
 
   useEffect(() => {
-    if (visible) {
+    if (visible && auth?.accountDetail?.profile_id) {
       fetchPackages();
     }
-  }, [visible]);
+  }, [visible, auth?.accountDetail?.profile_id]);
 
   return (
     <Modal visible={visible} transparent animationType="fade">
@@ -284,9 +287,12 @@ export default function AddBookingModal({
       >
         <Pressable
           onPress={(e) => e.stopPropagation()}
-          className="w-full max-w-md rounded-2xl bg-white p-6 min-h-120 shadow-lg"
+          className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg"
+          style={{ height: "80%" }}
         >
           <ScrollView
+            className="flex-1"
+            contentContainerStyle={{ paddingBottom: 16 }}
             showsVerticalScrollIndicator={false}
             scrollEnabled={openPicker === null}
             nestedScrollEnabled
@@ -430,31 +436,89 @@ export default function AddBookingModal({
                     </Text>
                   </View>
                 ) : (
-                  <View className="flex-row flex-wrap gap-2">
+                  <View className="gap-3">
                     {schedules.map((item, index) => {
                       const entry = scheduleMap[item];
                       const sched =
                         (entry?.data as ScheduleClassSchema) || null;
-                      const scheduleName = sched?.name;
                       const isSelected = selectedSchedule === item;
+                      const coaches = (sched?.trainers ?? [])
+                        .map((t) => t.trainer_profile_name || t.trainer_name)
+                        .filter((n): n is string => !!n);
+                      if (coaches.length === 0 && sched?.trainer_name) {
+                        coaches.push(sched.trainer_name);
+                      }
+                      const dateLabel = sched?.schedule_date
+                        ? new Date(
+                            `${sched.schedule_date}T00:00:00`,
+                          ).toLocaleDateString("id-ID", {
+                            weekday: "short",
+                            day: "numeric",
+                            month: "short",
+                          })
+                        : "";
+                      const timeLabel = sched?.time_start
+                        ? `${sched.time_start.slice(0, 5)}${
+                            sched.time_end
+                              ? ` - ${sched.time_end.slice(0, 5)}`
+                              : ""
+                          }`
+                        : item;
                       return (
                         <Pressable
                           key={`${item} ${index}`}
                           onPress={() => setSelectedSchedule(item)}
-                          className={`rounded-xl border px-4 py-2 mb-2 ${
+                          className={`flex-row items-center rounded-xl border-2 p-3 ${
                             isSelected
                               ? "border-[#0891B2] bg-[#0891B2]/10"
-                              : "border-slate-300"
+                              : "border-slate-200 bg-white"
                           }`}
                         >
-                          <Text className="text-slate-800 font-semibold">
-                            {item}
-                          </Text>
-                          {scheduleName ? (
-                            <Text className="text-sm text-gray-500 mt-1">
-                              {scheduleName}
+                          <View
+                            className={`mr-3 items-center justify-center rounded-lg px-3 py-2 ${
+                              isSelected ? "bg-[#0891B2]" : "bg-slate-100"
+                            }`}
+                          >
+                            <Text
+                              className={`text-xs font-semibold ${
+                                isSelected ? "text-white" : "text-slate-500"
+                              }`}
+                            >
+                              {dateLabel}
                             </Text>
-                          ) : null}
+                            <Text
+                              className={`text-sm font-bold ${
+                                isSelected ? "text-white" : "text-slate-800"
+                              }`}
+                            >
+                              {timeLabel}
+                            </Text>
+                          </View>
+                          <View className="flex-1">
+                            <Text
+                              className="text-base font-bold text-slate-900"
+                              numberOfLines={2}
+                            >
+                              {sched?.name || sched?.product_name || item}
+                            </Text>
+                            {coaches.length > 0 ? (
+                              <Text className="mt-1 text-sm text-slate-500">
+                                {coaches.length > 1 ? "Coaches" : "Coach"}:{" "}
+                                {coaches.join(", ")}
+                              </Text>
+                            ) : null}
+                          </View>
+                          <View
+                            className={`h-5 w-5 items-center justify-center rounded-full border-2 ${
+                              isSelected
+                                ? "border-[#0891B2] bg-[#0891B2]"
+                                : "border-slate-300"
+                            }`}
+                          >
+                            {isSelected ? (
+                              <View className="h-2 w-2 rounded-full bg-white" />
+                            ) : null}
+                          </View>
                         </Pressable>
                       );
                     })}
@@ -465,7 +529,7 @@ export default function AddBookingModal({
           </ScrollView>
 
           {/* BUTTONS */}
-          <View className="flex-row justify-end gap-3">
+          <View className="flex-row justify-end gap-3 pt-3">
             <Pressable
               onPress={handleClose}
               className="rounded-lg bg-slate-200 px-8 py-4"

@@ -22,6 +22,8 @@ export const purchaseItemSchema = z.object({
   purchase_status_name: z.string(),
   requested_at: z.string(),
   requested_by: z.string(),
+  activated_at: z.string().nullable().optional(),
+  expired_at: z.string().nullable().optional(),
   updated_at: z.string().nullable().optional(),
   updated_by: z.string().nullable().optional(),
 });

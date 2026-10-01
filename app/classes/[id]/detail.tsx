@@ -436,8 +436,9 @@ export default function ClassesDetailScreen() {
                         <Pressable
                           onPress={() => router.push("/journal/journal")}
                           hitSlop={10}
+                          className="px-3 py-1.5 rounded-lg bg-zinc-200"
                         >
-                          <Text className="text-[14px] text-zinc-500 underline">
+                          <Text className="text-[14px] text-zinc-700 font-medium">
                             Journal
                           </Text>
                         </Pressable>
