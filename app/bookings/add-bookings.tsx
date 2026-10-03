@@ -287,8 +287,19 @@ export default function AddBookingModal({
       >
         <Pressable
           onPress={(e) => e.stopPropagation()}
-          className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg"
-          style={{ height: "80%" }}
+          style={{
+            width: "100%",
+            maxWidth: 448,
+            height: "80%",
+            padding: 24,
+            borderRadius: 16,
+            backgroundColor: "#ffffff",
+            elevation: 8,
+            shadowColor: "#000",
+            shadowOpacity: 0.15,
+            shadowRadius: 12,
+            shadowOffset: { width: 0, height: 4 },
+          }}
         >
           <ScrollView
             className="flex-1"

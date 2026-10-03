@@ -809,7 +809,7 @@ const Home = () => {
               ) : sortedOngoingBookings.length === 0 &&
                 membership.length === 0 ? (
                 <Text className="text-base text-slate-500">
-                  No Ongoing Class
+                  No Ongoing Activity
                 </Text>
               ) : (
                 <>
@@ -829,7 +829,7 @@ const Home = () => {
             </View>
 
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5 mt-6">
-              Upcoming Classes
+              Upcoming Activity
             </Text>
             <View className="flex flex-row flex-wrap justify-between mx-5">
               {loadingBookings ? (
@@ -840,7 +840,7 @@ const Home = () => {
                 ))
               ) : (
                 <Text className="text-base text-slate-500">
-                  No upcoming classes
+                  No upcoming activity
                 </Text>
               )}
             </View>

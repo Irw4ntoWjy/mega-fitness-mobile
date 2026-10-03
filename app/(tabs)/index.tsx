@@ -1007,6 +1007,11 @@ export default function Home() {
 
           <View className="flex-row items-center justify-between px-4 py-4">
             <View className="flex-1 pr-2">
+              {item.product_name ? (
+                <Text className="text-gray-700 text-sm font-semibold">
+                  {item.product_name}
+                </Text>
+              ) : null}
               {item.product_type_name ? (
                 <Text className="text-gray-500 text-xs mt-1">
                   {item.product_type_name}
