@@ -1,5 +1,6 @@
 import { getBookingList } from "@/app/api/booking";
 import { getPurchaseList } from "@/app/api/purchase";
+import { getVariableDetail } from "@/app/api/variable";
 import {
   createTrainerAttendance,
   getTrainerSessionLogHistory,
@@ -671,7 +672,8 @@ const Home = () => {
                 })}
                 onPress={async () => {
                   const TARGET = { latitude: 3.6338338, longitude: 98.7022789 };
-                  const RADIUS_METERS = 10;
+                  const radiusRes = await getVariableDetail({ variable: "Radius" });
+                  const RADIUS_METERS = Number(radiusRes.data?.value) || 10;
                   try {
                     const { status } =
                       await Location.requestForegroundPermissionsAsync();

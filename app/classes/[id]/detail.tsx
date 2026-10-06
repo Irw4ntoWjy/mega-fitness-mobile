@@ -1,3 +1,4 @@
+import { getVariableDetail } from "@/app/api/variable";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { useAuth } from "@/hooks/useAuth";
 import * as Location from "expo-location";
@@ -28,7 +29,6 @@ type Member = {
   name: string;
 };
 
-const TRAINER_SIGN_OUT_RADIUS_METERS = 10;
 const TRAINER_SIGN_OUT_TARGET = {
   latitude: 3.591907,
   longitude: 98.681419,
@@ -317,16 +317,19 @@ export default function ClassesDetailScreen() {
         longitude: position.coords.longitude,
       };
 
+      const radiusRes = await getVariableDetail({ variable: "Radius" });
+      const radiusMeters =
+        Number(radiusRes.data?.value) || 10;
       const distanceMeters = getDistanceMeters(
         trainerLocation,
         TRAINER_SIGN_OUT_TARGET,
       );
 
-      if (distanceMeters > TRAINER_SIGN_OUT_RADIUS_METERS) {
+      if (distanceMeters > radiusMeters) {
         setFeedbackModal({
           visible: true,
           title: "Di Luar Radius",
-          message: `Trainer harus berada dalam radius ${TRAINER_SIGN_OUT_RADIUS_METERS}m.\nJarak saat ini ${Math.round(distanceMeters)}m.`,
+          message: `Trainer harus berada dalam radius ${radiusMeters}m.\nJarak saat ini ${Math.round(distanceMeters)}m.`,
         });
         return;
       }
