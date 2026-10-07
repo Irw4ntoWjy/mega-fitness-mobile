@@ -119,7 +119,7 @@ export default function OtpVerification() {
             OTP Verification
           </Text>
           <Text className="text-[#555] text-base mt-2 text-center">
-            Please check your OTP
+            Please check your Email for OTP
           </Text>
 
           {/* OTP Inputs */}
