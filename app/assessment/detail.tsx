@@ -20,8 +20,9 @@ import { QUESTION_META } from "./dummy_question";
 export default function AssessmentDetail() {
   const { auth, loading: loadingAuth } = useAuth();
   const isTrainer = auth?.accountDetail?.account_role === "Trainer";
-  const { memberProfileId } = useLocalSearchParams<{
+  const { memberProfileId, assessmentId } = useLocalSearchParams<{
     memberProfileId?: string;
+    assessmentId?: string;
   }>();
   const { showToast } = useToast();
   const [, setLoading] = useState(false);
@@ -29,6 +30,7 @@ export default function AssessmentDetail() {
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [currentStep, setCurrentStep] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isReadOnly, setIsReadOnly] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const currentSection = data[currentStep];
@@ -64,18 +66,23 @@ export default function AssessmentDetail() {
         setLoading(true);
 
         const res = await getAssessmentList({
-          limit: 1,
+          limit: assessmentId ? -1 : 1,
           profile_id: profileId,
         });
 
         const resData = res.data;
-        const rawAnswerJson = (resData as any)?.data?.[0]?.answer_json;
+        const rows: any[] = (resData as any)?.data ?? [];
+        const selected = assessmentId
+          ? rows.find((r) => String(r.assessment_id) === String(assessmentId))
+          : rows[0];
+        const rawAnswerJson = selected?.answer_json;
 
         const isEditMode = !rawAnswerJson;
 
         const answerJson = rawAnswerJson ?? QUESTION_META;
 
         setIsEditMode(isEditMode);
+        setIsReadOnly(!!rawAnswerJson);
 
         setData(answerJson);
 
@@ -136,7 +143,7 @@ export default function AssessmentDetail() {
     };
 
     fetchData();
-  }, [loadingAuth, auth, memberProfileId]);
+  }, [loadingAuth, auth, memberProfileId, assessmentId]);
 
   useEffect(() => {
     scrollViewRef.current?.scrollTo({ y: 0, animated: false });
@@ -360,20 +367,22 @@ export default function AssessmentDetail() {
           <ChevronLeft size={22} color="#000" />
         </Pressable>
 
-        <Pressable
-          onPress={() => {
-            if (isEditMode) {
-              handleSubmit();
-            } else {
-              setIsEditMode(true);
-            }
-          }}
-          className="px-4 h-10 items-center justify-center rounded-xl bg-[#0E8BAA]"
-        >
-          <Text className="text-white text-base font-semibold">
-            {isEditMode ? "Done" : "Edit"}
-          </Text>
-        </Pressable>
+        {!isReadOnly && (
+          <Pressable
+            onPress={() => {
+              if (isEditMode) {
+                handleSubmit();
+              } else {
+                setIsEditMode(true);
+              }
+            }}
+            className="px-4 h-10 items-center justify-center rounded-xl bg-[#0E8BAA]"
+          >
+            <Text className="text-white text-base font-semibold">
+              {isEditMode ? "Done" : "Edit"}
+            </Text>
+          </Pressable>
+        )}
       </View>
 
       {currentSection && (
@@ -520,6 +529,7 @@ export default function AssessmentDetail() {
       <BottomNavbar
         onNext={() => {
           if (currentStep === data.length - 1) {
+            if (isReadOnly) return;
             handleSubmit();
             return;
           }

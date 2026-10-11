@@ -35,6 +35,7 @@ export const assessmentItemSchema = z.object({
   answer_json: z.array(z.array(sectionSchema)),
   created_at: z.string().optional(),
   created_by: z.string().optional(),
+  created_name: z.string().optional(),
   updated_at: z.string().optional(),
   updated_by: z.string().optional(),
   deleted_at: z.string().optional(),

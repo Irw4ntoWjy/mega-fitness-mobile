@@ -31,8 +31,11 @@ export default function UpdatePasswordEmail() {
   const { showToast } = useToast();
 
   const { email: emailParam } = useLocalSearchParams<{ email?: string }>();
+  const normalizedEmail = Array.isArray(emailParam)
+    ? emailParam[0] ?? ""
+    : emailParam ?? "";
 
-  const [email, setEmail] = useState(emailParam ?? "");
+  const [email, setEmail] = useState(normalizedEmail);
   const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -40,11 +43,15 @@ export default function UpdatePasswordEmail() {
   const [otp, setOtp] = useState("");
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
-  const isFormValid =
-    email.trim() && otp && newPassword && newPassword.length >= 8;
+  const isFormValid = !!email.trim() && !!otp && !!newPassword && newPassword.length >= 8;
+
+  useEffect(() => {
+    setEmail(normalizedEmail);
+  }, [normalizedEmail]);
 
   const requestOtpOnce = useCallback(async () => {
-    const payload = { email: email.trim() };
+    const trimmedEmail = email.trim();
+    const payload = { email: trimmedEmail };
     const parsed = otpRequestSchema.safeParse(payload);
     if (!parsed.success) {
       showToast({
@@ -223,14 +230,16 @@ export default function UpdatePasswordEmail() {
                 />
               </InputBox>
 
-              <TouchableOpacity
-                disabled={cooldownSeconds > 0}
+                      <TouchableOpacity
+                disabled={cooldownSeconds > 0 || !email.trim()}
                 onPress={requestOtpOnce}
                 className="mt-2"
               >
                 <Text
                   className={`font-bold underline ${
-                    cooldownSeconds > 0 ? "text-gray-400" : "text-[#259AAA]"
+                    cooldownSeconds > 0 || !email.trim()
+                      ? "text-gray-400"
+                      : "text-[#259AAA]"
                   }`}
                 >
                   {cooldownSeconds > 0

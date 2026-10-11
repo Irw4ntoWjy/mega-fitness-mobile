@@ -697,6 +697,19 @@ export default function Profile() {
             values={profileValues}
           />
 
+          {!isTrainer && (
+            <View className="px-2 pt-2">
+              <Pressable
+                onPress={() => router.push("/assessment/history")}
+                className="items-center justify-center rounded-xl border border-[#30B8C4] bg-[#E6FAFF] py-3"
+              >
+                <Text className="text-[#0F6B7E] font-semibold text-md">
+                  Assessment History
+                </Text>
+              </Pressable>
+            </View>
+          )}
+
           <View className="px-2 pt-2">
             <Pressable
               onPress={openDeleteAccountModal}

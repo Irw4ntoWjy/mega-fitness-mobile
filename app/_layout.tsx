@@ -64,6 +64,10 @@ export default function RootLayout() {
               name="assessment/detail"
               options={{ headerShown: false }}
             />
+            <Stack.Screen
+              name="assessment/history"
+              options={{ headerShown: false }}
+            />
           </Stack.Protected>
         </Stack>
       </ToastProvider>
