@@ -1,4 +1,8 @@
-import { createAssessment, getAssessmentList } from "@/app/api/assessment";
+import {
+  createAssessment,
+  getAssessmentList,
+  updateAssessment,
+} from "@/app/api/assessment";
 import AssessmentHeader from "@/components/assessment/AssessmentHeader";
 import BottomNavbar from "@/components/assessment/BottomNavbar";
 import MultiFieldCard from "@/components/assessment/MultiFieldCard";
@@ -10,6 +14,7 @@ import {
 import { BackgroundGlow } from "@/components/Theme/background";
 import { useToast } from "@/components/Toast/toast-provider";
 import { useAuth } from "@/hooks/useAuth";
+import { toYmd } from "@/utils/datetimeFormat";
 import { AnswerValue, SectionSchema } from "@/type/assessment";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
@@ -20,9 +25,10 @@ import { QUESTION_META } from "./dummy_question";
 export default function AssessmentDetail() {
   const { auth, loading: loadingAuth } = useAuth();
   const isTrainer = auth?.accountDetail?.account_role === "Trainer";
-  const { memberProfileId, assessmentId } = useLocalSearchParams<{
+  const { memberProfileId, assessmentId, edit } = useLocalSearchParams<{
     memberProfileId?: string;
     assessmentId?: string;
+    edit?: string;
   }>();
   const { showToast } = useToast();
   const [, setLoading] = useState(false);
@@ -32,6 +38,7 @@ export default function AssessmentDetail() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const latestRef = useRef<{ id: number; createdAt?: string } | null>(null);
 
   const currentSection = data[currentStep];
   const isReadOnlySection = (section?: number) =>
@@ -66,23 +73,35 @@ export default function AssessmentDetail() {
         setLoading(true);
 
         const res = await getAssessmentList({
-          limit: assessmentId ? -1 : 1,
+          limit: -1,
           profile_id: profileId,
         });
 
         const resData = res.data;
         const rows: any[] = (resData as any)?.data ?? [];
+        const toTime = (v?: string) => {
+          const t = v ? new Date(v).getTime() : 0;
+          return Number.isNaN(t) ? 0 : t;
+        };
+        const latest = rows.reduce<any>(
+          (best, r) =>
+            !best || toTime(r.created_at) > toTime(best.created_at) ? r : best,
+          null,
+        );
+        latestRef.current = latest
+          ? { id: latest.assessment_id, createdAt: latest.created_at }
+          : null;
         const selected = assessmentId
           ? rows.find((r) => String(r.assessment_id) === String(assessmentId))
-          : rows[0];
+          : latest;
         const rawAnswerJson = selected?.answer_json;
 
-        const isEditMode = !rawAnswerJson;
+        const isEditMode = !rawAnswerJson || edit === "1";
 
         const answerJson = rawAnswerJson ?? QUESTION_META;
 
         setIsEditMode(isEditMode);
-        setIsReadOnly(!!rawAnswerJson);
+        setIsReadOnly(!!rawAnswerJson && edit !== "1");
 
         setData(answerJson);
 
@@ -143,7 +162,7 @@ export default function AssessmentDetail() {
     };
 
     fetchData();
-  }, [loadingAuth, auth, memberProfileId, assessmentId]);
+  }, [loadingAuth, auth, memberProfileId, assessmentId, edit]);
 
   useEffect(() => {
     scrollViewRef.current?.scrollTo({ y: 0, animated: false });
@@ -333,16 +352,43 @@ export default function AssessmentDetail() {
     }
 
     try {
-      const res = await createAssessment({
-        profile_id: profileId,
-        answer_json: result,
-      });
+      const latest = latestRef.current;
+      const isLatestToday =
+        !!latest?.createdAt &&
+        toYmd(new Date(latest.createdAt)) === toYmd(new Date());
+
+      const res =
+        latest && isLatestToday
+          ? await updateAssessment({
+              assessment_id: latest.id,
+              profile_id: profileId,
+              answer_json: result,
+            })
+          : await createAssessment({
+              profile_id: profileId,
+              answer_json: result,
+            });
 
       showToast({
         message: res.message,
         variant: res.success === true ? "success" : "error",
         duration: 2500,
       });
+
+      if (res.success === true && !(latest && isLatestToday)) {
+        // a new record was created: remember it so the next save today updates it
+        const listRes = await getAssessmentList({
+          limit: 1,
+          profile_id: profileId,
+        });
+        const row = ((listRes.data as any)?.data ?? [])[0];
+        if (row) {
+          latestRef.current = {
+            id: row.assessment_id,
+            createdAt: row.created_at,
+          };
+        }
+      }
 
       setIsEditMode(false);
     } catch (err) {

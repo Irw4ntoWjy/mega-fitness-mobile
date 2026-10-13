@@ -4,8 +4,14 @@ import { BackgroundGlow } from "@/components/Theme/background";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDate } from "@/utils/datetimeFormat";
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronLeft, ChevronRight, ClipboardList } from "lucide-react-native";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  Pencil,
+} from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
   Pressable,
@@ -27,6 +33,7 @@ const SORT_OPTIONS: SortOrder[] = ["Latest", "Oldest"];
 
 export default function AssessmentHistory() {
   const { auth, loading: loadingAuth } = useAuth();
+  const insets = useSafeAreaInsets();
   const { memberProfileId } = useLocalSearchParams<{
     memberProfileId?: string;
   }>();
@@ -150,14 +157,31 @@ export default function AssessmentHistory() {
                 <Text className="text-base font-semibold text-black">
                   {formatDate(item.created_at)}
                 </Text>
-                <Text className="mt-1 text-sm text-black/60">
-                  Last Update by: {item.created_name || item.created_by || "-"}
-                </Text>
               </View>
               <ChevronRight size={20} color="#0F6B7E" />
             </Pressable>
           ))}
         </ScrollView>
+      )}
+
+      {!memberProfileId && (
+        <Pressable
+          onPress={() =>
+            router.push({
+              pathname: "/assessment/detail",
+              params: { edit: "1" },
+            })
+          }
+          style={{
+            position: "absolute",
+            right: 20,
+            bottom: insets.bottom + 20,
+          }}
+        >
+          <View className="w-16 h-16 rounded-full items-center justify-center shadow-lg bg-[#0891B2]">
+            <Pencil size={24} color="#FFFFFF" />
+          </View>
+        </Pressable>
       )}
     </View>
   );

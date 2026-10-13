@@ -30,6 +30,21 @@ export function createAssessment(payload?: {
   });
 }
 
+export function updateAssessment(payload: {
+  assessment_id: number;
+  profile_id: string;
+  answer_json: any;
+}) {
+  return fetcher("/assessment/update", {
+    body: {
+      assessment_id: payload.assessment_id,
+      profile_id: payload.profile_id,
+      answer_json: payload.answer_json,
+    },
+    auth: true,
+  });
+}
+
 export function checkAssessment(payload?: { profile_id: string }) {
   return fetcher<CheckAssessmentResponse>("/assessment/check", {
     body: payload,

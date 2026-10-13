@@ -8,6 +8,7 @@ import {
 import { ReactNode, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "@/hooks/useAuth";
 import TermsModal from "../auth/terms-and-condition-modal";
 
 type HeaderNavBarProps = {
@@ -31,6 +32,8 @@ export default function HeaderNavBar({
 }: HeaderNavBarProps) {
   const insets = useSafeAreaInsets();
   const [termsVisible, setTermsVisible] = useState(false);
+  const { auth } = useAuth();
+  const isTrainer = auth?.accountDetail?.account_role === "Trainer";
   return (
     <View
       style={{
@@ -69,7 +72,7 @@ export default function HeaderNavBar({
           <HeaderIcon
             onPress={() =>
               router.push({
-                pathname: "/assessment/detail",
+                pathname: isTrainer ? "/assessment/detail" : "/assessment/history",
               })
             }
           >
