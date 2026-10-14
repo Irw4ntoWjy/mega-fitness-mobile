@@ -23,6 +23,7 @@ import {
   Bell,
   HelpCircle,
   LogOut,
+  QrCode,
   Settings,
   X,
 } from "lucide-react-native";
@@ -39,6 +40,7 @@ import {
   View,
 } from "react-native";
 import { CopilotStep, useCopilot, walkthroughable } from "react-native-copilot";
+import QRCode from "react-native-qrcode-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const WalkableView = walkthroughable(View);
@@ -219,6 +221,7 @@ export default function Home() {
   const [specialClassData, setSpecialClassData] = useState<any[]>([]);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileName, setProfileName] = useState("");
+  const [memberCode, setMemberCode] = useState("");
   const [profileInitials, setProfileInitials] = useState("");
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(
     null,
@@ -233,6 +236,7 @@ export default function Home() {
   const [sessionLogCount, setSessionLogCount] =
     useState<SessionLogCount | null>(null);
   const [sessionLogCountLoading, setSessionLogCountLoading] = useState(true);
+  const [memberQrOpen, setMemberQrOpen] = useState(false);
   const [activePackagesPopupOpen, setActivePackagesPopupOpen] = useState(false);
   const [activePackagesListLoading, setActivePackagesListLoading] =
     useState(false);
@@ -275,6 +279,7 @@ export default function Home() {
     }
 
     setProfileName(detail.profile_name);
+    setMemberCode(detail?.account_code ?? accountCode ?? "");
     setProfileInitials(getInitials(detail.profile_name));
     setProfilePictureUrl(detail?.picture_url);
     setAccountRole(detail?.account_role);
@@ -1051,6 +1056,49 @@ export default function Home() {
     <View className="flex-1">
       <BackgroundGlow showText={true} />
       <Modal
+        visible={memberQrOpen}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setMemberQrOpen(false)}
+        statusBarTranslucent={true}
+      >
+        <Pressable
+          onPress={() => setMemberQrOpen(false)}
+          className="flex-1 items-center justify-center bg-[rgba(0,0,0,0.45)] px-6"
+        >
+          <Pressable className="w-full items-center rounded-3xl bg-white p-6">
+            <View className="w-full flex-row justify-end">
+              <Pressable
+                onPress={() => setMemberQrOpen(false)}
+                className="rounded-full p-2"
+              >
+                <X size={18} color="black" />
+              </Pressable>
+            </View>
+
+            <QRCode
+              value={JSON.stringify({
+                profile_id: customerProfileId,
+                profile_name: profileName,
+              })}
+              size={240}
+              backgroundColor="white"
+            />
+
+            <Text className="mt-5 text-xl font-semibold text-gray-900">
+              {profileName}
+            </Text>
+            {!!memberCode && (
+              <View className="mt-2 rounded-xl border border-[#30B8C4] bg-[#E6FAFF] px-4 py-1">
+                <Text className="text-base font-semibold tracking-widest text-[#0F6B7E]">
+                  {memberCode}
+                </Text>
+              </View>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
+      <Modal
         visible={activePackagesPopupOpen}
         transparent={true}
         animationType="fade"
@@ -1171,6 +1219,18 @@ export default function Home() {
           <View className="px-4">
             <View className="relative">
               <View style={{ height: HERO_H }} />
+
+              {!isTrainer && customerProfileId && (
+                <Pressable
+                  onPress={() => setMemberQrOpen(true)}
+                  className="absolute right-0 bottom-4 flex-row items-center gap-2 rounded-xl border border-[#30B8C4] bg-[#E6FAFF] px-4 py-2"
+                >
+                  <QrCode size={20} color="#0F6B7E" />
+                  <Text className="text-base text-[#0F6B7E] font-semibold">
+                    My QR
+                  </Text>
+                </Pressable>
+              )}
 
               <View className="absolute -bottom-15 z-50">
                 <View
