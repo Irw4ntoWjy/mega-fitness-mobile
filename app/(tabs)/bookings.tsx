@@ -88,7 +88,7 @@ function BookingCard({ item, onCancel, showCancel }: any) {
           <View className="flex-row items-center justify-between px-2">
             <Text className="text-slate-500 text-lg">{item.schedule_date}</Text>
             <View className="flex-row items-center">
-              {item.booking_status_id === 5 && (
+              {Number(item.booking_status_id) === 5 && (
                 <View className="mr-2 rounded-full bg-red-100 px-2.5 py-1">
                   <Text className="text-xs font-bold uppercase text-red-700">
                     Expired
