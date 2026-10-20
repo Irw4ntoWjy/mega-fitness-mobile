@@ -32,7 +32,7 @@ const TABS: TabKey[] = ["Upcoming", "Completed", "Cancelled"];
 const TAB_STATUS_MAP: Record<TabKey, number[]> = {
   Upcoming: [3, 4],
   Completed: [2],
-  Cancelled: [1],
+  Cancelled: [1, 5],
 };
 
 function TabPill({
@@ -85,9 +85,18 @@ function BookingCard({ item, onCancel, showCancel }: any) {
     >
       <Animated.View pointerEvents="box-none">
         <View className="mb-4 rounded-2xl bg-white p-3 shadow-md">
-          <View className="flex-row justify-between px-2">
+          <View className="flex-row items-center justify-between px-2">
             <Text className="text-slate-500 text-lg">{item.schedule_date}</Text>
-            <Text className="text-slate-400 text-lg">{item.location}</Text>
+            <View className="flex-row items-center">
+              {item.booking_status_id === 5 && (
+                <View className="mr-2 rounded-full bg-red-100 px-2.5 py-1">
+                  <Text className="text-xs font-bold uppercase text-red-700">
+                    Expired
+                  </Text>
+                </View>
+              )}
+              <Text className="text-slate-400 text-lg">{item.location}</Text>
+            </View>
           </View>
 
           <View className="mt-2 flex-row">
@@ -279,7 +288,7 @@ export default function Bookings() {
         page: 1,
         limit: -1,
         member_profile_id: profileId,
-        is_not_expired: true,
+        is_not_expired: false,
       });
       const data = res.data;
       if (data) setData(data.data ?? []);

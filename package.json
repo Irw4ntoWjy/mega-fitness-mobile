@@ -1,7 +1,7 @@
 {
   "name": "MFC Fitness",
   "main": "expo-router/entry",
-  "version": "0.1.2",
+  "version": "0.1.0",
   "packageManager": "pnpm@10.17.0",
   "resolutions": {
     "lightningcss": "1.30.1"
