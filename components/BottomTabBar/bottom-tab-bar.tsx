@@ -3,8 +3,8 @@ import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import {
   BookText,
   Clock3,
-  FileQuestionMark,
   House,
+  NotebookPenIcon,
   NotepadText,
   ScanQrCode,
   Wallet,
@@ -42,7 +42,7 @@ const BottomTabBar = ({
         );
       case "bookings":
         return isTrainer ? (
-          <FileQuestionMark color={color} size={size} />
+          <NotebookPenIcon color={color} size={size} />
         ) : (
           <BookText color={color} size={size} />
         );
