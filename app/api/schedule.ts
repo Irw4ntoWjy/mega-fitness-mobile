@@ -19,7 +19,6 @@ export function getTrainerScheduleList(payload?: {
   is_booked?: boolean;
   date_from?: string | null;
   date_to?: string | null;
-  this_week?: boolean;
 }) {
   return fetcher<TrainerSchedule[]>("/trainer-schedule/list", {
     body: payload,

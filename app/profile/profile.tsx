@@ -235,7 +235,6 @@ export default function Profile() {
         trainer_id: trainerId,
         date_from: monday.toISOString(),
         date_to: sunday.toISOString(),
-        this_week: false,
       });
 
       if (res.success && res.data) {
