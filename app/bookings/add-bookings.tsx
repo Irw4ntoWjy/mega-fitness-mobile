@@ -140,6 +140,7 @@ export default function AddBookingModal({
       is_booked: false,
       date_from: today.toISOString().slice(0, 10),
       date_to: nextWeek.toISOString().slice(0, 10),
+      is_available: true,
     });
 
     const map: Record<string, ComboboxItem> = {};
@@ -169,6 +170,7 @@ export default function AddBookingModal({
 
       date_from: today.toISOString().slice(0, 10),
       date_to: nextWeek.toISOString().slice(0, 10),
+      is_available: true,
     });
     const map: Record<string, ComboboxItem> = {};
 

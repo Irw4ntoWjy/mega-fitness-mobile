@@ -7,6 +7,7 @@ export function getClassScheduleList(payload?: {
   is_full: false;
   date_from: string;
   date_to: string;
+  is_available?: boolean;
 }) {
   return fetcher<ScheduleClassSchema[]>("/class-schedule/list", {
     body: buildListPayload(payload),
@@ -19,6 +20,7 @@ export function getTrainerScheduleList(payload?: {
   is_booked?: boolean;
   date_from?: string | null;
   date_to?: string | null;
+  is_available?: boolean;
 }) {
   return fetcher<TrainerSchedule[]>("/trainer-schedule/list", {
     body: payload,

@@ -16,6 +16,7 @@ export async function getClassScheduleCombobox(payload?: {
   is_full: false;
   date_from: string;
   date_to: string;
+  is_available?: boolean;
 }): Promise<{ data: ComboboxItem[] }> {
   const res = await getClassScheduleList(payload);
   console.log("response", res);
@@ -33,6 +34,7 @@ export async function getTrainerScheduleCombobox(payload?: {
   is_booked: boolean;
   date_from: string;
   date_to: string;
+  is_available?: boolean;
 }): Promise<{ data: ComboboxItem[] }> {
   const res = await getTrainerScheduleList(payload);
   console.log(res);
