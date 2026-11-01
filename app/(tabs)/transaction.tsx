@@ -18,12 +18,24 @@ const statusToTab = {
   "2": "Completed",
   "3": "Completed",
   "4": "Completed",
+  "5": "Completed",
+  "0": "Pending",
+  "-1": "Rejected",
+} as const;
+
+const statusLabels = {
+  "1": "Completed",
+  "2": "Completed",
+  "3": "Completed",
+  "4": "Completed",
+  "5": "Refunded",
   "0": "Pending",
   "-1": "Rejected",
 } as const;
 
 const tabConfig = {
   Completed: { icon: CheckCircle, color: "#0891B2" },
+  Refunded: { icon: CheckCircle, color: "#16A34A" },
   Pending: { icon: Clock, color: "#EAB308" },
   Rejected: { icon: XCircle, color: "#E11D48" },
 };
@@ -35,14 +47,15 @@ type StatusBadgeProps = {
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   const tab = statusToTab[status];
-  if (!tab) return null;
-  const { icon: Icon, color } = tabConfig[tab];
+  const label = statusLabels[status];
+  if (!tab || !label) return null;
+  const { icon: Icon, color } = tabConfig[label];
 
   return (
     <View className="flex-row items-center gap-1">
       <Icon size={14} color={color} />
       <Text className="text-[12px]" style={{ color }}>
-        {tab}
+        {label}
       </Text>
     </View>
   );

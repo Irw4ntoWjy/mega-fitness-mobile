@@ -48,7 +48,7 @@ export default function OtpVerification() {
       return false;
     }
     showToast({
-      message: `${res.message}\nPlease check your email`,
+      message: "Kode OTP berhasil dikirim. Silakan cek e-mail Anda.",
       variant: "success",
       duration: 2500,
     });
