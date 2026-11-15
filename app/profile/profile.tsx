@@ -836,7 +836,7 @@ function ActivePackageCard({ item }: { item: PurchaseItemSchema }) {
             ) : null}
             {item.package_trainer_name ? (
               <Text className="text-gray-500 text-xs mt-0.5">
-                Trainer: {item.package_trainer_name}
+                Coach: {item.package_trainer_name}
               </Text>
             ) : null}
           </View>

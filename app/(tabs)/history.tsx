@@ -388,7 +388,7 @@ export default function Profile() {
                   time_end: item.time_end,
                   title: item.product_name,
                   coach:
-                    item.trainers[0]?.trainer_name?.trim() || "Unknown Trainer",
+                    item.trainers[0]?.trainer_name?.trim() || "Unknown Coach",
                   color: getCardColor(productType),
                   durationMinutes: getDurationMinutes(
                     item.time_start,

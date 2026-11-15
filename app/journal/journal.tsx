@@ -933,7 +933,7 @@ const Journal = () => {
               </View>
               <View className="items-center gap-2">
                 <Text className="text-2xl text-gray-900 text-center">
-                  Journal Belum Diisi Trainer
+                  Journal Belum Diisi Coach
                 </Text>
                 <Text className="text-md text-gray-500 text-center">
                   Journal untuk sesi ini masih kosong. Harap menunggu trainer

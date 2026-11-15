@@ -91,7 +91,7 @@ export default function ResetPassword() {
       return;
     }
 
-    if (newPassword === "Aa123456") {
+    if (newPassword === "mega123456") {
       showToast({
         message: "Password terlalu mudah ditebak",
         variant: "error",
@@ -109,7 +109,7 @@ export default function ResetPassword() {
       };
       console.log(auth);
       if (!auth) {
-        await login({ email, password: "Aa123456" });
+        await login({ email, password: "mega123456" });
       }
 
       const res = await update_password(payload);

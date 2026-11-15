@@ -176,7 +176,7 @@ export default function Transaction({ navigation, route }: Props) {
               icon={<CalendarDays size={18} color="#111827" />}
             />
             <ReadonlyField
-              label="Personal Trainer"
+              label="Personal Coach"
               value={tx.personalTrainer}
               icon={<Contact size={18} color="#111827" />}
             />

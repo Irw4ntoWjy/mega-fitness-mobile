@@ -303,7 +303,7 @@ export default function ClassesDetailScreen() {
         setFeedbackModal({
           visible: true,
           title: "Location Permission Needed",
-          message: "Aktifkan izin lokasi untuk sign out trainer.",
+          message: "Aktifkan izin lokasi untuk sign out coach.",
         });
         return;
       }
@@ -329,7 +329,7 @@ export default function ClassesDetailScreen() {
         setFeedbackModal({
           visible: true,
           title: "Di Luar Radius",
-          message: `Trainer harus berada dalam radius ${radiusMeters}m.\nJarak saat ini ${Math.round(distanceMeters)}m.`,
+          message: `Coach harus berada dalam radius ${radiusMeters}m.\nJarak saat ini ${Math.round(distanceMeters)}m.`,
         });
         return;
       }

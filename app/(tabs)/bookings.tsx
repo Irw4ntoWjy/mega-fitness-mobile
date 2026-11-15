@@ -6,7 +6,13 @@ import { BookingSchema } from "@/type/bookings";
 import { TrainerMember } from "@/type/session-log";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-import { Clock, Contact, UserIcon, X } from "lucide-react-native";
+import {
+  AlertTriangle,
+  Clock,
+  Contact,
+  UserIcon,
+  X,
+} from "lucide-react-native";
 import React, { useCallback, useMemo, useState } from "react";
 import {
   Animated,
@@ -170,7 +176,6 @@ function CancelModal({
   setCancelReason: (val: string) => void;
 }) {
   if (!booking) return null;
-  console.log(booking);
 
   return (
     <Modal
@@ -239,7 +244,15 @@ function CancelModal({
                 />
               </View>
 
-              <Text className="mt-8 text-md font-bold text-red-600 text-center">
+              <View className="mt-4 flex-row items-center gap-3 rounded-lg bg-amber-50 p-3">
+                <AlertTriangle size={20} color="#D97706" />
+                <Text className="flex-1 text-sm text-slate-700">
+                  Cancellation is only allowed up to 3 hours before the session
+                  starts.
+                </Text>
+              </View>
+
+              <Text className="mt-6 text-md font-bold text-red-600 text-center">
                 This action can’t be undone!
               </Text>
 
@@ -378,34 +391,10 @@ export default function Bookings() {
         variant: "warning",
         duration: 2500,
       });
+      return;
     }
 
-    const now = new Date();
-    const startTime = new Date(
-      `${selectedBooking.schedule_date}T${selectedBooking.time_start}`,
-    );
-
-    const diffMs = startTime.getTime() - now.getTime();
-    const diffHours = diffMs / (1000 * 60 * 60);
-
-    if (selectedBooking.schedule_type === "trainer") {
-      if (diffHours < 6) {
-        showToast({
-          message: "Bookings can't be cancelled under 6 hours.",
-          variant: "warning",
-          duration: 2500,
-        });
-      }
-    } else if (selectedBooking.schedule_type === "class") {
-      if (diffHours < 1) {
-        showToast({
-          message: "Bookings can't be cancelled under 1 hours.",
-          variant: "warning",
-          duration: 2500,
-        });
-      }
-    }
-
+    // Cancellation time limit (3 hours before session) is validated by BE.
     try {
       setLoadingCancel(true);
       const res = await cancelBooking({

@@ -157,7 +157,7 @@ export default function ProductDetail() {
         {/* <View className="flex flex-col mt-4 bg-white  p-4 rounded-2xl gap-3 mb-28">
           <View className="flex flex-row items-start gap-2">
             <Contact size={22} color="#000" />
-            <Text className="text-xl text-black">Personal Trainer</Text>
+            <Text className="text-xl text-black">Personal Coach</Text>
           </View>
           <ScrollView
             showsVerticalScrollIndicator={false}

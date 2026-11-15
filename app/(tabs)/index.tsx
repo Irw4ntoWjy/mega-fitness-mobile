@@ -1039,7 +1039,7 @@ export default function Home() {
               ) : null}
               {item.package_trainer_name ? (
                 <Text className="text-gray-500 text-xs mt-0.5">
-                  Trainer: {item.package_trainer_name}
+                  Coach: {item.package_trainer_name}
                 </Text>
               ) : null}
               <Text className="text-gray-500 text-xs mt-0.5">
@@ -1453,7 +1453,7 @@ export default function Home() {
 
           <View className="flex flex-row justify-between">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
-              Special Classes
+              Special Class & Event
             </Text>
             {/* <Pressable className="bg-cyan-600 w-8 h-8 rounded-full mx-5 items-center justify-center">
               <ArrowRight size={20} color="white" />

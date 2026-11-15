@@ -64,7 +64,7 @@ export default function SignIn() {
         return;
       }
 
-      if (parsed.data.password === "Aa123456") {
+      if (parsed.data.password === "mega123456") {
         showToast({
           message: "Password mudah ditebak",
           variant: "error",

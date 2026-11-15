@@ -2,8 +2,9 @@ import Combobox from "@/components/Combobox/combobox";
 import { useToast } from "@/components/Toast/toast-provider";
 import { useAuth } from "@/hooks/useAuth";
 import { ComboboxItem } from "@/type/combobox";
-import { ScheduleClassSchema, TrainerSchedule } from "@/type/schedule";
+import { ScheduleClassSchema } from "@/type/schedule";
 import { router } from "expo-router";
+import { AlertTriangle } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { getTrainerPackageCombobox } from "../api/combobox/package";
@@ -188,64 +189,16 @@ export default function AddBookingModal({
 
   const [openPicker, setOpenPicker] = useState<string | null>(null);
   const handleSubmit = async () => {
-    const now = new Date();
-
-    if (isPrivate) {
-      if (!selectedTrainerSchedule || !auth?.accountDetail?.profile_id) {
-        showToast({
-          message: "Mohon untuk memilih jadwal booking yang ada",
-          variant: "error",
-        });
-        return;
-      } else if (selectedTrainerSchedule) {
-        const data = trainerScheduleMap[selectedTrainerSchedule]
-          .data as TrainerSchedule;
-        const startTime = new Date(`${data.schedule_date}T${data.time_start}`);
-
-        const diffMs = startTime.getTime() - now.getTime();
-        const diffHours = diffMs / (1000 * 60 * 60);
-
-        if (diffHours >= 12) {
-          showToast({
-            message: "Bookings can't be created 12 Hours before session.",
-            variant: "warning",
-            duration: 2500,
-          });
-          return;
-        } else if (diffHours <= 6) {
-          showToast({
-            message: "Bookings can't be created 6 Hours before session.",
-            variant: "warning",
-            duration: 2500,
-          });
-          return;
-        }
-      }
-    } else {
-      if (
-        !selectedSchedule ||
-        !selectedPackage ||
-        !auth?.accountDetail?.profile_id
-      ) {
-        showToast({
-          message: "Mohon untuk memilih jadwal booking yang ada",
-          variant: "error",
-        });
-        return;
-      }
-      const data = scheduleMap[selectedSchedule].data as ScheduleClassSchema;
-      const startTime = new Date(`${data.schedule_date}T${data.time_start}`);
-
-      const diffMs = startTime.getTime() - now.getTime();
-      const diffHours = diffMs / (1000 * 60 * 60);
-      if (diffHours <= 1) {
-        showToast({
-          message: "Bookings can't be created 1 Hours before class.",
-          variant: "warning",
-          duration: 2500,
-        });
-        return;
-      }
+    // Time rules (last booking 15 min before session, etc.) are validated by BE.
+    const missing = isPrivate
+      ? !selectedTrainerSchedule
+      : !selectedSchedule || !selectedPackage;
+    if (missing || !auth?.accountDetail?.profile_id) {
+      showToast({
+        message: "Mohon untuk memilih jadwal booking yang ada",
+        variant: "error",
+      });
+      return;
     }
     const selectedPrivateSchedule =
       trainerScheduleMap[selectedTrainerSchedule!];
@@ -265,6 +218,7 @@ export default function AddBookingModal({
       message: res.message,
       variant: res.success === true ? "success" : "error",
     });
+    if (res.success !== true) return;
     onSuccess();
     handleClose();
   };
@@ -310,9 +264,20 @@ export default function AddBookingModal({
             scrollEnabled={openPicker === null}
             nestedScrollEnabled
           >
-            <Text className="mb-6 text-xl font-bold text-slate-900">
+            <Text className="mb-3 text-xl font-bold text-slate-900">
               Add Booking
             </Text>
+            <View className="mb-6 flex-row items-center gap-3 rounded-lg bg-amber-50 p-3">
+              <AlertTriangle size={20} color="#D97706" />
+              <View className="flex-1">
+                <Text className="text-sm text-slate-700">
+                  Last booking: 15 minutes before the session starts.
+                </Text>
+                <Text className="text-sm text-slate-700">
+                  Last cancellation: 3 hours before the session starts.
+                </Text>
+              </View>
+            </View>
 
             {/* PACKAGE */}
             <View className="mb-5">
@@ -368,12 +333,12 @@ export default function AddBookingModal({
                 {/* TRAINER */}
                 <View className="mb-5">
                   <Text className="mb-2 font-semibold text-slate-700">
-                    Trainer
+                    Coach
                   </Text>
                   <View className="rounded-lg border border-slate-300">
                     <Combobox
                       value={selectedTrainer}
-                      placeholder="Select trainer"
+                      placeholder="Select coach"
                       options={trainers}
                       open={openPicker === "trainer"}
                       onOpenChange={(nextOpen) => {

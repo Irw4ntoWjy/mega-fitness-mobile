@@ -260,7 +260,7 @@ function ActivePackageCard({ item }: { item: PurchaseItemSchema }) {
             ) : null}
             {item.package_trainer_name ? (
               <Text className="text-gray-500 text-xs mt-0.5">
-                Trainer: {item.package_trainer_name}
+                Coach: {item.package_trainer_name}
               </Text>
             ) : null}
           </View>
@@ -681,7 +681,7 @@ const Home = () => {
                       setFeedbackModal({
                         visible: true,
                         title: "Location Permission Needed",
-                        message: "Aktifkan izin lokasi untuk sign in trainer.",
+                        message: "Aktifkan izin lokasi untuk sign in coach.",
                       });
                       return;
                     }

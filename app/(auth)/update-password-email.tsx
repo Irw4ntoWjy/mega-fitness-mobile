@@ -92,7 +92,7 @@ export default function UpdatePasswordEmail() {
       return;
     }
 
-    if (newPassword === "Aa123456") {
+    if (newPassword === "mega123456") {
       showToast({
         message: "Password terlalu mudah ditebak",
         variant: "error",
@@ -110,7 +110,7 @@ export default function UpdatePasswordEmail() {
       };
 
       if (!auth) {
-        await login({ email: payload.email, password: "Aa123456" });
+        await login({ email: payload.email, password: "mega123456" });
       }
 
       const res = await update_password(payload);
