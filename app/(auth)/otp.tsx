@@ -39,7 +39,7 @@ export default function OtpVerification() {
     }
 
     const res = await requestOtp(parsed.data);
-    if (!res.success || !res.data) {
+    if (!res.success) {
       showToast({
         message: res.message || "Failed to request OTP",
         variant: "error",
