@@ -343,6 +343,7 @@ export default function SignUp() {
                   birth_date: birthdateValue,
                   gender: gender ?? Gender.Other,
                   contact_number: contactNumber.trim() || undefined,
+                  is_tnc: true as const,
                 };
 
                 const parsed = signUpSchema.safeParse(nextPayload);

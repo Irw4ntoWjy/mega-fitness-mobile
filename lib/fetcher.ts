@@ -122,6 +122,7 @@ export async function fetcher<T>(
         success: false,
         message: payload?.message || "Request failed",
         data: payload?.data ?? null,
+        status: response.status,
         error: payload?.error || payload?.message,
       };
     }
@@ -175,6 +176,7 @@ export async function fetcher<T>(
       success: payload?.success ?? true,
       message: payload?.message ?? "OK",
       data: responseData as T,
+      status: response.status,
     };
   } catch (err: any) {
     logger.networkError(err?.message);
@@ -182,6 +184,7 @@ export async function fetcher<T>(
       success: false,
       message: "Network error",
       data: null,
+      status: 0,
       error: err?.message,
     };
   }

@@ -9,6 +9,8 @@ interface Props {
   onAccept?: () => void;
   onDecline?: () => void;
   onView?: boolean;
+  submitting?: boolean;
+  acceptLabel?: string;
 }
 
 export default function TermsModal({
@@ -16,6 +18,8 @@ export default function TermsModal({
   onAccept,
   onDecline,
   onView,
+  submitting = false,
+  acceptLabel = "Accept",
 }: Props) {
   const [page, setPage] = useState(0);
   const [checked, setChecked] = useState(false);
@@ -45,7 +49,11 @@ export default function TermsModal({
           <View className="flex-row px-5 py-4">
             <Text className="text-xl font-bold w-10/12">{data.title}</Text>
 
-            <Pressable className="w-2/12 items-end" onPress={onDecline}>
+            <Pressable
+              className="w-2/12 items-end"
+              onPress={onDecline}
+              disabled={submitting}
+            >
               <X size={20} />
             </Pressable>
           </View>
@@ -87,6 +95,7 @@ export default function TermsModal({
           <View className="flex-row px-5 pb-5 pt-2">
             {!(page === 0 && onView) && (
               <Pressable
+                disabled={submitting}
                 onPress={() => {
                   if (page === 0) {
                     onDecline?.();
@@ -111,13 +120,15 @@ export default function TermsModal({
               </Pressable>
             ) : !onView ? (
               <Pressable
-                disabled={!checked}
+                disabled={!checked || submitting}
                 onPress={onAccept}
                 className={`flex-1 ml-2 py-3 rounded-xl items-center ${
                   checked ? "bg-[#259AAA]" : "bg-gray-300"
                 }`}
               >
-                <Text className="text-white font-medium">Accept</Text>
+                <Text className="text-white font-medium">
+                  {submitting ? "Please wait..." : acceptLabel}
+                </Text>
               </Pressable>
             ) : null}
           </View>

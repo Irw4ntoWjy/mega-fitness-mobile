@@ -15,7 +15,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { login } from "../api/auth";
+import { login, updateMemberTnc } from "../api/auth";
+import TermsModal from "@/components/auth/terms-and-condition-modal";
 
 function InputBox({ children }: { children: React.ReactNode }) {
   return (
@@ -33,6 +34,8 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showTnc, setShowTnc] = useState(false);
+  const [tncAccountCode, setTncAccountCode] = useState<string | null>(null);
 
   const handleLogin = async () => {
     const parsed = signInSchema.safeParse({ email, password });
@@ -50,6 +53,11 @@ export default function SignIn() {
       const res = await login(parsed.data);
 
       if (!res.success) {
+        if (res.status === 428 && res.data?.account_code) {
+          setTncAccountCode(res.data.account_code);
+          setShowTnc(true);
+          return;
+        }
         showToast({
           message: res.message || "Login gagal",
           variant: "error",
@@ -88,6 +96,46 @@ export default function SignIn() {
       });
       router.replace("/");
     } catch (err) {
+      showToast({
+        message: "Terjadi kesalahan yang tidak terduga",
+        variant: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAcceptTnc = async () => {
+    if (!tncAccountCode) return;
+
+    try {
+      setLoading(true);
+      const tncRes = await updateMemberTnc({
+        account_code: tncAccountCode,
+        is_tnc: true,
+      });
+      if (!tncRes.success) {
+        showToast({
+          message: tncRes.message || "Gagal menyetujui syarat dan ketentuan",
+          variant: "error",
+        });
+        return;
+      }
+
+      const retryRes = await login({ email: email.trim(), password });
+      if (!retryRes.success) {
+        showToast({
+          message: retryRes.message || "Login gagal",
+          variant: "error",
+        });
+        return;
+      }
+
+      setShowTnc(false);
+      setTncAccountCode(null);
+      showToast({ message: "Sign in berhasil", variant: "success" });
+      router.replace("/");
+    } catch {
       showToast({
         message: "Terjadi kesalahan yang tidak terduga",
         variant: "error",
@@ -191,6 +239,16 @@ export default function SignIn() {
           </View>
         </View>
       </SafeAreaView>
+      <TermsModal
+        visible={showTnc}
+        onDecline={() => {
+          setShowTnc(false);
+          setTncAccountCode(null);
+        }}
+        onAccept={handleAcceptTnc}
+        submitting={loading}
+        acceptLabel="Done"
+      />
     </KeyboardAvoidingView>
   );
 }

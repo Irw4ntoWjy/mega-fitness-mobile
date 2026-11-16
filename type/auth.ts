@@ -37,6 +37,7 @@ export const signUpSchema = z.object({
   birth_date: z.string().optional(),
   gender: z.string().optional(),
   contact_number: z.string().optional(),
+  is_tnc: z.literal(true),
 });
 export type SignUpPayload = z.infer<typeof signUpSchema>;
 
@@ -54,6 +55,7 @@ export type VerifyAccountPayload = z.infer<typeof verifyAccountSchema>;
 export type LoginResponse = {
   access_token: string;
   refresh_token: string;
+  account_code?: string;
 };
 
 export type StoredAuth = {

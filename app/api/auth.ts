@@ -50,6 +50,15 @@ export function signUp(payload: SignUpPayload) {
   });
 }
 
+export function updateMemberTnc(payload: {
+  account_code: string;
+  is_tnc: boolean;
+}) {
+  return fetcher("/update-member/tnc", {
+    body: payload,
+  });
+}
+
 export function requestOtp(payload: OtpRequestPayload) {
   return fetcher<OtpRequestResponse>("/otp/request", {
     body: payload,
