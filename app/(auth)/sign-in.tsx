@@ -112,6 +112,7 @@ export default function SignIn() {
       setLoading(true);
       const tncRes = await updateMemberTnc({
         account_code: tncAccountCode,
+        password,
         is_tnc: true,
       });
       if (!tncRes.success) {

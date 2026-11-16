@@ -52,6 +52,7 @@ export function signUp(payload: SignUpPayload) {
 
 export function updateMemberTnc(payload: {
   account_code: string;
+  password: string;
   is_tnc: boolean;
 }) {
   return fetcher("/account/update-member/tnc", {
