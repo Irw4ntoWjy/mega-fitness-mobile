@@ -54,7 +54,7 @@ export function updateMemberTnc(payload: {
   account_code: string;
   is_tnc: boolean;
 }) {
-  return fetcher("/auth/update-member/tnc", {
+  return fetcher("/account/update-member/tnc", {
     body: payload,
   });
 }
