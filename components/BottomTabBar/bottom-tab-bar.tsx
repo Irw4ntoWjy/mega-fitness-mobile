@@ -10,7 +10,12 @@ import {
   Wallet,
 } from "lucide-react-native";
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import {
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { CopilotStep, walkthroughable } from "react-native-copilot";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -22,6 +27,10 @@ const BottomTabBar = ({
   navigation,
 }: BottomTabBarProps) => {
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
+  // Shrink tabs on narrow phones so the 5-tab bar always fits the screen.
+  const tabWidth = Math.max(54, Math.min(70, Math.floor((screenWidth - 40) / 5)));
+  const barPadding = 12;
   const { auth } = useAuth();
   const isTrainer = auth?.accountDetail?.account_role === "Trainer";
 
@@ -82,14 +91,14 @@ const BottomTabBar = ({
           borderRadius: 24,
           alignItems: "center",
           height: 56,
-          paddingHorizontal: 12,
+          paddingHorizontal: barPadding,
         }}
       >
         <View
           style={{
             position: "absolute",
             top: -7,
-            left: 152,
+            left: barPadding + tabWidth * 2.5 - 35,
             width: 70,
             height: 70,
             borderRadius: 35,
@@ -174,7 +183,6 @@ const BottomTabBar = ({
             );
           }
 
-          const tabWidth = 70;
           const tabHeight: number | undefined = undefined;
           const tabBorderRadius = 0;
           const tabPaddingVertical = 8;
@@ -185,7 +193,7 @@ const BottomTabBar = ({
               onPress={onPress}
               onLongPress={onLongPress}
               style={{
-                width: 70,
+                width: tabWidth,
                 justifyContent: "center",
                 alignItems: "center",
                 paddingVertical: 8,

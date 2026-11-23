@@ -36,7 +36,7 @@ import {
   Pressable,
   ScrollView,
   Text,
-  // useWindowDimensions,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { CopilotStep, useCopilot, walkthroughable } from "react-native-copilot";
@@ -614,6 +614,7 @@ export default function Home() {
   const scrollRef = useRef<ScrollView>(null);
   const stepPositions = useRef<Record<string, number>>({});
 
+  const { width: screenWidth } = useWindowDimensions();
   const { start, currentStep } = useCopilot();
 
   if (loading) {
@@ -1156,14 +1157,19 @@ export default function Home() {
         className="px-4"
       >
         <View className="flex-row items-center justify-between w-full">
-          <View className="flex flex-col">
-            <Text className="mt-3 mx-4 font-bold text-2xl">Welcome Back,</Text>
-            <Text className="mt-1 mx-4 font-medium">
+          <View className="flex flex-col flex-1 min-w-0">
+            <Text
+              className="mt-3 mx-4 font-bold"
+              style={{ fontSize: screenWidth < 360 ? 18 : 24 }}
+            >
+              Welcome Back,
+            </Text>
+            <Text className="mt-1 mx-4 font-medium" numberOfLines={1}>
               {profileLoading ? "..." : profileName}
             </Text>
           </View>
 
-          <View className="flex-row items-center justify-end gap-1 pr-2">
+          <View className="flex-row items-center justify-end shrink-0 pr-2">
             {!isTrainer && (
               <CopilotStep
                 text="Tutorial here."
@@ -1511,7 +1517,7 @@ function HeaderIcon({
   return (
     <Pressable
       onPress={onPress}
-      className="w-10 h-10 mx-1 rounded-xl items-center justify-center bg-white shadow-sm"
+      className="w-10 h-10 mx-0.5 rounded-xl items-center justify-center bg-white shadow-sm"
     >
       {children}
     </Pressable>

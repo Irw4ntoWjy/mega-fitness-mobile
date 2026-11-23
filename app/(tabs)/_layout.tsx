@@ -9,7 +9,13 @@ export default function Layout() {
   };
 
   return (
-    <CopilotProvider tooltipStyle={tooltipStyle}>
+    <CopilotProvider
+      tooltipStyle={tooltipStyle}
+      // Expo SDK 54 is edge-to-edge on Android: the window already starts at the
+      // top of the screen, so copilot must NOT subtract the status bar height
+      // (its default), otherwise every highlight shifts up by that height.
+      androidStatusBarVisible
+    >
       <Tabs
         tabBar={(props) => <BottomTabBar {...props} />}
         screenOptions={{
