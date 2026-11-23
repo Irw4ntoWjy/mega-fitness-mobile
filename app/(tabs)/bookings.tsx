@@ -358,7 +358,7 @@ export default function Bookings() {
       if (!checkAssessmentRes.data?.done_assessment) {
         router.push("/assessment/detail");
         showToast({
-          message: "Assessment section 1 & 2 required before booking",
+          message: "Assessment section 1 required before booking",
           variant: "error",
           duration: 2500,
         });

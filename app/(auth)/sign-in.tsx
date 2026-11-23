@@ -1,6 +1,6 @@
+import TermsModal from "@/components/auth/terms-and-condition-modal";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { useToast } from "@/components/Toast/toast-provider";
-import { clearAuth } from "@/lib/auth-storage";
 import { signInSchema } from "@/type/auth";
 import { useRouter } from "expo-router";
 import { Eye, EyeOff } from "lucide-react-native";
@@ -16,7 +16,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { login, updateMemberTnc } from "../api/auth";
-import TermsModal from "@/components/auth/terms-and-condition-modal";
 
 function InputBox({ children }: { children: React.ReactNode }) {
   return (
@@ -69,24 +68,6 @@ export default function SignIn() {
             params: { email: parsed.data.email },
           });
         }
-        return;
-      }
-
-      if (parsed.data.password === "mega123456") {
-        showToast({
-          message: "Password mudah ditebak",
-          variant: "error",
-        });
-
-        // login() already stored the session, which flips the root guard to
-        // the logged-in stack and unmounts (auth). Clear it so the user stays
-        // in (auth); update-password logs in again by itself when needed.
-        await clearAuth();
-
-        router.push({
-          pathname: "/(auth)/update-password",
-          params: { email: parsed.data.email },
-        });
         return;
       }
 

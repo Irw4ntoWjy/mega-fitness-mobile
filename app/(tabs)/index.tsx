@@ -1,6 +1,6 @@
+import { getActivePeriod } from "@/app/api/combobox/purchase";
 import { getCommissionProgress } from "@/app/api/commission";
 import { getPackageList } from "@/app/api/package";
-import { getActivePeriod } from "@/app/api/combobox/purchase";
 import { getPurchaseList, getPurchaseReminder } from "@/app/api/purchase";
 import { getSessionLogCount } from "@/app/api/session-log";
 import { WarningCard } from "@/components/Member/warning-card";
@@ -278,11 +278,11 @@ export default function Home() {
       if (res.success && res.data) detail = res.data;
     }
 
-    setProfileName(detail.profile_name);
+    setProfileName(detail?.profile_name ?? "");
     setMemberCode(detail?.account_code ?? accountCode ?? "");
-    setProfileInitials(getInitials(detail.profile_name));
+    setProfileInitials(getInitials(detail?.profile_name));
     setProfilePictureUrl(detail?.picture_url);
-    setAccountRole(detail?.account_role);
+    if (detail?.account_role) setAccountRole(detail.account_role);
 
     const resolvedProfileId =
       detail?.profile_id ??
@@ -1002,9 +1002,7 @@ export default function Home() {
                   {isWaiting ? "Waiting" : "Active"}
                 </Text>
               </View>
-              <Text
-                className="flex-1 text-white font-bold text-lg"
-              >
+              <Text className="flex-1 text-white font-bold text-lg">
                 {item.package_name.trim()}
               </Text>
             </View>

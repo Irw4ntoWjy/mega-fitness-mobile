@@ -585,7 +585,12 @@ export default function Profile() {
       <BackgroundGlow />
       <HeaderNavBar />
 
-      <ScrollView className="px-4 mb-10" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="px-4"
+        // old mb-10 spacing, plus the phone's nav bar
+        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
+        showsVerticalScrollIndicator={false}
+      >
         <View className="relative">
           <View style={{ height: HERO_H }} />
 

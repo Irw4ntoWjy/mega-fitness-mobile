@@ -14,13 +14,33 @@ import {
 import { BackgroundGlow } from "@/components/Theme/background";
 import { useToast } from "@/components/Toast/toast-provider";
 import { useAuth } from "@/hooks/useAuth";
-import { toYmd } from "@/utils/datetimeFormat";
 import { AnswerValue, SectionSchema } from "@/type/assessment";
+import { toYmd } from "@/utils/datetimeFormat";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
-import { QUESTION_META } from "./dummy_question";
+import {
+  Keyboard,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+import { PARQ_DECLARATION, QUESTION_META } from "./dummy_question";
+
+const cleanKey = (key: string) => key.replace(/^\d+[A-Z]?-/, "");
+
+function toCurrentQuestions(saved: Record<string, AnswerValue>) {
+  const byText: Record<string, AnswerValue> = {};
+  for (const [k, v] of Object.entries(saved)) byText[cleanKey(k)] = v;
+  const remapped: Record<string, AnswerValue> = {};
+  for (const s of QUESTION_META)
+    for (const q of s.data)
+      if (byText[q.key.en])
+        remapped[`${s.section}-${q.key.en}`] = byText[q.key.en];
+  return remapped;
+}
 
 export default function AssessmentDetail() {
   const { auth, loading: loadingAuth } = useAuth();
@@ -31,34 +51,39 @@ export default function AssessmentDetail() {
     edit?: string;
   }>();
   const { showToast } = useToast();
-  const [, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [data, setData] = useState<SectionSchema[]>([]);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [currentStep, setCurrentStep] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const ios = Platform.OS === "ios";
+    const show = Keyboard.addListener(
+      ios ? "keyboardWillShow" : "keyboardDidShow",
+      (e) => setKeyboardHeight(e.endCoordinates.height),
+    );
+    const hide = Keyboard.addListener(
+      ios ? "keyboardWillHide" : "keyboardDidHide",
+      () => setKeyboardHeight(0),
+    );
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
   const latestRef = useRef<{ id: number; createdAt?: string } | null>(null);
 
   const currentSection = data[currentStep];
-  const isReadOnlySection = (section?: number) =>
-    isTrainer && (section === 1 || section === 2);
+  const isReadOnlySection = (section?: number | string) =>
+    isTrainer
+      ? section === "2A" || section === "2B" || section === 2 // 2 = older saved assessments
+      : section === 3;
   const isTrainerReadOnlySection = isReadOnlySection(currentSection?.section);
-
-  const parseBodyComposition = (text: string) => {
-    const get = (label: string) => {
-      const match = text.match(new RegExp(`${label}: ([^,]+)`));
-      return match ? match[1].replace(/[^\d.]/g, "") : "";
-    };
-
-    return {
-      height: get("Height"),
-      weight: get("Weight"),
-      bodyFat: get("Body Fat"),
-      muscleMass: get("Muscle Mass"),
-      bmi: get("BMI"),
-    };
-  };
+  const isYes = (a?: AnswerValue) => !!a && "value" in a && a.value === true;
 
   useEffect(() => {
     if (loadingAuth) return;
@@ -101,9 +126,13 @@ export default function AssessmentDetail() {
         const answerJson = rawAnswerJson ?? QUESTION_META;
 
         setIsEditMode(isEditMode);
-        setIsReadOnly(!!rawAnswerJson && edit !== "1");
+        // trainer on the member's latest assessment still needs Edit to fill section 3
+        setIsReadOnly(
+          !!rawAnswerJson && edit !== "1" && !(isTrainer && !assessmentId),
+        );
 
-        setData(answerJson);
+        // editing always uses the current questions; viewing shows what was saved
+        setData(isEditMode ? (QUESTION_META as SectionSchema[]) : answerJson);
 
         const initialAnswers: Record<string, AnswerValue> = {};
 
@@ -129,9 +158,9 @@ export default function AssessmentDetail() {
 
             if (!val) return;
 
-            if (val.type === "TEXT") {
+            if (val.type === "TEXT" || val.type === "CHOICE") {
               initialAnswers[key] = {
-                type: "TEXT",
+                type: val.type,
                 desc: val.value,
               };
             }
@@ -153,7 +182,9 @@ export default function AssessmentDetail() {
           });
         });
 
-        setAnswers(initialAnswers);
+        setAnswers(
+          isEditMode ? toCurrentQuestions(initialAnswers) : initialAnswers,
+        );
       } catch (err) {
         console.error(err);
       } finally {
@@ -162,43 +193,46 @@ export default function AssessmentDetail() {
     };
 
     fetchData();
-  }, [loadingAuth, auth, memberProfileId, assessmentId, edit]);
+  }, [loadingAuth, auth, isTrainer, memberProfileId, assessmentId, edit]);
 
   useEffect(() => {
     scrollViewRef.current?.scrollTo({ y: 0, animated: false });
   }, [currentStep]);
 
-  const isCurrentStepValid = () => {
-    if (isTrainerReadOnlySection) {
-      return true;
-    }
+  // required questions left empty on submit: red-highlighted, first one scrolled into view
+  const [missing, setMissing] = useState<Set<string>>(new Set());
+  const [jumpTo, setJumpTo] = useState<string | null>(null);
+  const positions = useRef<Record<string, number>>({});
 
-    return currentSection?.data?.every((q: any) => {
-      const key = `${currentSection.section}-${q.key.en}`;
-      const answer = answers[key];
+  useEffect(() => {
+    if (!jumpTo) return;
+    // wait for the (possibly new) page to lay out
+    const t = setTimeout(() => {
+      const y = positions.current[jumpTo];
+      if (y != null)
+        scrollViewRef.current?.scrollTo({
+          y: Math.max(y - 16, 0),
+          animated: true,
+        });
+      setJumpTo(null);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [jumpTo, currentStep]);
 
-      if (!answer) return false;
-
-      if (answer.type === "BOOL") {
-        return answer.value !== undefined;
-      }
-
-      if (answer.type === "TEXT") {
-        return !!answer.desc;
-      }
-
-      if (answer.type === "BOOL_TEXT") {
-        return (
-          answer.value !== undefined &&
-          (answer.value === false || !!answer.desc)
-        );
-      }
-
-      return false;
-    });
+  const flagMissing = (subtitle: string, keys: string[], message: string) => {
+    showToast({ message, variant: "warning", duration: 3500 });
+    setMissing(new Set(keys));
+    const step = data.findIndex((s) => s.subtitle === subtitle);
+    if (step >= 0) setCurrentStep(step);
+    setJumpTo(keys[0]);
   };
 
-  const cleanKey = (key: string) => key.replace(/^\d+-/, "");
+  const isAnswered = (a?: AnswerValue) => {
+    if (!a) return false;
+    if (a.type === "BOOL" || a.type === "BOOL_TEXT")
+      return typeof a.value === "boolean";
+    return typeof a.desc === "string" && a.desc.trim() !== "" && a.desc !== "-";
+  };
 
   const mapValue = (metaType: string, answer?: any) => {
     if (!answer) return { type: metaType };
@@ -206,21 +240,21 @@ export default function AssessmentDetail() {
     if (metaType === "BOOL") {
       return {
         type: "BOOL",
-        value: answer.value ?? false,
+        ...(typeof answer.value === "boolean" ? { value: answer.value } : {}),
       };
     }
 
     if (metaType === "BOOL_TEXT") {
       return {
         type: "BOOL_TEXT",
-        value: answer.value ?? false,
+        ...(typeof answer.value === "boolean" ? { value: answer.value } : {}),
         ...(answer.desc ? { desc: answer.desc } : {}),
       };
     }
 
-    if (metaType === "TEXT") {
+    if (metaType === "TEXT" || metaType === "CHOICE") {
       return {
-        type: "TEXT",
+        type: metaType,
         value: answer.desc ?? "",
       };
     }
@@ -279,75 +313,60 @@ export default function AssessmentDetail() {
         );
         let answer = answerEntry?.[1];
 
-        const medicationKeyName = "Medications";
-        const effectKeyName = "Effect";
-
-        const doctorKey =
-          "Harap Anda/Dokter sebutkan rekomendasi atau batasan apa pun yang sesuai untuk Anda dalam program Latihan ini:";
-        const physioKey =
-          "Harap Physiotherapist sebutkan rekomendasi atau batasan apa pun yang sesuai untuk Anda dalam program Latihan ini:";
-
-        const isMedicationField =
-          q.key.en === medicationKeyName || q.key.en === effectKeyName;
-
-        const isDoctorOrPhysio =
-          q.key.en === doctorKey || q.key.en === physioKey;
-
-        if (
-          !answer ||
-          (answer == undefined && (isMedicationField || isDoctorOrPhysio))
-        ) {
+        if (!answer) {
           answer = {
             type: "TEXT",
             desc: "-",
           };
         }
         return {
-          key: q.key,
-          value: mapValue(q.value.type, answer),
-          rawAnswer: answer,
+          ...q,
+          value: { ...q.value, ...mapValue(q.value.type, answer) },
+          rawAnswer: answerEntry?.[1],
         };
       });
 
-      if ((section.section === 1 || section.section === 2) && !isTrainer) {
-        for (const q of data) {
-          const answer = q.rawAnswer;
-          let isValid = true;
+      if (section.section === 1 && !isTrainer) {
+        const missingKeys = data
+          .filter((q) => !isAnswered(q.rawAnswer))
+          .map((q) => `${section.section}-${q.key.en}`);
 
-          if (!answer) {
-            isValid = false;
-          } else {
-            switch (answer.type) {
-              case "BOOL":
-                isValid = typeof answer.value === "boolean";
-                break;
-              case "BOOL_TEXT":
-                isValid = typeof answer.value === "boolean";
-                break;
-              case "TEXT":
-                isValid =
-                  typeof answer.desc === "string" && answer.desc.trim() !== "";
-                break;
-              default:
-                isValid = false;
-            }
-          }
-
-          if (!isValid) {
-            showToast({
-              message: `Question missing required answer in section ${section.section}: "${q.key.en}"`,
-              variant: "warning",
-              duration: 3500,
-            });
-            return;
-          }
+        if (missingKeys.length) {
+          flagMissing(
+            section.subtitle,
+            missingKeys,
+            `${missingKeys.length} required question(s) in section ${section.section} not answered yet`,
+          );
+          return;
         }
+      }
+
+      const declaration = data.find((q) => q.key.en === PARQ_DECLARATION.en);
+      const checked =
+        declaration?.rawAnswer && "desc" in declaration.rawAnswer
+          ? (declaration.rawAnswer.desc ?? "").split("; ").filter(Boolean)
+          : [];
+      const started = data.some(
+        (q) => q !== declaration && isAnswered(q.rawAnswer),
+      );
+      if (
+        declaration &&
+        started &&
+        !isTrainer &&
+        PARQ_DECLARATION.options.some((o) => !checked.includes(o))
+      ) {
+        flagMissing(
+          section.subtitle,
+          [`${section.section}-${PARQ_DECLARATION.en}`],
+          "Please check the PAR-Q+ declaration before submitting",
+        );
+        return;
       }
 
       result.push({
         section: section.section,
         subtitle: section.subtitle,
-        data: data.map(({ key, value }) => ({ key, value })),
+        data: data.map(({ rawAnswer, ...q }) => q),
       });
     }
 
@@ -402,7 +421,7 @@ export default function AssessmentDetail() {
   };
 
   return (
-    <View className="flex-1">
+    <View style={{ flex: 1, paddingBottom: keyboardHeight }}>
       <BackgroundGlow showText />
 
       <View className="mt-20 h-14 px-4 flex-row items-center justify-between">
@@ -413,12 +432,15 @@ export default function AssessmentDetail() {
           <ChevronLeft size={22} color="#000" />
         </Pressable>
 
-        {!isReadOnly && (
+        {!loading && !isReadOnly && (
           <Pressable
             onPress={() => {
               if (isEditMode) {
                 handleSubmit();
               } else {
+                setData(QUESTION_META as SectionSchema[]);
+                setAnswers((prev) => toCurrentQuestions(prev));
+                setCurrentStep(0);
                 setIsEditMode(true);
               }
             }}
@@ -442,10 +464,35 @@ export default function AssessmentDetail() {
 
       <ScrollView
         ref={scrollViewRef}
-        className="flex-1 mb-30"
+        className="flex-1"
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <View className="px-6 mt-6">
+          {isTrainerReadOnlySection && (
+            <View className="mb-4 p-3 rounded-xl bg-gray-100 border border-gray-200">
+              <Text className="text-gray-600 font-semibold">
+                {isTrainer
+                  ? "Filled in by the member"
+                  : "Filled in by your trainer"}
+              </Text>
+              {!isTrainer &&
+                !currentSection.data.some((q) => {
+                  const a = answers[`${currentSection.section}-${q.key.en}`];
+                  return (
+                    !q.trainerOnly &&
+                    !!a &&
+                    "desc" in a &&
+                    !!a.desc &&
+                    a.desc !== "-"
+                  );
+                }) && (
+                  <Text className="text-gray-500 mt-1">
+                    Your trainer hasn&apos;t filled this in yet.
+                  </Text>
+                )}
+            </View>
+          )}
           {currentSection?.data?.map((q: any, index: number) => {
             const key = `${currentSection.section}-${q.key.en}`;
 
@@ -506,10 +553,27 @@ export default function AssessmentDetail() {
 
             const hidden =
               (dependsOnMedication && !isMedicationTrue) ||
-              (isDoctorOrPhysioField && !hasAnyTrueAnswer);
+              (isDoctorOrPhysioField && !hasAnyTrueAnswer) ||
+              (!!q.trainerOnly && !isTrainer) ||
+              (!!q.parent &&
+                !isYes(answers[`${currentSection.section}-${q.parent}`]));
 
             return (
-              <View key={key} style={{ display: hidden ? "none" : "flex" }}>
+              <View
+                key={key}
+                style={{ display: hidden ? "none" : "flex" }}
+                onLayout={(e) => {
+                  positions.current[key] = e.nativeEvent.layout.y;
+                }}
+              >
+                {q.group &&
+                  q.group !== currentSection.data[index - 1]?.group && (
+                    <Text className="font-bold text-lg mt-2 mb-3">
+                      {isTrainer
+                        ? q.group
+                        : q.group.replace(/^Module \d+: /, "")}
+                    </Text>
+                  )}
                 <PhysicalQuestionCard
                   key={key}
                   questionKey={key}
@@ -517,7 +581,14 @@ export default function AssessmentDetail() {
                   index={index}
                   value={answers[key]}
                   disabled={!isEditMode || isTrainerReadOnlySection}
+                  error={missing.has(key)}
                   setAnswer={(k, value) => {
+                    setMissing((prev) => {
+                      if (!prev.has(k)) return prev;
+                      const next = new Set(prev);
+                      next.delete(k);
+                      return next;
+                    });
                     setAnswers((prev) => {
                       const updated = { ...prev, [k]: value };
                       const section = currentSection.section;
@@ -554,6 +625,13 @@ export default function AssessmentDetail() {
                         delete updated[physioFullKey];
                       }
 
+                      if ("value" in value && value.value === false) {
+                        for (const item of currentSection.data) {
+                          if (`${section}-${item.parent}` === k)
+                            delete updated[`${section}-${item.key.en}`];
+                        }
+                      }
+
                       if (
                         k === medicationKey &&
                         (value as any)?.value === false
@@ -583,7 +661,6 @@ export default function AssessmentDetail() {
         }}
         onBack={() => setCurrentStep((prev) => prev - 1)}
         backDisabled={currentStep === 0}
-        // nextDisabled={!isCurrentStepValid()}
         isLastStep={currentStep === data.length - 1}
         hideNext={currentStep === data.length - 1}
       />

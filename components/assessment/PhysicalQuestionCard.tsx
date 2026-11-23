@@ -1,5 +1,6 @@
 import { AnswerValue, Question } from "@/type/assessment";
-import { Text, TextInput, View } from "react-native";
+import { Check } from "lucide-react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 import BooleanOption from "./BooleanOption";
 
 type Props = {
@@ -8,6 +9,7 @@ type Props = {
   value?: AnswerValue;
   setAnswer: (key: string, value: AnswerValue) => void;
   disabled?: boolean;
+  error?: boolean;
   questionKey: string;
 };
 
@@ -16,6 +18,7 @@ export default function PhysicalQuestionCard({
   value,
   setAnswer,
   disabled,
+  error,
   questionKey,
 }: Props) {
   const isDisabled = !!disabled;
@@ -30,6 +33,8 @@ export default function PhysicalQuestionCard({
           return { type: "BOOL_TEXT", value: false, desc: "" };
         case "TEXT":
           return { type: "TEXT", desc: "" };
+        case "CHOICE":
+          return { type: "CHOICE", desc: "" };
         default:
           throw new Error("Unknown question type");
       }
@@ -89,9 +94,11 @@ export default function PhysicalQuestionCard({
   return (
     <View
       className={
-        isDisabled
-          ? "bg-white rounded-4xl p-4 mb-4 border-gray-200 border"
-          : "bg-white rounded-4xl p-4 mb-4 shadow-sm "
+        error
+          ? "bg-white rounded-4xl p-4 mb-4 border border-red-600" // border/text match the error toast
+          : isDisabled
+            ? "bg-gray-100 rounded-4xl p-4 mb-4 border-gray-200 border"
+            : "bg-white rounded-4xl p-4 mb-4 shadow-sm "
       }
     >
       <View className="flex-row">
@@ -129,12 +136,20 @@ export default function PhysicalQuestionCard({
                 />
               </View>
 
+              {booleanValue === false &&
+                "noHint" in q.value &&
+                q.value.noHint && (
+                  <Text className="text-red-500 text-sm mb-2">
+                    {q.value.noHint}
+                  </Text>
+                )}
+
               {/* DETAIL INPUT */}
               {type === "BOOL_TEXT" && booleanValue === true && (
                 <TextInput
                   value={detailsValue}
                   onChangeText={updateDetail}
-                  placeholder="Jelaskan lebih lanjut..."
+                  placeholder={isDisabled ? undefined : "Jelaskan lebih lanjut..."}
                   placeholderTextColor="#6b7280"
                   className="border-b border-gray-300 text-md py-1"
                   textAlignVertical="top"
@@ -145,18 +160,75 @@ export default function PhysicalQuestionCard({
             </>
           )}
 
+          {/* ===== CHOICE ===== */}
+          {type === "CHOICE" &&
+            q.value.type === "CHOICE" &&
+            q.value.options?.map((opt, _, options) => {
+              // single -> radio; otherwise multi-select stored as "a; b" in option order
+              const single = q.value.type === "CHOICE" && q.value.single;
+              const picked =
+                currentValue.type === "CHOICE" && currentValue.desc
+                  ? currentValue.desc.split("; ")
+                  : [];
+              const selected = picked.includes(opt);
+              return (
+                <Pressable
+                  key={opt}
+                  disabled={isDisabled}
+                  onPress={() =>
+                    setAnswer(key, {
+                      type: "CHOICE",
+                      desc: single
+                        ? opt
+                        : options
+                            .filter((o) => (o === opt ? !selected : picked.includes(o)))
+                            .join("; "),
+                    })
+                  }
+                  className="flex-row items-start gap-2 mb-3"
+                >
+                  {single ? (
+                    <View
+                      className={`w-5 h-5 mt-0.5 rounded-full border items-center justify-center ${
+                        selected ? "border-cyan-600" : "border-gray-400"
+                      }`}
+                    >
+                      {selected && (
+                        <View className="w-2.5 h-2.5 rounded-full bg-cyan-600" />
+                      )}
+                    </View>
+                  ) : (
+                    <View
+                      className={`w-5 h-5 mt-0.5 rounded border items-center justify-center ${
+                        selected ? "border-cyan-600 bg-cyan-600" : "border-gray-400"
+                      }`}
+                    >
+                      {selected && <Check size={14} color="#fff" />}
+                    </View>
+                  )}
+                  <Text className="flex-1">{opt}</Text>
+                </Pressable>
+              );
+            })}
+
           {/* ===== TEXT ===== */}
           {type === "TEXT" && (
             <TextInput
               value={textValue}
               onChangeText={updateText}
-              placeholder="Tulis jawaban..."
+              placeholder={isDisabled ? undefined : "Tulis jawaban..."}
               placeholderTextColor="#6b7280"
               className="border-b border-gray-300 text-md py-1"
               textAlignVertical="top"
               multiline
               editable={!isDisabled}
             />
+          )}
+
+          {error && (
+            <Text className="text-red-800 text-sm mt-2">
+              This question is required
+            </Text>
           )}
         </View>
       </View>

@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Props = {
   onNext: () => void;
@@ -18,8 +19,16 @@ export default function BottomNavbar({
   isLastStep = false,
   hideNext = false,
 }: Props) {
+  const insets = useSafeAreaInsets();
   return (
-    <View className="absolute bottom-5 left-0 right-0 px-4 py-4">
+    <View
+      // in normal flow below the ScrollView; all in style since nativewind v5 drops className when style is set
+      style={{
+        paddingHorizontal: 16,
+        paddingTop: 12,
+        paddingBottom: Math.max(insets.bottom, 20), // clear the phone's system nav bar
+      }}
+    >
       <View className="flex-row items-center justify-between">
         {/* BACK BUTTON */}
         {onBack ? (

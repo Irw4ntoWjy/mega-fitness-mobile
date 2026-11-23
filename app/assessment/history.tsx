@@ -3,15 +3,14 @@ import Combobox from "@/components/Combobox/combobox";
 import { BackgroundGlow } from "@/components/Theme/background";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDate } from "@/utils/datetimeFormat";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
   Pencil,
 } from "lucide-react-native";
-import { useEffect, useMemo, useState } from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -19,6 +18,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type HistoryItem = {
   assessment_id: number;
@@ -46,34 +46,37 @@ export default function AssessmentHistory() {
     ? String(memberProfileId)
     : auth?.accountDetail?.profile_id;
 
-  useEffect(() => {
-    // wait until auth has resolved and the profile id is available
-    if (loadingAuth || !profileId) return;
+  // refetch on every focus so entries saved meanwhile (e.g. by the trainer) show up
+  useFocusEffect(
+    useCallback(() => {
+      // wait until auth has resolved and the profile id is available
+      if (loadingAuth || !profileId) return;
 
-    let cancelled = false;
+      let cancelled = false;
 
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const res = await getAssessmentList({
-          limit: -1,
-          profile_id: profileId,
-        });
-        const list = (res.data as any)?.data ?? [];
-        if (!cancelled) setItems(list);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
+      const fetchData = async () => {
+        try {
+          setLoading(true);
+          const res = await getAssessmentList({
+            limit: -1,
+            profile_id: profileId,
+          });
+          const list = (res.data as any)?.data ?? [];
+          if (!cancelled) setItems(list);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          if (!cancelled) setLoading(false);
+        }
+      };
 
-    fetchData();
+      fetchData();
 
-    return () => {
-      cancelled = true;
-    };
-  }, [loadingAuth, profileId]);
+      return () => {
+        cancelled = true;
+      };
+    }, [loadingAuth, profileId]),
+  );
 
   const isWaiting = loadingAuth || !profileId || loading;
 
@@ -106,21 +109,24 @@ export default function AssessmentHistory() {
         </Text>
       </View>
 
-      <View className="px-4">
-        <Combobox
-          value={sortOrder}
-          placeholder="Sort by date"
-          options={SORT_OPTIONS}
-          open={sortOpen}
-          onOpenChange={setSortOpen}
-          onSelect={(value) => {
-            if (value === "Latest" || value === "Oldest") setSortOrder(value);
-            setSortOpen(false);
-          }}
-          showClear={false}
-          dropdownInline
-        />
-      </View>
+      {/* sorting needs 2+ items */}
+      {!isWaiting && items.length > 1 && (
+        <View className="px-4">
+          <Combobox
+            value={sortOrder}
+            placeholder="Sort by date"
+            options={SORT_OPTIONS}
+            open={sortOpen}
+            onOpenChange={setSortOpen}
+            onSelect={(value) => {
+              if (value === "Latest" || value === "Oldest") setSortOrder(value);
+              setSortOpen(false);
+            }}
+            showClear={false}
+            dropdownInline
+          />
+        </View>
+      )}
 
       {isWaiting ? (
         <View className="flex-1 items-center justify-center">

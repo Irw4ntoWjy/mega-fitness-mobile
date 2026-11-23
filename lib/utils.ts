@@ -25,8 +25,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function getInitials(value: string) {
-  const parts = value.trim().split(/\s+/).filter(Boolean);
+export function getInitials(value?: string | null) {
+  const parts = (value ?? "").trim().split(/\s+/).filter(Boolean);
 
   if (parts.length === 0) return "";
 
