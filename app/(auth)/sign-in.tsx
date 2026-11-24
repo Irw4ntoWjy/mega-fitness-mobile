@@ -71,11 +71,7 @@ export default function SignIn() {
         return;
       }
 
-      showToast({
-        message: "Sign in berhasil",
-        variant: "success",
-      });
-      router.replace("/");
+      signedIn();
     } catch (err) {
       showToast({
         message: "Terjadi kesalahan yang tidak terduga",
@@ -84,6 +80,19 @@ export default function SignIn() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const signedIn = () => {
+    showToast(
+      password === "mega123456"
+        ? {
+            message: "Warning: Password Anda masih bawaan. Silakan diubah!",
+            variant: "warning",
+            duration: 5000,
+          }
+        : { message: "Sign in berhasil", variant: "success" },
+    );
+    router.replace("/");
   };
 
   const handleAcceptTnc = async () => {
@@ -115,8 +124,7 @@ export default function SignIn() {
 
       setShowTnc(false);
       setTncAccountCode(null);
-      showToast({ message: "Sign in berhasil", variant: "success" });
-      router.replace("/");
+      signedIn();
     } catch {
       showToast({
         message: "Terjadi kesalahan yang tidak terduga",

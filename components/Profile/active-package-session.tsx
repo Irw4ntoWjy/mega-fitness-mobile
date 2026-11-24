@@ -33,7 +33,7 @@ export function ActivePackagesSessionsCard({
 
   return (
     <Pressable
-      className="w-full my-3"
+      className="w-full max-w-[640px] my-3"
       onPress={onPress}
       disabled={!onPress}
     >

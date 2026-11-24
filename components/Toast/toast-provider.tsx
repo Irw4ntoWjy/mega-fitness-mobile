@@ -4,6 +4,7 @@ import React, { createContext, useCallback, useContext, useState } from "react";
 export type ToastVariant = "success" | "error" | "warning";
 
 type ToastState = {
+  id: number;
   visible: boolean;
   message: string;
   variant: ToastVariant;
@@ -30,6 +31,7 @@ const ToastContext = createContext<ToastContextValue>({
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState<ToastState>({
+    id: 0,
     visible: false,
     message: "",
     variant: "success",
@@ -37,13 +39,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   });
 
   const showToast = useCallback((options: ToastOptions) => {
-    setToast({
+    setToast((current) => ({
+      id: current.id + 1,
       visible: true,
       message: options.message,
       variant: options.variant ?? "success",
       duration: options.duration ?? 1000,
       icon: options.icon,
-    });
+    }));
   }, []);
 
   const hideToast = useCallback(() => {
@@ -55,6 +58,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       <>
         {children}
         <Toast
+          key={toast.id}
           visible={toast.visible}
           message={toast.message}
           variant={toast.variant}

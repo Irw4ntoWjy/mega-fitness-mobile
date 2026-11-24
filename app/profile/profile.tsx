@@ -418,7 +418,7 @@ export default function Profile() {
     birth:
       !profile?.birth_date || profile.birth_date.startsWith("1900-01-01")
         ? "-"
-        : formatDate(profile.birth_date) ?? "-",
+        : (formatDate(profile.birth_date) ?? "-"),
     gender: profile?.gender ?? "-",
     weight: "-",
     height: "-",
@@ -701,7 +701,22 @@ export default function Profile() {
             values={profileValues}
           />
 
-          <View className="px-2 pt-2">
+          <View className="px-2 pt-2 gap-3">
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: "/(auth)/update-password-email",
+                  params: profile?.account_email
+                    ? { email: profile.account_email }
+                    : undefined,
+                })
+              }
+              className="items-center justify-center rounded-xl border border-gray-300 bg-white py-3"
+            >
+              <Text className="text-gray-800 font-semibold text-md">
+                Change Password
+              </Text>
+            </Pressable>
             <Pressable
               onPress={openDeleteAccountModal}
               className="items-center justify-center rounded-xl border border-red-300 bg-red-50 py-3"

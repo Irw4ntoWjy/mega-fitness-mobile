@@ -21,13 +21,16 @@ import { useRouter } from "expo-router";
 import {
   ArrowRight,
   Bell,
+  CalendarDays,
   HelpCircle,
   LogOut,
+  Package,
   QrCode,
   Settings,
+  Tag,
   X,
 } from "lucide-react-native";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   ActivityIndicator,
@@ -261,6 +264,21 @@ export default function Home() {
   const isTrainer = normalizeRole(accountRole).includes("trainer");
   const roleTheme = getRoleTheme(accountRole);
 
+  // Hold the whole page behind one spinner until the first load is complete,
+  // so sections don't flash empty and then pop in. Latched: refetches on
+  // later focus keep the page on screen.
+  const [accountLoaded, setAccountLoaded] = useState(false);
+  const [packagesLoading, setPackagesLoading] = useState(true);
+  const memberStatsReady =
+    isTrainer ||
+    !customerProfileId ||
+    (!activePackagesTotalLoading && !sessionLogCountLoading);
+  const firstLoadDone = useRef(false);
+  if (!loading && accountLoaded && !packagesLoading && memberStatsReady) {
+    firstLoadDone.current = true;
+  }
+  const pageReady = firstLoadDone.current;
+
   const loadAccountDetail = useCallback(async () => {
     setProfileLoading(true);
 
@@ -297,6 +315,7 @@ export default function Home() {
     console.log("[account/detail/code] resolved profile id", resolvedProfileId);
 
     setProfileLoading(false);
+    setAccountLoaded(true);
   }, []);
 
   useFocusEffect(
@@ -319,6 +338,8 @@ export default function Home() {
 
   useFocusEffect(
     useCallback(() => {
+      // Copilot only retries start() for ~2s, so wait until steps are mounted.
+      if (!pageReady) return;
       if (!isTrainer) {
         const checkNewUser = async () => {
           const auth = await getAuth();
@@ -335,7 +356,8 @@ export default function Home() {
         };
         checkNewUser();
       }
-    }, []),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pageReady]),
   );
 
   const fetchBuyPackages = useCallback(async () => {
@@ -403,6 +425,8 @@ export default function Home() {
       }
     } catch (error) {
       console.log("Error fetching buy packages:", error);
+    } finally {
+      setPackagesLoading(false);
     }
   }, []);
 
@@ -612,12 +636,47 @@ export default function Home() {
   );
 
   const scrollRef = useRef<ScrollView>(null);
-  const stepPositions = useRef<Record<string, number>>({});
+  const activePackagesRef = useRef<View>(null);
+  // Floating BottomTabBar: 56 bar + 4 top + 10 bottom padding + safe area.
+  const tabBarHeight = 70 + insets.bottom;
+  const scrollHeight = useRef(0);
 
   const { width: screenWidth } = useWindowDimensions();
-  const { start, currentStep } = useCopilot();
+  const { start, currentStep, copilotEvents } = useCopilot();
 
-  if (loading) {
+  // Steps 4 (bell) and 6+ (tabs) sit outside the ScrollView, so scrolling then
+  // doesn't move their highlight. Use step 4 to bring the Active Packages card
+  // (step 5) fully above the floating tab bar before copilot measures it.
+  useEffect(() => {
+    const onStepChange = (step?: { name: string; order: number }) => {
+      const scroll = scrollRef.current;
+      // getInnerViewRef exists at runtime (RN + RN-web) but is missing from the TS types.
+      const content = (scroll as any)?.getInnerViewRef?.();
+      if (!scroll || !step) return;
+      if (step.order <= 3) {
+        scroll.scrollTo({ y: 0, animated: false });
+        return;
+      }
+      if (step.name !== "notifications" || !content) return;
+      activePackagesRef.current?.measureLayout(content, (_x, y, _w, h) => {
+        const visible = scrollHeight.current - tabBarHeight;
+        scroll.scrollTo({
+          y: Math.max(0, y + h - visible + 12),
+          animated: false,
+        });
+      });
+    };
+    const onStop = () => scrollRef.current?.scrollTo({ y: 0, animated: false });
+
+    copilotEvents.on("stepChange", onStepChange);
+    copilotEvents.on("stop", onStop);
+    return () => {
+      copilotEvents.off("stepChange", onStepChange);
+      copilotEvents.off("stop", onStop);
+    };
+  }, [copilotEvents, tabBarHeight]);
+
+  if (!pageReady) {
     return (
       <View className="flex-1 items-center justify-center">
         <ActivityIndicator size="large" />
@@ -673,7 +732,7 @@ export default function Home() {
     return (
       <Pressable
         key={item.id}
-        className="w-[44vw] mb-4 mr-5"
+        className="w-[44vw] max-w-[240px] mb-4 mr-5"
         onPress={handlePress}
       >
         <View className="bg-white rounded-2xl shadow-md relative">
@@ -747,8 +806,13 @@ export default function Home() {
           </View>
 
           <View className="flex-row items-center justify-between px-4 py-4">
-            <View>
-              <Text className="text-black font-bold text-lg">{item.title}</Text>
+            <View className="flex-1">
+              <Text
+                numberOfLines={2}
+                className="text-black font-bold text-lg leading-7 h-14"
+              >
+                {item.title}
+              </Text>
               {/* <Text className="text-black text-xs mt-1">{item.time}</Text> */}
             </View>
           </View>
@@ -782,7 +846,7 @@ export default function Home() {
     return (
       <Pressable
         key={item.id}
-        className="w-[44vw] mb-4 mr-5"
+        className="w-[44vw] max-w-[240px] mb-4 mr-5"
         onPress={handlePress}
       >
         <View className="bg-white rounded-2xl shadow-md relative">
@@ -856,8 +920,13 @@ export default function Home() {
           </View>
 
           <View className="flex-row items-center justify-between px-4 py-4">
-            <View>
-              <Text className="text-black font-bold text-lg">{item.title}</Text>
+            <View className="flex-1">
+              <Text
+                numberOfLines={2}
+                className="text-black font-bold text-lg leading-7 h-14"
+              >
+                {item.title}
+              </Text>
               {/* <Text className="text-black text-xs mt-1">{item.time}</Text> */}
             </View>
           </View>
@@ -899,7 +968,7 @@ export default function Home() {
     return (
       <Pressable
         key={item.id}
-        className="w-[44vw] mb-4 mr-5"
+        className="w-[44vw] max-w-[240px] mb-4 mr-5"
         onPress={handlePress}
       >
         <View className="bg-white rounded-2xl shadow-md relative">
@@ -976,8 +1045,11 @@ export default function Home() {
           ) : null}
 
           <View className="flex-row items-center justify-between px-4 py-4">
-            <View>
-              <Text className="text-black font-bold text-lg">
+            <View className="flex-1">
+              <Text
+                numberOfLines={2}
+                className="text-black font-bold text-lg leading-7 h-14"
+              >
                 {item.packageName}
               </Text>
             </View>
@@ -1216,12 +1288,15 @@ export default function Home() {
 
       <ScrollView
         ref={scrollRef}
+        onLayout={(e) => {
+          scrollHeight.current = e.nativeEvent.layout.height;
+        }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 200 }}
+        contentContainerStyle={{ paddingBottom: tabBarHeight + 16 }}
       >
         <View>
           <View className="px-4">
-            <View className="relative">
+            <View className="relative z-10">
               <View style={{ height: HERO_H }} />
 
               {!isTrainer && customerProfileId && (
@@ -1237,12 +1312,7 @@ export default function Home() {
               )}
 
               <View className="absolute -bottom-15 z-50">
-                <View
-                  onLayout={(e) => {
-                    stepPositions.current["profile-avatar"] =
-                      e.nativeEvent.layout.y;
-                  }}
-                >
+                <View>
                   <CopilotStep
                     text="Tap your avatar to view and edit your profile."
                     order={2}
@@ -1314,36 +1384,37 @@ export default function Home() {
                   </View>
                 ) : (
                   <View>
-                    <View
-                      onLayout={(e) => {
-                        stepPositions.current["active-packages"] =
-                          e.nativeEvent.layout.y;
-                      }}
-                    >
-                      <CopilotStep
-                        text="Track your active sessions and package usage."
-                        order={5}
-                        name="active-packages"
+                    <View>
+                      <View
+                        ref={activePackagesRef}
+                        collapsable={false}
+                        className="max-w-[640px]"
                       >
-                        <WalkableView>
-                          {activePackagesTotalLoading ||
-                          sessionLogCountLoading ? (
-                            <View className="py-8 items-center justify-center">
-                              <ActivityIndicator size="small" />
-                            </View>
-                          ) : (
-                            <ActivePackagesSessionsCard
-                              summary={{
-                                totalActive: activePackagesTotal,
-                                completedSessions,
-                                totalSessions,
-                              }}
-                              packages={packagesForActiveSessionsCard}
-                              onPress={openActivePackagesPopup}
-                            />
-                          )}
-                        </WalkableView>
-                      </CopilotStep>
+                        <CopilotStep
+                          text="Track your active sessions and package usage."
+                          order={5}
+                          name="active-packages"
+                        >
+                          <WalkableView>
+                            {activePackagesTotalLoading ||
+                            sessionLogCountLoading ? (
+                              <View className="py-8 items-center justify-center">
+                                <ActivityIndicator size="small" />
+                              </View>
+                            ) : (
+                              <ActivePackagesSessionsCard
+                                summary={{
+                                  totalActive: activePackagesTotal,
+                                  completedSessions,
+                                  totalSessions,
+                                }}
+                                packages={packagesForActiveSessionsCard}
+                                onPress={openActivePackagesPopup}
+                              />
+                            )}
+                          </WalkableView>
+                        </CopilotStep>
+                      </View>
                       <WarningCard
                         reminders={purchaseReminders}
                         loading={purchaseRemindersLoading}
@@ -1358,7 +1429,7 @@ export default function Home() {
         </View>
 
         <View
-          className="pt-5 rounded-t-xl pb-30 overflow-visible"
+          className="pt-5 rounded-t-xl overflow-visible"
           onLayout={(e) => {
             const { width, height } = e.nativeEvent.layout;
             setBottomSectionLayout((prev) =>
@@ -1444,16 +1515,24 @@ export default function Home() {
             </Pressable> */}
           </View>
 
-          <ScrollView
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-            showsVerticalScrollIndicator={false}
-            className="overflow-hidden p-5"
-          >
-            {promotionsData.map((item) => (
-              <PromotionCard key={item.id} item={item} />
-            ))}
-          </ScrollView>
+          {promotionsData.length === 0 ? (
+            <EmptySection
+              icon={Tag}
+              title="No promotions right now"
+              text="New deals will show up here."
+            />
+          ) : (
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              showsVerticalScrollIndicator={false}
+              className="overflow-hidden p-5"
+            >
+              {promotionsData.map((item) => (
+                <PromotionCard key={item.id} item={item} />
+              ))}
+            </ScrollView>
+          )}
 
           <View className="flex flex-row justify-between">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
@@ -1464,16 +1543,24 @@ export default function Home() {
             </Pressable> */}
           </View>
 
-          <ScrollView
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-            showsVerticalScrollIndicator={false}
-            className="overflow-hidden p-5"
-          >
-            {specialClassData.map((item) => (
-              <SpecialClassCard key={item.id} item={item} />
-            ))}
-          </ScrollView>
+          {specialClassData.length === 0 ? (
+            <EmptySection
+              icon={CalendarDays}
+              title="No special classes or events yet"
+              text="Check back soon for upcoming sessions."
+            />
+          ) : (
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              showsVerticalScrollIndicator={false}
+              className="overflow-hidden p-5"
+            >
+              {specialClassData.map((item) => (
+                <SpecialClassCard key={item.id} item={item} />
+              ))}
+            </ScrollView>
+          )}
 
           <View className="flex flex-row justify-between">
             <Text className="text-2xl font-bold text-slate-800 mb-4 mx-5">
@@ -1491,18 +1578,48 @@ export default function Home() {
             </Pressable>
           </View>
 
-          <ScrollView
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-            showsVerticalScrollIndicator={false}
-            className="overflow-hidden p-5"
-          >
-            {buyPackagesData.map((item) => (
-              <PackageCard key={item.id} item={item} />
-            ))}
-          </ScrollView>
+          {buyPackagesData.length === 0 ? (
+            <EmptySection
+              icon={Package}
+              title="No packages available yet"
+              text="Packages you can buy will appear here."
+            />
+          ) : (
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              showsVerticalScrollIndicator={false}
+              className="overflow-hidden p-5"
+            >
+              {buyPackagesData.map((item) => (
+                <PackageCard key={item.id} item={item} />
+              ))}
+            </ScrollView>
+          )}
         </View>
       </ScrollView>
+    </View>
+  );
+}
+
+function EmptySection({
+  icon: Icon,
+  title,
+  text,
+}: {
+  icon: typeof Tag;
+  title: string;
+  text: string;
+}) {
+  return (
+    <View className="mx-5 mb-6 px-5 py-6 rounded-2xl border-2 border-dashed border-cyan-300 bg-[#E6FAFF] items-center justify-center">
+      <View className="w-12 h-12 rounded-full bg-cyan-600 items-center justify-center mb-3">
+        <Icon size={24} color="white" />
+      </View>
+      <Text className="text-base font-semibold text-slate-800 text-center">
+        {title}
+      </Text>
+      <Text className="text-sm text-slate-600 text-center mt-1">{text}</Text>
     </View>
   );
 }
