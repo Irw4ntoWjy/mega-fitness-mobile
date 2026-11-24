@@ -588,7 +588,8 @@ export default function Profile() {
       <ScrollView
         className="px-4"
         // old mb-10 spacing, plus the phone's nav bar
-        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
+        // Clear the floating edit button (64px tall, 20px above the safe area) + 16px gap.
+        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
       >
         <View className="relative">
@@ -705,15 +706,15 @@ export default function Profile() {
             <Pressable
               onPress={() =>
                 router.push({
-                  pathname: "/(auth)/update-password-email",
+                  pathname: "/update-password-email",
                   params: profile?.account_email
                     ? { email: profile.account_email }
                     : undefined,
                 })
               }
-              className="items-center justify-center rounded-xl border border-gray-300 bg-white py-3"
+              className="items-center justify-center rounded-xl border border-[#30B8C4] bg-[#E6FAFF] py-3"
             >
-              <Text className="text-gray-800 font-semibold text-md">
+              <Text className="text-[#0F6B7E] font-semibold text-md">
                 Change Password
               </Text>
             </Pressable>

@@ -3,7 +3,7 @@ import { useToast } from "@/components/Toast/toast-provider";
 import { getAuth, logout } from "@/lib/auth-storage";
 import { otpRequestSchema } from "@/type/auth";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Eye, EyeOff } from "lucide-react-native";
+import { ChevronLeft, Eye, EyeOff } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import {
   Image,
@@ -15,7 +15,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { login, requestOtp, update_password } from "../api/auth";
+import { login, requestOtp, update_password } from "./api/auth";
 
 function InputBox({ children }: { children: React.ReactNode }) {
   return (
@@ -154,6 +154,13 @@ export default function UpdatePasswordEmail() {
     <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }}>
         <BackgroundGlow showText={true} />
+        {/* Opened from sign-in or profile, so go back to wherever we came from. */}
+        <Pressable
+          className="mx-4 w-10 h-10 items-center justify-center"
+          onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+        >
+          <ChevronLeft size={22} />
+        </Pressable>
 
         <View className="flex-1">
           <View className="flex-1 justify-center items-center">

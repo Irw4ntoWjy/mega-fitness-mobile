@@ -195,7 +195,7 @@ export default function SignIn() {
               <TouchableOpacity
                 onPress={() =>
                   router.push({
-                    pathname: "/(auth)/update-password-email",
+                    pathname: "/update-password-email",
                     params: email ? { email } : undefined,
                   })
                 }

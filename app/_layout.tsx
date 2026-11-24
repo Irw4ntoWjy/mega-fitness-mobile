@@ -69,6 +69,10 @@ export default function RootLayout() {
               options={{ headerShown: false }}
             />
           </Stack.Protected>
+          <Stack.Screen
+            name="update-password-email"
+            options={{ headerShown: false }}
+          />
         </Stack>
       </ToastProvider>
     </SafeAreaProvider>
