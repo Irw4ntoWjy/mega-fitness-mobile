@@ -1,0 +1,28 @@
+diff --git a/dist/index.js b/dist/index.js
+index 3aff2e2030b4f2df810d090d3250b865cf446f02..93c42028409a89fb372b5e96fa30e608a4480ca5 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -686,7 +686,8 @@ var CopilotModal = (0, import_react5.forwardRef)(
+         visible: true,
+         onRequestClose: noop,
+         transparent: true,
+-        supportedOrientations: ["portrait", "landscape"]
++        supportedOrientations: ["portrait", "landscape"],
++        statusBarTranslucent: true
+       },
+       /* @__PURE__ */ import_react5.default.createElement(import_react_native6.View, { style: styles.container, onLayout: handleLayoutChange }, contentVisible && renderMask(), contentVisible && renderTooltip())
+     );
+diff --git a/dist/index.mjs b/dist/index.mjs
+index 5a1e0a81b152e5a1e37f66637c0fd3b23d26abc6..aa4d325799b62843468d432f2aceeb6e96896c5b 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -694,7 +694,8 @@ var CopilotModal = forwardRef(
+         visible: true,
+         onRequestClose: noop,
+         transparent: true,
+-        supportedOrientations: ["portrait", "landscape"]
++        supportedOrientations: ["portrait", "landscape"],
++        statusBarTranslucent: true
+       },
+       /* @__PURE__ */ React5.createElement(View5, { style: styles.container, onLayout: handleLayoutChange }, contentVisible && renderMask(), contentVisible && renderTooltip())
+     );
