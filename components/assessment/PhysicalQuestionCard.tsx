@@ -103,10 +103,11 @@ export default function PhysicalQuestionCard({
     >
       <View className="flex-row">
         <View className="flex-1 px-4">
-          {/* QUESTION */}
-          <Text className="font-semibold text-md leading-6.8 pb-2">
-            {q.key.en}
-          </Text>
+          {q.key.en !== q.group && (
+            <Text className="font-semibold text-md leading-6.8 pb-2">
+              {q.key.en}
+            </Text>
+          )}
 
           {/* INDONESIAN */}
           {q.key.id && (
@@ -149,7 +150,9 @@ export default function PhysicalQuestionCard({
                 <TextInput
                   value={detailsValue}
                   onChangeText={updateDetail}
-                  placeholder={isDisabled ? undefined : "Jelaskan lebih lanjut..."}
+                  placeholder={
+                    isDisabled ? undefined : "Jelaskan lebih lanjut..."
+                  }
                   placeholderTextColor="#6b7280"
                   className="border-b border-gray-300 text-md py-1"
                   textAlignVertical="top"
@@ -181,7 +184,9 @@ export default function PhysicalQuestionCard({
                       desc: single
                         ? opt
                         : options
-                            .filter((o) => (o === opt ? !selected : picked.includes(o)))
+                            .filter((o) =>
+                              o === opt ? !selected : picked.includes(o),
+                            )
                             .join("; "),
                     })
                   }
@@ -200,7 +205,9 @@ export default function PhysicalQuestionCard({
                   ) : (
                     <View
                       className={`w-5 h-5 mt-0.5 rounded border items-center justify-center ${
-                        selected ? "border-cyan-600 bg-cyan-600" : "border-gray-400"
+                        selected
+                          ? "border-cyan-600 bg-cyan-600"
+                          : "border-gray-400"
                       }`}
                     >
                       {selected && <Check size={14} color="#fff" />}
